@@ -11,6 +11,7 @@ export interface DeliveryItem {
   id: number;
   categoryId: number;
   name: string;
+  isActive: boolean;
 }
 
 export interface DeliveryOrder {
@@ -61,7 +62,7 @@ export async function createDeliveryItem(
   const res = await client.query<DeliveryItem>(
     `INSERT INTO delivery_items (category_id, name)
      VALUES ($1, $2)
-     RETURNING id, category_id AS "categoryId", name`,
+     RETURNING id, category_id AS "categoryId", name, is_active AS "isActive"`,
     [categoryId, name],
   );
   return res.rows[0];
@@ -71,7 +72,7 @@ export async function listDeliveryItems(
   client: Queryable = pool,
 ): Promise<DeliveryItem[]> {
   const res = await client.query<DeliveryItem>(
-    `SELECT id, category_id AS "categoryId", name
+    `SELECT id, category_id AS "categoryId", name, is_active AS "isActive"
        FROM delivery_items
       ORDER BY name`,
   );
@@ -83,7 +84,7 @@ export async function listDeliveryItemsByCategory(
   client: Queryable = pool,
 ): Promise<DeliveryItem[]> {
   const res = await client.query<DeliveryItem>(
-    `SELECT id, category_id AS "categoryId", name
+    `SELECT id, category_id AS "categoryId", name, is_active AS "isActive"
        FROM delivery_items
       WHERE category_id = $1
       ORDER BY name`,
