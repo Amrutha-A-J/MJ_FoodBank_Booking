@@ -43,7 +43,7 @@ describe('PantrySchedule Today button', () => {
     renderWithProviders(<PantrySchedule />);
 
     await waitFor(() => expect(getSlots).toHaveBeenCalledTimes(1));
-    expect(screen.getByText('9:00 AM - 9:30 AM')).toBeInTheDocument();
+    expect(await screen.findByText('9:00 AM - 9:30 AM')).toBeInTheDocument();
 
     fireEvent.click(await screen.findByRole('button', { name: 'Next' }));
 
