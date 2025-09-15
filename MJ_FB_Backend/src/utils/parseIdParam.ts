@@ -1,6 +1,6 @@
 export function parseIdParam(value: unknown): number | null {
   const id = Number(value);
-  return Number.isNaN(id) || id < 1 ? null : id;
+  return Number.isInteger(id) && id > 0 ? id : null;
 }
 
 export default parseIdParam;
