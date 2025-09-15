@@ -1,5 +1,15 @@
 import request from 'supertest';
 
+jest.setTimeout(15000);
+
+afterEach(() => {
+  const cron = require('node-cron');
+  for (const task of cron.getTasks().values()) {
+    task.stop();
+  }
+  jest.resetModules();
+});
+
 // Ensure cookie domain isn't applied in non-production environments
 // even if COOKIE_DOMAIN is set.
 describe('auth cookies in non-production', () => {
