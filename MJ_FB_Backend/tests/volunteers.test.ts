@@ -319,6 +319,37 @@ describe('Volunteer shopper profile', () => {
     expect(sendTemplatedEmail).not.toHaveBeenCalled();
   });
 
+  it('links to an existing client ID when provided', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            first_name: 'John',
+            last_name: 'Doe',
+            email: 'vol@example.com',
+            phone: '123',
+          },
+        ],
+      }) // volunteer
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // emailCheck
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ client_id: 123 }] }) // clientId check
+      .mockResolvedValueOnce({}); // update volunteer
+
+    const res = await request(app)
+      .post('/volunteers/1/shopper')
+      .send({ clientId: 123 });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ userId: 123 });
+    expect(pool.query).toHaveBeenCalledTimes(4);
+    expect((pool.query as jest.Mock).mock.calls[3][0]).toMatch(
+      /UPDATE volunteers SET user_id = \$1 WHERE id = \$2/,
+    );
+    expect(generatePasswordSetupToken).not.toHaveBeenCalled();
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
+  });
+
   it('returns 409 when shopper profile already exists', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rowCount: 1,
