@@ -131,6 +131,10 @@ const DonorDonationLog = React.lazy(() =>
 const PrivacyPolicy = React.lazy(() =>
   import('./pages/privacy/PrivacyPolicy')
 );
+const BookDelivery = React.lazy(() => import('./pages/delivery/BookDelivery'));
+const DeliveryHistory = React.lazy(
+  () => import('./pages/delivery/DeliveryHistory')
+);
 
 const Spinner = () => <CircularProgress />;
 
@@ -245,6 +249,15 @@ export default function App() {
         { label: 'Dashboard', to: '/' },
         { label: 'Book Appointment', to: '/agency/book' },
         { label: 'Booking History', to: '/agency/history' },
+      ],
+    });
+  } else if (role === 'delivery') {
+    navGroups.push({
+      label: 'Delivery',
+      links: [
+        { label: 'Dashboard', to: '/' },
+        { label: 'Book Delivery', to: '/delivery/book' },
+        { label: 'Delivery History', to: '/delivery/history' },
       ],
     });
   } else if (role === 'shopper') {
@@ -565,6 +578,19 @@ export default function App() {
                       <Route
                         path="/volunteer/history"
                         element={<VolunteerBookingHistory />}
+                      />
+                    </>
+                  )}
+
+                  {role === 'delivery' && (
+                    <>
+                      <Route
+                        path="/delivery/book"
+                        element={<BookDelivery />}
+                      />
+                      <Route
+                        path="/delivery/history"
+                        element={<DeliveryHistory />}
                       />
                     </>
                   )}

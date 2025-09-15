@@ -11,6 +11,54 @@ export type StaffAccess =
   | 'donation_entry'
   | 'aggregations';
 
+export interface DeliveryItem {
+  id: number;
+  categoryId: number;
+  name: string;
+  description?: string | null;
+  maxQuantity?: number | null;
+  maxPerOrder?: number | null;
+  unit?: string | null;
+}
+
+export interface DeliveryCategory {
+  id: number;
+  name: string;
+  description?: string | null;
+  limit?: number | null;
+  maxItems?: number | null;
+  maxSelections?: number | null;
+  limitPerOrder?: number | null;
+  items: DeliveryItem[];
+}
+
+export type DeliveryOrderStatus =
+  | 'pending'
+  | 'approved'
+  | 'scheduled'
+  | 'completed'
+  | 'cancelled';
+
+export interface DeliveryOrderItem {
+  itemId: number;
+  name: string;
+  quantity: number;
+  categoryId: number;
+  categoryName?: string | null;
+}
+
+export interface DeliveryOrder {
+  id: number;
+  status: DeliveryOrderStatus;
+  createdAt: string;
+  scheduledFor?: string | null;
+  address: string;
+  phone: string;
+  email?: string | null;
+  notes?: string | null;
+  items: DeliveryOrderItem[];
+}
+
 export interface Staff {
   id: number;
   firstName: string;
