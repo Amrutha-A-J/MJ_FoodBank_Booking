@@ -1,9 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import maintenanceGuard from '../src/middleware/maintenanceGuard';
-import pool from '../src/db';
-
-jest.mock('../src/db');
+import mockPool, { setQueryResults } from './utils/mockDb';
 
 const app = express();
 app.use((req, _res, next) => {
@@ -15,9 +13,10 @@ app.use((req, _res, next) => {
 });
 app.use(maintenanceGuard);
 app.get('/protected', (_req, res) => res.sendStatus(200));
-
-afterEach(() => {
-  jest.clearAllMocks();
+app.get('/maintenance', (_req, res) => res.sendStatus(200));
+app.get('/auth/login', (_req, res) => res.sendStatus(200));
+app.use((err: Error, _req, res, _next) => {
+  res.status(500).json({ message: err.message });
 });
 
 const originalEnv = process.env.NODE_ENV;
@@ -30,40 +29,40 @@ afterAll(() => {
   process.env.NODE_ENV = originalEnv;
 });
 
+afterEach(() => {
+  (mockPool.query as jest.Mock).mockReset();
+});
+
 describe('maintenanceGuard', () => {
-  it('blocks anonymous access during maintenance', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rows: [{ value: 'true' }],
-    });
+  it.each(['staff', 'admin'])(
+    'bypasses DB lookup for %s users',
+    async (role) => {
+      const res = await request(app)
+        .get('/protected')
+        .set('x-user', JSON.stringify({ role }));
+      expect(res.status).toBe(200);
+      expect(mockPool.query).not.toHaveBeenCalled();
+    },
+  );
+
+  it('returns 503 for non-privileged users when maintenance mode is on', async () => {
+    setQueryResults({ rows: [{ value: 'true' }] });
     const res = await request(app).get('/protected');
     expect(res.status).toBe(503);
   });
 
-  it('blocks non-staff users during maintenance', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rows: [{ value: 'true' }],
-    });
-    const res = await request(app)
-      .get('/protected')
-      .set('x-user', JSON.stringify({ role: 'volunteer' }));
-    expect(res.status).toBe(503);
-  });
+  it.each(['/maintenance', '/auth/login'])(
+    'allows %s during maintenance',
+    async (path) => {
+      setQueryResults({ rows: [{ value: 'true' }] });
+      const res = await request(app).get(path);
+      expect(res.status).toBe(200);
+    },
+  );
 
-  it('allows staff during maintenance', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rows: [{ value: 'true' }],
-    });
-    const res = await request(app)
-      .get('/protected')
-      .set('x-user', JSON.stringify({ role: 'staff' }));
-    expect(res.status).toBe(200);
-  });
-
-  it('allows access when not in maintenance', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rows: [{ value: 'false' }],
-    });
+  it('forwards database errors', async () => {
+    (mockPool.query as jest.Mock).mockRejectedValueOnce(new Error('fail'));
     const res = await request(app).get('/protected');
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(500);
   });
 });
