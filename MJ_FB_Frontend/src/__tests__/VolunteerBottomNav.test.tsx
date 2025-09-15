@@ -20,13 +20,13 @@ describe('VolunteerBottomNav', () => {
     mockUseAuth.mockReturnValue({ role: 'volunteer', userRole: '' });
   });
 
-  it('selects volunteer tab when on schedule route', () => {
+  it('selects shifts tab when on schedule route', () => {
     render(
       <MemoryRouter initialEntries={['/volunteer/schedule']}>
         <VolunteerBottomNav />
       </MemoryRouter>,
     );
-    const scheduleBtn = screen.getByRole('button', { name: /volunteer/i });
+    const scheduleBtn = screen.getByRole('button', { name: /shifts/i });
     expect(scheduleBtn).toHaveClass('Mui-selected');
   });
 
