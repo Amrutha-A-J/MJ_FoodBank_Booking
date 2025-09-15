@@ -34,6 +34,11 @@ app.use((req, _res, next) => {
 });
 app.use('/volunteers', volunteersRouter);
 
+const createMockClient = () => ({
+  query: jest.fn().mockResolvedValue({}),
+  release: jest.fn(),
+});
+
 describe('Volunteer routes role ID validation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -338,35 +343,48 @@ describe('Volunteer shopper profile', () => {
   });
 
   it('removes a shopper profile for a volunteer', async () => {
+    const mockClient = createMockClient();
+    (pool.connect as jest.Mock).mockResolvedValue(mockClient);
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ user_id: 9 }] })
       .mockResolvedValueOnce({
         rowCount: 1,
         rows: [{ profile_link: 'https://portal.link2feed.ca/org/1605/intake/9' }],
-      })
-      .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({});
+      });
 
     const res = await request(app).delete('/volunteers/1/shopper');
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ message: 'Shopper profile removed' });
-    expect(pool.query).toHaveBeenCalledTimes(4);
+    expect(pool.query).toHaveBeenCalledTimes(2);
+    expect(pool.connect).toHaveBeenCalledTimes(1);
+    expect(mockClient.query).toHaveBeenCalledTimes(4);
+    const clientQueries = (mockClient.query as jest.Mock).mock.calls.map(c => c[0]);
+    expect(clientQueries[0]).toBe('BEGIN');
+    expect(clientQueries[1]).toMatch(/UPDATE volunteers SET user_id = NULL/);
+    expect(clientQueries[2]).toMatch(/DELETE FROM clients/);
+    expect(clientQueries[3]).toBe('COMMIT');
   });
 
   it('unlinks from existing client without deleting record', async () => {
+    const mockClient = createMockClient();
+    (pool.connect as jest.Mock).mockResolvedValue(mockClient);
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ user_id: 9 }] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ profile_link: 'existing-link' }] })
-      .mockResolvedValueOnce({});
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ profile_link: 'existing-link' }] });
 
     const res = await request(app).delete('/volunteers/1/shopper');
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ message: 'Shopper profile removed' });
-    expect(pool.query).toHaveBeenCalledTimes(3);
-    const queries = (pool.query as jest.Mock).mock.calls.map(c => c[0]);
+    expect(pool.query).toHaveBeenCalledTimes(2);
+    expect(pool.connect).toHaveBeenCalledTimes(1);
+    expect(mockClient.query).toHaveBeenCalledTimes(3);
+    const queries = (mockClient.query as jest.Mock).mock.calls.map(c => c[0]);
     expect(queries.some((q: string) => /DELETE FROM clients/.test(q))).toBe(false);
+    expect(queries[0]).toBe('BEGIN');
+    expect(queries[1]).toMatch(/UPDATE volunteers SET user_id = NULL/);
+    expect(queries[2]).toBe('COMMIT');
   });
 });
 
