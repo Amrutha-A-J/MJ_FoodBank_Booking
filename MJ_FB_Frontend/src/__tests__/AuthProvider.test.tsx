@@ -37,6 +37,7 @@ describe('AuthProvider cardUrl cleanup', () => {
   it('clears cardUrl on logout', async () => {
     (apiFetch as jest.Mock)
       .mockResolvedValueOnce({ ok: true, status: 200 })
+      .mockResolvedValueOnce({ ok: true })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cardUrl: '/card.pdf' }) });
     (apiLogout as jest.Mock).mockResolvedValue(undefined);
 
@@ -56,6 +57,7 @@ describe('AuthProvider cardUrl cleanup', () => {
   it('clears cardUrl when session ends in another tab', async () => {
     (apiFetch as jest.Mock)
       .mockResolvedValueOnce({ ok: true, status: 200 })
+      .mockResolvedValueOnce({ ok: true })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cardUrl: '/card.pdf' }) });
     (apiLogout as jest.Mock).mockResolvedValue(undefined);
 
