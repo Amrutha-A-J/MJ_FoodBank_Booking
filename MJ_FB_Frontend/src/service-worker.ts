@@ -1,5 +1,8 @@
 /// <reference lib="webworker" />
-import { precacheAndRoute } from 'workbox-precaching'
+import {
+  precacheAndRoute,
+  type PrecacheEntry as ManifestEntry,
+} from 'workbox-precaching'
 import { registerRoute } from 'workbox-routing'
 import {
   CacheFirst,
@@ -9,7 +12,9 @@ import {
 import { ExpirationPlugin } from 'workbox-expiration'
 import { BackgroundSyncPlugin } from 'workbox-background-sync'
 
-declare let self: ServiceWorkerGlobalScope & { __WB_MANIFEST: any }
+declare let self: ServiceWorkerGlobalScope & {
+  __WB_MANIFEST: ManifestEntry[]
+}
 
 // self.__WB_MANIFEST is injected at build time
 precacheAndRoute(self.__WB_MANIFEST)
