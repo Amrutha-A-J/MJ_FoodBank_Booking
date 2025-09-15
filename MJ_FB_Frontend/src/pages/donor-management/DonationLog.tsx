@@ -11,6 +11,7 @@ import {
   Stack,
   Autocomplete,
   IconButton,
+  Box,
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import Page from '../../components/Page';
@@ -283,7 +284,7 @@ export default function DonationLog() {
     <>
       <DonorQuickLinks />
       <Page title="Donation Log">
-        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+        <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap' }}>
           <Button
             variant="contained"
             onClick={e => {
@@ -311,6 +312,7 @@ export default function DonationLog() {
             onChange={handleImport}
             style={{ display: 'none' }}
           />
+          <Box sx={{ flexBasis: '100%', height: 0 }} />
           <Button
             variant="outlined"
             onClick={() => fileInputRef.current?.click()}
