@@ -47,6 +47,8 @@ import leaveRequestsRoutes from './routes/leaveRequests';
 import sunshineBagsRoutes from './routes/sunshineBags';
 import webauthnRoutes from './routes/webauthn';
 import pantryAggregationsRoutes from './routes/pantry/aggregations';
+import deliveryCategoriesRoutes from './routes/delivery/categories';
+import deliveryOrdersRoutes from './routes/delivery/orders';
 import maintenanceRoutes from './routes/maintenance';
 import { optionalAuthMiddleware } from './middleware/authMiddleware';
 import maintenanceGuard from './middleware/maintenanceGuard';
@@ -130,6 +132,8 @@ api.use('/timesheets', timesheetsRoutes);
 api.use('/leave/requests', leaveRequestsRoutes);
 api.use('/sunshine-bags', sunshineBagsRoutes);
 api.use('/pantry-aggregations', pantryAggregationsRoutes);
+api.use('/delivery/categories', deliveryCategoriesRoutes);
+api.use('/delivery/orders', deliveryOrdersRoutes);
 api.use('/maintenance', maintenanceRoutes);
 
 // Redirect legacy /api requests to /api/v1

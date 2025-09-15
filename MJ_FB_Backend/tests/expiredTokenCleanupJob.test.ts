@@ -1,4 +1,13 @@
-jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
+const cronScheduleMock = jest.fn();
+jest.mock(
+  'node-cron',
+  () => ({
+    __esModule: true,
+    default: { schedule: cronScheduleMock },
+    schedule: cronScheduleMock,
+  }),
+  { virtual: true },
+);
 jest.mock('../src/utils/scheduleDailyJob', () => {
   const actual = jest.requireActual('../src/utils/scheduleDailyJob');
   return {
