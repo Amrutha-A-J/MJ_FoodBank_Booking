@@ -301,3 +301,9 @@ export interface SunshineBag {
   weight: number;
   clientCount: number;
 }
+
+export interface AgencyClient {
+  clientId: number;
+  name: string;
+  email?: string;
+}
