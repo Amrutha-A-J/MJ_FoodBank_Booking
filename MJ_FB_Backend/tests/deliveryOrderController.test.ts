@@ -16,18 +16,20 @@ describe('deliveryOrderController', () => {
 
   describe('createDeliveryOrder', () => {
     it('rejects selections exceeding category limits', async () => {
-      (mockDb.query as jest.Mock).mockResolvedValueOnce({
-        rows: [
-          {
-            itemId: 11,
-            categoryId: 5,
-            itemName: 'Canned Soup',
-            categoryName: 'Pantry',
-            maxItems: 1,
-          },
-        ],
-        rowCount: 1,
-      });
+      (mockDb.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ count: '0' }], rowCount: 1 })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              itemId: 11,
+              categoryId: 5,
+              itemName: 'Canned Soup',
+              categoryName: 'Pantry',
+              maxItems: 1,
+            },
+          ],
+          rowCount: 1,
+        });
 
       const req = {
         user: { role: 'delivery', id: '123', type: 'user' },
@@ -53,13 +55,19 @@ describe('deliveryOrderController', () => {
       expect(res.json).toHaveBeenCalledWith({
         message: 'Too many items selected for Pantry. Limit is 1.',
       });
-      expect(mockDb.query).toHaveBeenCalledTimes(1);
+      expect(mockDb.query).toHaveBeenCalledTimes(2);
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        1,
+        expect.stringContaining('FROM delivery_orders'),
+        [123],
+      );
       expect(sendTemplatedEmail).not.toHaveBeenCalled();
     });
 
     it('creates an order and notifies staff via email', async () => {
       const submittedAt = new Date('2024-06-01T15:30:00Z');
       (mockDb.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ count: '1' }], rowCount: 1 })
         .mockResolvedValueOnce({
           rows: [
             {
@@ -109,16 +117,21 @@ describe('deliveryOrderController', () => {
 
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
+        expect.stringContaining('FROM delivery_orders'),
+        [456],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        2,
         expect.stringContaining('FROM delivery_items'),
         [[21]],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        2,
+        3,
         expect.stringContaining('INSERT INTO delivery_orders'),
         [456, '456 Elm St', '555-2222', 'shopper@example.com'],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        3,
+        4,
         expect.stringContaining('INSERT INTO delivery_order_items'),
         [77, 21, 2],
       );
@@ -155,6 +168,44 @@ describe('deliveryOrderController', () => {
           createdAt: submittedAt.toISOString(),
         },
       });
+    });
+
+    it('rejects a third order in the same month', async () => {
+      (mockDb.query as jest.Mock).mockResolvedValueOnce({
+        rows: [{ count: '2' }],
+        rowCount: 1,
+      });
+
+      const req = {
+        user: { role: 'delivery', id: '321', type: 'user' },
+        body: {
+          clientId: 321,
+          address: '789 Pine Ave',
+          phone: '555-3333',
+          email: 'third@example.com',
+          selections: [
+            { itemId: 42, quantity: 1 },
+          ],
+        },
+      } as any;
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      await createDeliveryOrder(req, res, jest.fn());
+      await flushPromises();
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "You've reached the monthly delivery limit",
+      });
+      expect(mockDb.query).toHaveBeenCalledTimes(1);
+      expect(mockDb.query).toHaveBeenCalledWith(
+        expect.stringContaining('FROM delivery_orders'),
+        [321],
+      );
+      expect(sendTemplatedEmail).not.toHaveBeenCalled();
     });
   });
 });
