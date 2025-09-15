@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogTitle, Button, TextField, Typography } from '@mui/material';
 import { requestPasswordReset } from '../api/users';
+import type { PasswordResetBody } from '../types';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
 import type { AlertColor } from '@mui/material';
@@ -23,7 +24,7 @@ export default function PasswordResetDialog({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const body: any =
+      const body: PasswordResetBody =
         identifier.includes('@') || !/^\d+$/.test(identifier)
           ? { email: identifier }
           : { clientId: identifier };
