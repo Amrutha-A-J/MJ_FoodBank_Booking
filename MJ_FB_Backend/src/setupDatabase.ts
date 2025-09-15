@@ -579,29 +579,40 @@ ON CONFLICT (id) DO NOTHING;
 -- when new roles are created without specifying an ID.
 SELECT setval('volunteer_roles_id_seq', (SELECT COALESCE(MAX(id), 0) FROM volunteer_roles));
 
-INSERT INTO volunteer_slots (role_id, start_time, end_time, max_volunteers, is_wednesday_slot) VALUES
-(1, '09:00:00', '12:00:00', 3, false),
-(2, '09:00:00', '12:00:00', 3, false),
-(3, '09:00:00', '12:00:00', 1, false),
-(4, '09:00:00', '12:00:00', 1, false),
-(5, '08:00:00', '11:00:00', 1, false),
-(6, '09:00:00', '12:00:00', 1, false),
-(6, '12:30:00', '15:30:00', 1, false),
-(6, '15:30:00', '18:30:00', 1, true),
-(7, '09:00:00', '12:00:00', 3, false),
-(7, '12:30:00', '15:30:00', 3, false),
-(7, '15:30:00', '18:30:00', 3, true),
-(7, '16:30:00', '19:30:00', 3, true),
-(8, '08:00:00', '11:00:00', 1, false),
-(8, '12:00:00', '15:00:00', 1, false),
-(9, '13:00:00', '16:00:00', 2, false),
-(10, '09:00:00', '17:00:00', 5, false),
-(11, '09:00:00', '17:00:00', 5, false),
-(12, '08:00:00', '16:00:00', 1, false),
-(13, '08:00:00', '16:00:00', 1, false),
-(14, '08:00:00', '16:00:00', 1, false),
-(15, '08:00:00', '16:00:00', 1, false)
-ON CONFLICT (role_id, start_time, end_time) DO NOTHING;
+WITH seed_slots (role_id, start_time, end_time, max_volunteers, is_wednesday_slot) AS (
+  VALUES
+    (1, '09:00:00', '12:00:00', 3, false),
+    (2, '09:00:00', '12:00:00', 3, false),
+    (3, '09:00:00', '12:00:00', 1, false),
+    (4, '09:00:00', '12:00:00', 1, false),
+    (5, '08:00:00', '11:00:00', 1, false),
+    (6, '09:00:00', '12:00:00', 1, false),
+    (6, '12:30:00', '15:30:00', 1, false),
+    (6, '15:30:00', '18:30:00', 1, true),
+    (7, '09:00:00', '12:00:00', 3, false),
+    (7, '12:30:00', '15:30:00', 3, false),
+    (7, '15:30:00', '18:30:00', 3, true),
+    (7, '16:30:00', '19:30:00', 3, true),
+    (8, '08:00:00', '11:00:00', 1, false),
+    (8, '12:00:00', '15:00:00', 1, false),
+    (9, '13:00:00', '16:00:00', 2, false),
+    (10, '09:00:00', '17:00:00', 5, false),
+    (11, '09:00:00', '17:00:00', 5, false),
+    (12, '08:00:00', '16:00:00', 1, false),
+    (13, '08:00:00', '16:00:00', 1, false),
+    (14, '08:00:00', '16:00:00', 1, false),
+    (15, '08:00:00', '16:00:00', 1, false)
+)
+INSERT INTO volunteer_slots (role_id, start_time, end_time, max_volunteers, is_wednesday_slot)
+SELECT s.role_id, s.start_time, s.end_time, s.max_volunteers, s.is_wednesday_slot
+FROM seed_slots s
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM volunteer_slots vs
+  WHERE vs.role_id = s.role_id
+    AND vs.start_time = s.start_time
+    AND vs.end_time = s.end_time
+);
 `);
 
   await client.query(
