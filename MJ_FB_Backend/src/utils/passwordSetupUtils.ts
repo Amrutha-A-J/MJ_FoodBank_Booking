@@ -77,7 +77,7 @@ export function buildPasswordSetupEmailParams(
   if (userType === 'clients' && clientId !== undefined) {
     params.clientId = clientId;
   }
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV !== 'production') {
     const context =
       userType === 'clients' && clientId !== undefined
         ? `clients:${clientId}`
