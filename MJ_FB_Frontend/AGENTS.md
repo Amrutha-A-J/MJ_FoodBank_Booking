@@ -15,6 +15,8 @@
 - Build requires `VITE_API_BASE` to be set in `MJ_FB_Frontend/.env`.
 - `pages/` define top-level views and are organized into feature-based directories (booking, staff, volunteer-management, warehouse-management, etc.).
 - Client pages include `<ClientBottomNav />`, and volunteer pages include `<VolunteerBottomNav />` for consistent navigation.
+- Delivery clients see **Book Delivery** and **Delivery History** routes. The booking form fetches categories from `/delivery/categories`, enforces each category's `maxItems` limit, requires address/phone/email details, and submits to `/delivery/orders`.
+- The Pantry tab under Admin → Settings lets staff manage delivery categories and items; these settings shape the options shown on Book Delivery.
 - `components/` provide reusable UI elements; use `FeedbackSnackbar` for notifications. The dashboard UI lives in `components/dashboard`.
 - `api/` wraps server requests.
 - `utils/`, `types.ts`, and theming files manage helpers, typings, and Material UI themes.

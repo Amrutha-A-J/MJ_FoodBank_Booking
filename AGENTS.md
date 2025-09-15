@@ -13,6 +13,8 @@
 - `/slots/range` returns 90 days of availability by default so the pantry schedule can load slots three months ahead.
 - Staff can add existing clients to the app from the pantry schedule's Assign User modal by entering a client ID. The client is created as a shopper with online access disabled and immediately assigned to the selected slot.
 - Staff can book appointments for any future date from the pantry schedule; the client-only limit of booking in the current month (and next month only during the final week) does not apply to staff.
+- Delivery clients submit grocery requests from the Book Delivery page. Each request enforces per-category item limits configured in Admin → Settings → Pantry and emails the operations inbox using Brevo template `DELIVERY_REQUEST_TEMPLATE_ID`.
+- Delivery clients review submissions on the Delivery History page. Keep staff processing steps documented in `docs/delivery.md`.
 - A unified `/login` page serves clients, staff, volunteers, and agencies; everyone signs in with their client ID or email and password.
 - The login page automatically prompts for passkeys via WebAuthn on supported devices.
 - Volunteers see an Install App button on their first visit to volunteer pages when the app isn't already installed. An onboarding modal explains offline use, and installations are tracked.
@@ -66,6 +68,7 @@ See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
 | `CLIENT_RESCHEDULE_TEMPLATE_ID` | Booking reschedule notifications for clients | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
 | `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Volunteer shift reschedule emails | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
+| `DELIVERY_REQUEST_TEMPLATE_ID` | Delivery request notifications for staff | `orderId`, `clientId`, `address`, `phone`, `email`, `itemList`, `createdAt` |
 | `DONOR_TEMPLATE_ID_*` | Monetary donor emails for tiered amounts ($1–$100, $101–$500, $501–$1,000, $1,001–$10,000, $10,001–$30,000) | `firstName`, `amount`, `families`, `adults`, `children`, `pounds`, `month`, `year` |
 
 Client and volunteer reschedule emails currently use Brevo template ID **10**.
