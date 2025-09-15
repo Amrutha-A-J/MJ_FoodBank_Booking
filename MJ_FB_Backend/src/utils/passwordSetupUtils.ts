@@ -1,6 +1,7 @@
 import { randomBytes, createHash } from 'crypto';
 import pool from '../db';
 import config from '../config';
+import logger from './logger';
 
 export type PasswordTokenRow = {
   id: number;
@@ -66,14 +67,22 @@ export function buildPasswordSetupEmailParams(
     staff: 'staff',
     agencies: 'agency',
   };
+  const link = `${config.frontendOrigins[0]}/set-password?token=${token}`;
   const params: Record<string, unknown> = {
-    link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+    link,
     token,
     role: roleMap[userType],
     loginLink: `${config.frontendOrigins[0]}${loginPathMap[userType]}`,
   };
   if (userType === 'clients' && clientId !== undefined) {
     params.clientId = clientId;
+  }
+  if (process.env.NODE_ENV === 'development') {
+    const context =
+      userType === 'clients' && clientId !== undefined
+        ? `clients:${clientId}`
+        : userType;
+    logger.info(`Password reset link for ${context}: ${link}`);
   }
   return params;
 }
