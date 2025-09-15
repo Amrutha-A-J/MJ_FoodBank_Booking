@@ -33,11 +33,11 @@ const handleCreateBooking = (req: Request, res: Response, next: NextFunction) =>
   return createBooking(req, res, next);
 };
 
-// Shopper/delivery or staff create booking
+// Shopper, staff, or agency create booking
 router.post(
   '/',
   authMiddleware,
-  authorizeRoles('shopper', 'delivery', 'staff', 'agency'),
+  authorizeRoles('shopper', 'staff', 'agency'),
   handleCreateBooking
 );
 
