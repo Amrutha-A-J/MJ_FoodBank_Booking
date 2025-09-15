@@ -70,3 +70,82 @@ describe('sendTemplatedEmail Brevo failure', () => {
     );
   });
 });
+
+describe('sendTemplatedEmail attachments', () => {
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true });
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    shutdownQueue();
+    jest.resetAllMocks();
+  });
+
+  it('sends email without attachments', async () => {
+    await sendTemplatedEmail({ to: 'user@example.com', templateId: 1 });
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(body.attachment).toBeUndefined();
+  });
+
+  it('sends email with attachments', async () => {
+    const attachments = [
+      { name: 'test.txt', content: 'hello', type: 'text/plain' },
+    ];
+
+    await sendTemplatedEmail({ to: 'user@example.com', templateId: 1, attachments });
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(body.attachment).toEqual(attachments);
+  });
+});
+
+describe('sendTemplatedEmail error handling', () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    shutdownQueue();
+    jest.resetAllMocks();
+  });
+
+  it('alerts ops when template rendering fails', async () => {
+    global.fetch = jest.fn();
+    const stringifyMock = jest
+      .spyOn(JSON, 'stringify')
+      .mockImplementation(() => {
+        throw new Error('render fail');
+      });
+    const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
+
+    await expect(
+      sendTemplatedEmail({ to: 'user@example.com', templateId: 1 })
+    ).rejects.toThrow('render fail');
+
+    expect(alertOps).toHaveBeenCalledWith('sendTemplatedEmail', expect.any(Error));
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalled();
+
+    stringifyMock.mockRestore();
+    warnSpy.mockRestore();
+  });
+
+  it('alerts ops when transport send rejects', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('network error'));
+    const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
+
+    await expect(
+      sendTemplatedEmail({ to: 'user@example.com', templateId: 1 })
+    ).rejects.toThrow('network error');
+
+    expect(alertOps).toHaveBeenCalledWith('sendTemplatedEmail', expect.any(Error));
+    expect(warnSpy).toHaveBeenCalled();
+
+    warnSpy.mockRestore();
+  });
+});
