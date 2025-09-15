@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import VolunteerManagement from '../VolunteerManagement';
@@ -19,7 +19,11 @@ jest.mock('../../../api/volunteers', () => ({
 }));
 
 describe('VolunteerManagement force booking', () => {
+  let user: ReturnType<typeof userEvent.setup>;
+
   beforeEach(() => {
+    jest.useFakeTimers();
+    user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     (getVolunteerRoles as jest.Mock).mockResolvedValue([
       {
         id: 1,
@@ -51,6 +55,12 @@ describe('VolunteerManagement force booking', () => {
       .mockResolvedValueOnce(undefined);
   });
 
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+    cleanup();
+  });
+
   it('confirms increasing capacity before forcing booking', async () => {
     render(
       <MemoryRouter initialEntries={['/volunteers/schedule']}>
@@ -70,7 +80,7 @@ describe('VolunteerManagement force booking', () => {
 
     fireEvent.click(await screen.findByText('Available'));
 
-    await userEvent.type(await screen.findByLabelText('Search'), 'Test');
+    await user.type(await screen.findByLabelText('Search'), 'Test');
     fireEvent.click(await screen.findByRole('button', { name: 'Assign' }));
 
     expect(
