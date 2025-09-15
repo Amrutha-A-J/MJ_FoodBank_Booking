@@ -61,27 +61,28 @@ export default function UpdateClientData() {
 
   async function handleEdit(client: IncompleteUser) {
     setSelected(client);
+    // Prefill form with basic info so validation passes while details load
+    setForm({
+      firstName: client.firstName || "",
+      lastName: client.lastName || "",
+      email: client.email || "",
+      phone: client.phone || "",
+      onlineAccess: false,
+      password: "",
+      hasPassword: false,
+    });
     try {
       const data = await getUserByClientId(String(client.clientId));
       setForm({
-        firstName: data.firstName || "",
-        lastName: data.lastName || "",
-        email: data.email || "",
-        phone: data.phone || "",
+        firstName: data.firstName || client.firstName || "",
+        lastName: data.lastName || client.lastName || "",
+        email: data.email || client.email || "",
+        phone: data.phone || client.phone || "",
         onlineAccess: Boolean(data.onlineAccess),
         password: "",
         hasPassword: data.hasPassword,
       });
     } catch (err: unknown) {
-      setForm({
-        firstName: client.firstName || "",
-        lastName: client.lastName || "",
-        email: client.email || "",
-        phone: client.phone || "",
-        onlineAccess: false,
-        password: "",
-        hasPassword: false,
-      });
       setSnackbar({
         open: true,
         message: getApiErrorMessage(err, 'Failed to load client details'),
