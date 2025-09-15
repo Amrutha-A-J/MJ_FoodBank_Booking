@@ -84,7 +84,10 @@ export default function BookDelivery() {
         }
       } catch (err) {
         if (active) {
-          const message = getApiErrorMessage(err);
+          const message = getApiErrorMessage(
+            err,
+            "We couldn't load your delivery options. Please try again.",
+          );
           setError(message);
           setSnackbar({ open: true, message, severity: 'error' });
         }
@@ -239,7 +242,10 @@ export default function BookDelivery() {
       setSelectedItems({});
       setFormErrors({});
     } catch (err) {
-      const message = getApiErrorMessage(err);
+      const message = getApiErrorMessage(
+        err,
+        "We couldn't submit your delivery request. Please try again.",
+      );
       setSnackbar({ open: true, message, severity: 'error' });
     } finally {
       setSubmitting(false);

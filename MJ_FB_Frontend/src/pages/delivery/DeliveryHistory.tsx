@@ -91,7 +91,10 @@ export default function DeliveryHistory() {
         }
       } catch (err) {
         if (active) {
-          const message = getApiErrorMessage(err);
+          const message = getApiErrorMessage(
+            err,
+            "We couldn't load your delivery history. Please try again.",
+          );
           setError(message);
           setSnackbar({ open: true, message, severity: 'error' });
         }
