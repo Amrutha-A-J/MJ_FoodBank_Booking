@@ -1,13 +1,18 @@
-import {
-  renderWithProviders,
-  screen,
-  fireEvent,
-  act,
-  waitFor,
-} from '../../../../testUtils/renderWithProviders';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { ThemeProvider } from '@mui/material/styles';
 import PantrySettingsTab from '../settings/PantrySettingsTab';
-import type { Slot } from '../../../types';
+import { theme } from '../../../theme';
+
+jest.mock('../../../hooks/useAppConfig', () => ({
+  __esModule: true,
+  default: () => ({
+    appConfig: { cartTare: 0 },
+    error: null,
+    isLoading: false,
+    refetch: jest.fn(),
+  }),
+}));
 
 jest.mock('../../../api/slots', () => ({
   getAllSlots: jest.fn(),
@@ -15,40 +20,120 @@ jest.mock('../../../api/slots', () => ({
 }));
 
 jest.mock('../../../api/appConfig', () => ({
-  getAppConfig: jest.fn(),
   updateAppConfig: jest.fn(),
 }));
 
-const { getAllSlots, updateSlotCapacity } = jest.requireMock('../../../api/slots');
-const { getAppConfig, updateAppConfig } = jest.requireMock('../../../api/appConfig');
+jest.mock('../../../api/deliveryCategories', () => ({
+  getDeliveryCategories: jest.fn(),
+  createDeliveryCategory: jest.fn(),
+  updateDeliveryCategory: jest.fn(),
+  deleteDeliveryCategory: jest.fn(),
+  createDeliveryCategoryItem: jest.fn(),
+  updateDeliveryCategoryItem: jest.fn(),
+  deleteDeliveryCategoryItem: jest.fn(),
+}));
 
-describe('PantrySettingsTab', () => {
-  it('updates capacity and cart tare', async () => {
-    const slots: Slot[] = [
-      { id: '1', startTime: '09:00', endTime: '10:00', maxCapacity: 5 },
-    ];
-    (getAllSlots as jest.Mock).mockResolvedValue(slots);
-    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 10 });
+const { getAllSlots } = jest.requireMock('../../../api/slots');
+const {
+  getDeliveryCategories,
+  createDeliveryCategory,
+  createDeliveryCategoryItem,
+} = jest.requireMock('../../../api/deliveryCategories');
 
-    renderWithProviders(<PantrySettingsTab />);
+function renderComponent() {
+  return render(
+    <ThemeProvider theme={theme}>
+      <PantrySettingsTab />
+    </ThemeProvider>,
+  );
+}
 
-    const capacityField = await screen.findByLabelText('Max bookings per slot');
-    const tareField = await screen.findByLabelText('Cart Tare (lbs)');
-    expect(capacityField).toHaveValue(5);
-    expect(tareField).toHaveValue(10);
+describe('PantrySettingsTab delivery categories', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (getAllSlots as jest.Mock).mockResolvedValue([]);
+  });
 
-    fireEvent.change(tareField, { target: { value: '15' } });
-    const [saveCapacity, saveTare] = screen.getAllByText('Save');
-    await act(async () => {
-      fireEvent.click(saveTare);
+  it('creates a new delivery category', async () => {
+    (getDeliveryCategories as jest.Mock)
+      .mockResolvedValueOnce([])
+      .mockResolvedValue([{ id: 1, name: 'Produce', maxItems: 5, items: [] }]);
+    (createDeliveryCategory as jest.Mock).mockResolvedValue({
+      id: 1,
+      name: 'Produce',
+      maxItems: 5,
+      items: [],
     });
-    await waitFor(() => expect(updateAppConfig).toHaveBeenCalled());
-    expect(updateAppConfig).toHaveBeenCalledWith({ cartTare: 15 });
 
-    fireEvent.change(capacityField, { target: { value: '7' } });
-    await act(async () => {
-      fireEvent.click(saveCapacity);
+    renderComponent();
+
+    expect(await screen.findByText(/no delivery categories yet/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /add category/i }));
+
+    fireEvent.change(screen.getByLabelText(/name/i), {
+      target: { value: 'Produce' },
     });
-    expect(updateSlotCapacity).toHaveBeenCalledWith(7);
+    fireEvent.change(screen.getByLabelText(/max items per delivery/i), {
+      target: { value: '5' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /create category/i }));
+
+    await waitFor(() => {
+      expect(createDeliveryCategory).toHaveBeenCalledWith({
+        name: 'Produce',
+        maxItems: 5,
+      });
+    });
+
+    await waitFor(() => {
+      expect(getDeliveryCategories).toHaveBeenCalledTimes(2);
+    });
+
+    expect(await screen.findByText('Produce')).toBeInTheDocument();
+    expect(screen.getByText('Max items per delivery: 5')).toBeInTheDocument();
+  });
+
+  it('creates a new item inside a category', async () => {
+    (getDeliveryCategories as jest.Mock)
+      .mockResolvedValueOnce([
+        { id: 1, name: 'Dry goods', maxItems: 3, items: [] },
+      ])
+      .mockResolvedValue([
+        {
+          id: 1,
+          name: 'Dry goods',
+          maxItems: 3,
+          items: [{ id: 2, name: 'Pasta' }],
+        },
+      ]);
+    (createDeliveryCategoryItem as jest.Mock).mockResolvedValue({
+      id: 2,
+      name: 'Pasta',
+    });
+
+    renderComponent();
+
+    await screen.findByText('Dry goods');
+
+    const addItemButton = await screen.findByRole('button', { name: /^add item$/i });
+    fireEvent.click(addItemButton);
+
+    const nameField = await screen.findByLabelText(/item name/i);
+    fireEvent.change(nameField, { target: { value: 'Pasta' } });
+
+    const dialog = await screen.findByRole('dialog', { name: /add item/i });
+    fireEvent.click(within(dialog).getByRole('button', { name: /^add item$/i }));
+
+    await waitFor(() => {
+      expect(createDeliveryCategoryItem).toHaveBeenCalledWith(1, { name: 'Pasta' });
+    });
+
+    await waitFor(() => {
+      expect(getDeliveryCategories).toHaveBeenCalledTimes(2);
+    });
+
+    expect(await screen.findByText('Pasta')).toBeInTheDocument();
   });
 });
