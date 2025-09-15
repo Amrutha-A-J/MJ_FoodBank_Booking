@@ -34,7 +34,7 @@ export async function refreshWarehouseOverall(year: number, month: number) {
     pool.query(
       `SELECT o.email AS "donorEmail", COALESCE(SUM(d.weight)::int, 0) AS total
          FROM donations d
-         JOIN donors o ON d.donor_id = o.id
+         JOIN donors o ON d.donor_email = o.email
          WHERE EXTRACT(YEAR FROM d.date) = $1 AND EXTRACT(MONTH FROM d.date) = $2
          GROUP BY o.email`,
       [year, month],

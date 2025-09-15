@@ -50,7 +50,11 @@ describe('GET /donors/:id/donations', () => {
     );
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
-      'SELECT id, date, weight FROM donations WHERE donor_id = $1 ORDER BY date DESC, id DESC',
+      `SELECT n.id, n.date, n.weight
+       FROM donations n
+       JOIN donors d ON n.donor_email = d.email
+       WHERE d.id = $1
+       ORDER BY n.date DESC, n.id DESC`,
       ['5'],
     );
     expect(res.body).toEqual([

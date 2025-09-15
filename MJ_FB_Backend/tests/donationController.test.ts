@@ -125,31 +125,35 @@ describe('donationController', () => {
       (mockDb.query as jest.Mock)
         .mockResolvedValueOnce({
           rows: [
-            { id: 1, date: '2024-05-20', donorId: 2, weight: 10 },
+            { id: 2, firstName: 'Alice', lastName: 'Smith', email: 'a@example.com' },
           ],
         })
         .mockResolvedValueOnce({
           rows: [
-            { firstName: 'Alice', lastName: 'Smith', email: 'a@example.com' },
+            { id: 1, date: '2024-05-20', weight: 10 },
           ],
         });
       const req = { body: { date: '2024-05-20', donorId: 2, weight: 10 } } as any;
       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
       await addDonation(req, res, jest.fn());
       await flushPromises();
-      expect(mockDb.query).toHaveBeenNthCalledWith(1, expect.any(String), [
-        '2024-05-20',
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        1,
+        'SELECT id, first_name AS "firstName", last_name AS "lastName", email FROM donors WHERE id = $1',
+        [2],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
-        10,
-      ]);
-      expect(mockDb.query).toHaveBeenNthCalledWith(2, expect.any(String), [2]);
+        'INSERT INTO donations (date, donor_email, weight) VALUES ($1, $2, $3) RETURNING id, date, weight',
+        ['2024-05-20', 'a@example.com', 10],
+      );
       expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 5);
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         id: 1,
         date: '2024-05-20',
-        donorId: 2,
         weight: 10,
+        donorId: 2,
         firstName: 'Alice',
         lastName: 'Smith',
         email: 'a@example.com',
@@ -172,12 +176,12 @@ describe('donationController', () => {
       (mockDb.query as jest.Mock)
         .mockResolvedValueOnce({ rows: [{ date: '2024-04-30' }] })
         .mockResolvedValueOnce({
-          rows: [{ id: 1, date: '2024-05-02', donorId: 2, weight: 15 }],
+          rows: [
+            { id: 2, firstName: 'Alice', lastName: 'Smith', email: 'a@example.com' },
+          ],
         })
         .mockResolvedValueOnce({
-          rows: [
-            { firstName: 'Alice', lastName: 'Smith', email: 'a@example.com' },
-          ],
+          rows: [{ id: 1, date: '2024-05-02', weight: 15 }],
         });
       const req = {
         params: { id: '1' },
@@ -191,8 +195,8 @@ describe('donationController', () => {
       expect(res.json).toHaveBeenCalledWith({
         id: 1,
         date: '2024-05-02',
-        donorId: 2,
         weight: 15,
+        donorId: 2,
         firstName: 'Alice',
         lastName: 'Smith',
         email: 'a@example.com',

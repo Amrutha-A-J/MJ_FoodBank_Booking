@@ -23,9 +23,9 @@ export const listDonations = asyncHandler(async (req: Request, res: Response) =>
     const endDate = new Date(Date.UTC(year, monthNum, 1));
     const end = endDate.toISOString().slice(0, 10);
     const result = await pool.query(
-      `SELECT d.id, d.date, d.weight, d.donor_id as "donorId",
+      `SELECT d.id, d.date, d.weight, o.id as "donorId",
               o.first_name as "firstName", o.last_name as "lastName", o.email
-         FROM donations d JOIN donors o ON d.donor_id = o.id
+         FROM donations d JOIN donors o ON d.donor_email = o.email
          WHERE d.date >= $1 AND d.date < $2 ORDER BY d.date, d.id`,
       [start, end],
     );
@@ -33,9 +33,9 @@ export const listDonations = asyncHandler(async (req: Request, res: Response) =>
   }
 
   const result = await pool.query(
-    `SELECT d.id, d.date, d.weight, d.donor_id as "donorId",
+    `SELECT d.id, d.date, d.weight, o.id as "donorId",
             o.first_name as "firstName", o.last_name as "lastName", o.email
-       FROM donations d JOIN donors o ON d.donor_id = o.id
+       FROM donations d JOIN donors o ON d.donor_email = o.email
        WHERE d.date = $1 ORDER BY d.id`,
     [date!],
   );
@@ -44,17 +44,29 @@ export const listDonations = asyncHandler(async (req: Request, res: Response) =>
 
 export const addDonation = asyncHandler(async (req: Request, res: Response) => {
   const { date, donorId, weight } = req.body;
-  const result = await pool.query(
-    'INSERT INTO donations (date, donor_id, weight) VALUES ($1, $2, $3) RETURNING id, date, donor_id as "donorId", weight',
-    [date, donorId, weight],
-  );
   const donorRes = await pool.query(
-    'SELECT first_name AS "firstName", last_name AS "lastName", email FROM donors WHERE id = $1',
+    'SELECT id, first_name AS "firstName", last_name AS "lastName", email FROM donors WHERE id = $1',
     [donorId],
+  );
+  const donor = donorRes.rows[0];
+  if (!donor) {
+    return res.status(404).json({ message: 'Donor not found' });
+  }
+
+  const result = await pool.query(
+    'INSERT INTO donations (date, donor_email, weight) VALUES ($1, $2, $3) RETURNING id, date, weight',
+    [date, donor.email, weight],
   );
   const dt = new Date(reginaStartOfDayISO(date));
   await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
-  res.status(201).json({ ...result.rows[0], ...donorRes.rows[0] });
+  const { id: donorIdValue, firstName, lastName, email } = donor;
+  res.status(201).json({
+    ...result.rows[0],
+    donorId: donorIdValue,
+    firstName,
+    lastName,
+    email,
+  });
 });
 
 export const updateDonation = asyncHandler(async (req: Request, res: Response) => {
@@ -62,26 +74,41 @@ export const updateDonation = asyncHandler(async (req: Request, res: Response) =
   const { date, donorId, weight } = req.body;
   const existing = await pool.query('SELECT date FROM donations WHERE id = $1', [id]);
   const oldDate = existing.rows[0]?.date as string | undefined;
-  const result = await pool.query(
-    'UPDATE donations SET date = $1, donor_id = $2, weight = $3 WHERE id = $4 RETURNING id, date, donor_id as "donorId", weight',
-    [date, donorId, weight, id],
-  );
+  if (!oldDate) {
+    return res.status(404).json({ message: 'Donation not found' });
+  }
   const donorRes = await pool.query(
-    'SELECT first_name AS "firstName", last_name AS "lastName", email FROM donors WHERE id = $1',
+    'SELECT id, first_name AS "firstName", last_name AS "lastName", email FROM donors WHERE id = $1',
     [donorId],
   );
+  const donor = donorRes.rows[0];
+  if (!donor) {
+    return res.status(404).json({ message: 'Donor not found' });
+  }
+  const result = await pool.query(
+    'UPDATE donations SET date = $1, donor_email = $2, weight = $3 WHERE id = $4 RETURNING id, date, weight',
+    [date, donor.email, weight, id],
+  );
+  if (result.rowCount === 0) {
+    return res.status(404).json({ message: 'Donation not found' });
+  }
   const newDt = new Date(reginaStartOfDayISO(date));
   await refreshWarehouseOverall(newDt.getUTCFullYear(), newDt.getUTCMonth() + 1);
-  if (oldDate) {
-    const oldDt = new Date(reginaStartOfDayISO(oldDate));
-    if (
-      oldDt.getUTCFullYear() !== newDt.getUTCFullYear() ||
-      oldDt.getUTCMonth() !== newDt.getUTCMonth()
-    ) {
-      await refreshWarehouseOverall(oldDt.getUTCFullYear(), oldDt.getUTCMonth() + 1);
-    }
+  const oldDt = new Date(reginaStartOfDayISO(oldDate));
+  if (
+    oldDt.getUTCFullYear() !== newDt.getUTCFullYear() ||
+    oldDt.getUTCMonth() !== newDt.getUTCMonth()
+  ) {
+    await refreshWarehouseOverall(oldDt.getUTCFullYear(), oldDt.getUTCMonth() + 1);
   }
-  res.json({ ...result.rows[0], ...donorRes.rows[0] });
+  const { id: donorIdValue, firstName, lastName, email } = donor;
+  res.json({
+    ...result.rows[0],
+    donorId: donorIdValue,
+    firstName,
+    lastName,
+    email,
+  });
 });
 
 export const deleteDonation = asyncHandler(async (req: Request, res: Response) => {
