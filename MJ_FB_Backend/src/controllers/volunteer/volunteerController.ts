@@ -314,7 +314,11 @@ export async function createVolunteerShopperProfile(
       [clientId],
     );
     if ((clientCheck.rowCount ?? 0) > 0) {
-      return res.status(400).json({ message: 'Client ID already exists' });
+      await pool.query(`UPDATE volunteers SET user_id = $1 WHERE id = $2`, [
+        clientId,
+        id,
+      ]);
+      return res.status(200).json({ userId: Number(clientId) });
     }
     const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
     const userRes = await pool.query(
