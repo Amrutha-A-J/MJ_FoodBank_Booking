@@ -1,10 +1,12 @@
-import pool from '../src/db';
+import pool from './utils/mockDb';
 import logger from '../src/utils/logger';
 import { seedTimesheets } from '../src/utils/timesheetSeeder';
 
 describe('seedTimesheets', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (pool.query as jest.Mock).mockReset();
+    (pool.query as jest.Mock).mockResolvedValue({ rows: [], rowCount: 0 });
   });
 
   it('creates timesheet rows when staff start and active columns are not tracked', async () => {
@@ -117,5 +119,16 @@ describe('seedTimesheets', () => {
     expect(warn).toHaveBeenCalledWith('Skipping timesheet seeding: pay_periods table not found');
     warn.mockRestore();
     expect((pool.query as jest.Mock).mock.calls).toHaveLength(1);
+  });
+
+  it('logs and swallows errors from database queries', async () => {
+    const err = new Error('boom');
+    (pool.query as jest.Mock).mockRejectedValue(err);
+    const spy = jest.spyOn(logger, 'error').mockImplementation();
+
+    await seedTimesheets();
+
+    expect(spy).toHaveBeenCalledWith('Error seeding timesheets:', err);
+    spy.mockRestore();
   });
 });
