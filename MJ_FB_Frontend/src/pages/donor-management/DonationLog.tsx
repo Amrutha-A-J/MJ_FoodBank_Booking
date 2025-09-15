@@ -283,11 +283,7 @@ export default function DonationLog() {
     <>
       <DonorQuickLinks />
       <Page title="Donation Log">
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{ mb: 2, flexWrap: 'wrap', rowGap: 1, alignItems: 'center' }}
-        >
+        <Stack spacing={1} sx={{ mb: 2 }}>
           <Stack
             direction="row"
             spacing={1}
@@ -330,12 +326,7 @@ export default function DonationLog() {
           <Stack
             direction="row"
             spacing={1}
-            sx={{
-              flexWrap: 'wrap',
-              rowGap: 1,
-              alignItems: 'center',
-              ml: { xs: 0, md: 'auto' },
-            }}
+            sx={{ flexWrap: 'wrap', rowGap: 1, alignItems: 'center' }}
           >
             <TextField
               label="Month"
