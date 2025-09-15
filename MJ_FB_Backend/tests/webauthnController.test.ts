@@ -22,6 +22,79 @@ describe('webauthn routes', () => {
     expect(res.body.registered).toBeUndefined();
   });
 
+  it('returns registration status when identifier provided', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ user_identifier: 'foo@example.com', credential_id: 'cred1' }],
+    });
+    const res = await request(app)
+      .post('/api/v1/webauthn/challenge')
+      .send({ identifier: 'foo@example.com' });
+    expect(res.status).toBe(200);
+    expect(res.body.challenge).toBeDefined();
+    expect(res.body).toMatchObject({ registered: true, credentialId: 'cred1' });
+  });
+
+  it('registers credential successfully', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({}) // saveCredential
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 1,
+            first_name: 'Jane',
+            last_name: 'Doe',
+            user_id: null,
+            consent: true,
+            user_role: null,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }); // roles
+    const res = await request(app)
+      .post('/api/v1/webauthn/register')
+      .send({ identifier: 'jane@example.com', credentialId: 'cred123' });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      role: 'volunteer',
+      name: 'Jane Doe',
+      access: [],
+      id: 1,
+      consent: true,
+    });
+  });
+
+  it('register returns 500 when missing credentials', async () => {
+    const res = await request(app)
+      .post('/api/v1/webauthn/register')
+      .send({});
+    expect(res.status).toBe(500);
+  });
+
+  it('register returns 500 on database error', async () => {
+    (pool.query as jest.Mock).mockRejectedValueOnce(new Error('db'));
+    const res = await request(app)
+      .post('/api/v1/webauthn/register')
+      .send({ identifier: 'jane@example.com', credentialId: 'cred123' });
+    expect(res.status).toBe(500);
+  });
+
+  it('verify returns 401 when credentialId missing', async () => {
+    const res = await request(app)
+      .post('/api/v1/webauthn/verify')
+      .send({});
+    expect(res.status).toBe(401);
+  });
+
+  it('verify returns 500 on database error', async () => {
+    (pool.query as jest.Mock).mockRejectedValueOnce(new Error('db'));
+    const res = await request(app)
+      .post('/api/v1/webauthn/verify')
+      .send({ credentialId: 'cred123' });
+    expect(res.status).toBe(500);
+  });
+
   it('verifies credential by id', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ user_identifier: '123', credential_id: 'abc' }] })
