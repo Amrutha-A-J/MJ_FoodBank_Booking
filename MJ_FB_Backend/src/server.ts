@@ -41,6 +41,7 @@ import {
 } from './jobs/blockedSlotCleanupJob';
 import { startDbBloatMonitorJob, stopDbBloatMonitorJob } from './utils/dbBloatMonitorJob';
 import { startVacuumJob, stopVacuumJob } from './utils/vacuumJob';
+import seedDeliveryData from './utils/deliverySeeder';
 
 
 const PORT = config.port;
@@ -72,6 +73,7 @@ async function init() {
       const end = `${now.getFullYear() + 1}-12-31`;
       await seedPayPeriods(start, end);
       await seedTimesheets();
+      await seedDeliveryData();
     }
     startTimesheetSeedJob();
     startRetentionJob();

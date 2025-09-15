@@ -9,6 +9,8 @@
 
 ## Configure categories and items
 
+> **Note:** When running the backend in development mode, the server automatically seeds baseline delivery categories and items on startup. Update `src/utils/deliverySeeder.ts` if you need to adjust the default definitions.
+
 1. Sign in as a staff admin and open **Admin → Settings → Pantry**.
 2. Use the **Delivery categories** card to create a category and set its **Max items per delivery** limit.
 3. Within each category, add the individual items that should be available on the delivery request form.
