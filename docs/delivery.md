@@ -44,4 +44,5 @@ Staff see a **Deliveries** page in the staff navigation. The view lists the newe
 - Create new delivery accounts from **Staff → Client Management → Add Client** by choosing the **Delivery** role. Existing pantry clients can also be converted from the same form.
 - Remind delivery clients to keep their contact information current—the form will reject blank address, phone, or email fields.
 - Staff can review a client’s delivery history by calling `GET /api/v1/delivery/orders/history?clientId=<id>` with a staff token. This endpoint returns the same payload the client sees in the app.
+- Staff → Client Management → History now loads `/api/v1/delivery/orders?clientId=<id>` whenever you select a client. The panel beside the booking timeline summarizes each hamper’s status, scheduled date, contact details, and requested items so the pantry and delivery teams share the same context during follow-up calls.
 - Staff may submit a request on a client’s behalf by sending the same payload to `POST /api/v1/delivery/orders`; include the `clientId` in the body so the order is recorded correctly.
