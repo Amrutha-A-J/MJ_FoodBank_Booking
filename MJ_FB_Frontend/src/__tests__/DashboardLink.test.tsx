@@ -23,10 +23,11 @@ describe('Dashboard link', () => {
 
   it('appears for staff groups', () => {
     renderNavbar([{ label: 'Staff', links: [{ label: 'Dashboard', to: '/' }] }]);
+    expect(screen.getByRole('link', { name: /Dashboard/i })).toBeInTheDocument();
+  });
 
   it('appears for delivery users', () => {
     renderNavbar([{ label: 'Delivery', links: [{ label: 'Dashboard', to: '/' }] }]);
-
     expect(screen.getByRole('link', { name: /Dashboard/i })).toBeInTheDocument();
   });
 });
