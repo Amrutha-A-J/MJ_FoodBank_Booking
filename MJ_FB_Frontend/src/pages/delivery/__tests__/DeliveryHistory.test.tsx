@@ -12,6 +12,8 @@ jest.mock('../../../api/client', () => {
   };
 });
 
+import { theme } from '../../../theme';
+import type { DeliveryOrder } from '../../../types';
 import {
   API_BASE,
   apiFetch,
@@ -66,6 +68,41 @@ describe('DeliveryHistory', () => {
     const cancelButton = screen.getByRole('button', { name: /cancel request/i });
 
     await userEvent.click(cancelButton);
+
+  it('shows a fallback label when a delivery status is missing', async () => {
+    (apiFetch as jest.Mock).mockResolvedValueOnce({});
+    (handleResponse as jest.Mock).mockResolvedValueOnce([
+      {
+        id: 101,
+        status: undefined,
+        createdAt: '2024-06-01T12:00:00Z',
+        scheduledFor: null,
+        address: '456 Oak Ave',
+        phone: '306-555-0199',
+        email: null,
+        notes: null,
+        items: [
+          {
+            itemId: 11,
+            name: 'Milk',
+            quantity: 1,
+            categoryId: 5,
+            categoryName: null,
+          },
+        ],
+      } as unknown as DeliveryOrder,
+    ]);
+
+    renderComponent();
+
+    expect(await screen.findByText('Order #101')).toBeInTheDocument();
+    expect(screen.getByText('Status Unknown')).toBeInTheDocument();
+  });
+
+  it('displays an error message when loading orders fails', async () => {
+    const error = new Error('Network unavailable');
+    (apiFetch as jest.Mock).mockRejectedValueOnce(error);
+    (getApiErrorMessage as jest.Mock).mockReturnValue('Network unavailable');
 
     await waitFor(() => {
       expect(mockedApiFetch).toHaveBeenNthCalledWith(2, `${API_BASE}/delivery/orders/1/cancel`, {

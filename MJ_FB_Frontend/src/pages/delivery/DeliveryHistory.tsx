@@ -25,7 +25,7 @@ import {
   getApiErrorMessage,
   handleResponse,
 } from '../../api/client';
-import type { DeliveryOrder } from '../../types';
+import type { DeliveryOrder, DeliveryOrderStatus } from '../../types';
 
 type SnackbarState = {
   open: boolean;
@@ -34,7 +34,7 @@ type SnackbarState = {
 };
 
 const STATUS_COLOR_MAP: Partial<
-  Record<DeliveryOrder['status'], ChipProps['color']>
+  Record<DeliveryOrderStatus, ChipProps['color']>
 > = {
   pending: 'warning',
   approved: 'info',
@@ -59,15 +59,26 @@ function formatDate(value?: string | null, useTime = false): string | null {
   return useTime ? dateTimeFormatter.format(date) : dateFormatter.format(date);
 }
 
-function formatStatusLabel(status: string): string {
+function formatStatusLabel(status?: string | null): string {
+  if (!status) {
+    return 'Status Unknown';
+  }
+
   return status
-    .split(/[_\s]+/)
+    .split(/[\s_-]+/)
     .filter(Boolean)
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .map(part => {
+      const normalized = part.toLowerCase();
+      return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+    })
     .join(' ');
 }
 
-function getStatusColor(status: DeliveryOrder['status']): ChipProps['color'] {
+function getStatusColor(status?: DeliveryOrder['status'] | null): ChipProps['color'] {
+  if (!status) {
+    return 'default';
+  }
+
   return STATUS_COLOR_MAP[status] ?? 'default';
 }
 

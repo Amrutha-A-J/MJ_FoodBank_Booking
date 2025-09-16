@@ -49,7 +49,7 @@ export interface DeliveryOrderItem {
 
 export interface DeliveryOrder {
   id: number;
-  status: DeliveryOrderStatus;
+  status?: DeliveryOrderStatus | null;
   createdAt: string;
   scheduledFor?: string | null;
   address: string;

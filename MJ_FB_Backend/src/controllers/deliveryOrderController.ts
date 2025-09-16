@@ -3,6 +3,7 @@ import pool from '../db';
 import asyncHandler from '../middleware/asyncHandler';
 import parseIdParam from '../utils/parseIdParam';
 import { sendTemplatedEmail } from '../utils/emailUtils';
+import { getDeliverySettings } from '../utils/deliverySettings';
 import logger from '../utils/logger';
 import {
   createDeliveryOrderSchema,
@@ -126,11 +127,15 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     }
   }
 
+  // created_at is stored in UTC, so convert to Regina time before truncating to the month
   const monthlyOrderCountResult = await pool.query<CountRow>(
     `SELECT COUNT(*)::int AS count
        FROM delivery_orders
       WHERE client_id = $1
-        AND date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE)`,
+        AND date_trunc(
+              'month',
+              (created_at AT TIME ZONE 'UTC') AT TIME ZONE 'America/Regina'
+            ) = date_trunc('month', timezone('America/Regina', now()))`,
     [clientId],
   );
 
@@ -235,8 +240,9 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
       : 'No items selected';
 
   try {
+    const { requestEmail } = await getDeliverySettings();
     await sendTemplatedEmail({
-      to: 'amrutha.laxman@mjfoodbank.org',
+      to: requestEmail,
       templateId: 16,
       params: {
         orderId: order.id,

@@ -1,17 +1,30 @@
 import mockDb from './utils/mockDb';
 import { createDeliveryOrder, cancelDeliveryOrder } from '../src/controllers/deliveryOrderController';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import { getDeliverySettings } from '../src/utils/deliverySettings';
 
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
 }));
 
+jest.mock('../src/utils/deliverySettings', () => ({
+  getDeliverySettings: jest.fn(),
+}));
+
 const flushPromises = () => new Promise(process.nextTick);
+
+const mockGetDeliverySettings = getDeliverySettings as jest.MockedFunction<
+  typeof getDeliverySettings
+>;
 
 describe('deliveryOrderController', () => {
   beforeEach(() => {
     (mockDb.query as jest.Mock).mockReset();
     (sendTemplatedEmail as jest.Mock).mockReset();
+    mockGetDeliverySettings.mockReset();
+    mockGetDeliverySettings.mockResolvedValue({
+      requestEmail: 'ops@example.com',
+    });
   });
 
   describe('createDeliveryOrder', () => {
@@ -56,9 +69,11 @@ describe('deliveryOrderController', () => {
       expect(mockDb.query).toHaveBeenCalledTimes(2);
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('FROM delivery_orders'),
+        expect.stringContaining('America/Regina'),
         [123],
       );
+      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
+      expect(firstQuery).toContain('FROM delivery_orders');
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM delivery_items'),
@@ -111,9 +126,11 @@ describe('deliveryOrderController', () => {
       expect(mockDb.query).toHaveBeenCalledTimes(2);
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('FROM delivery_orders'),
+        expect.stringContaining('America/Regina'),
         [123],
       );
+      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
+      expect(firstQuery).toContain('FROM delivery_orders');
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM delivery_items'),
@@ -178,9 +195,11 @@ describe('deliveryOrderController', () => {
 
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('FROM delivery_orders'),
+        expect.stringContaining('America/Regina'),
         [456],
       );
+      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
+      expect(firstQuery).toContain('FROM delivery_orders');
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM delivery_items'),
@@ -220,7 +239,7 @@ describe('deliveryOrderController', () => {
       });
 
       expect(sendTemplatedEmail).toHaveBeenCalledWith({
-        to: 'amrutha.laxman@mjfoodbank.org',
+        to: 'ops@example.com',
         templateId: 16,
         params: {
           orderId: 77,
@@ -266,9 +285,11 @@ describe('deliveryOrderController', () => {
       });
       expect(mockDb.query).toHaveBeenCalledTimes(1);
       expect(mockDb.query).toHaveBeenCalledWith(
-        expect.stringContaining('FROM delivery_orders'),
+        expect.stringContaining('America/Regina'),
         [321],
       );
+      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
+      expect(firstQuery).toContain('FROM delivery_orders');
       expect(sendTemplatedEmail).not.toHaveBeenCalled();
     });
   });
