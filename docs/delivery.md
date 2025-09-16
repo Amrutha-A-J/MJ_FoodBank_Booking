@@ -19,7 +19,7 @@
 ## Handling new requests
 
 - Every submission to `/api/v1/delivery/orders` sends a Brevo email using `DELIVERY_REQUEST_TEMPLATE_ID`. Update the template when wording changes so the notification still matches the operation team’s process.
-- The notification includes the order ID, client ID, contact details, timestamp, and a newline-delimited list of requested items. Use that email to coordinate fulfillment and scheduling.
+- The notification includes the order ID, client ID, client name, contact details, timestamp, and a newline-delimited list of requested items. Use that email to coordinate fulfillment and scheduling.
 - When the delivery date is confirmed, reply to the client with the plan (email or phone) and document the outcome in internal logs as needed. The app does not yet track delivery status, so rely on your operations checklist.
 
 ## Supporting clients

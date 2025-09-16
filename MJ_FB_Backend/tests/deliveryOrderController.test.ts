@@ -148,6 +148,15 @@ describe('deliveryOrderController', () => {
         .mockResolvedValueOnce({
           rows: [
             {
+              firstName: 'Pat',
+              lastName: 'Delivery',
+            },
+          ],
+          rowCount: 1,
+        })
+        .mockResolvedValueOnce({
+          rows: [
+            {
               itemId: 21,
               categoryId: 8,
               itemName: 'Whole Wheat Bread',
@@ -173,6 +182,7 @@ describe('deliveryOrderController', () => {
           ],
           rowCount: 1,
         })
+        .mockResolvedValueOnce({ rows: [], rowCount: 0 })
         .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
       const req = {
@@ -205,21 +215,26 @@ describe('deliveryOrderController', () => {
       expect(firstQuery).toContain("status <> 'cancelled'");
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
+        expect.stringContaining('FROM clients'),
+        [456],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        3,
         expect.stringContaining('FROM delivery_items'),
         [[21]],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        3,
+        4,
         expect.stringContaining('INSERT INTO delivery_orders'),
         [456, '456 Elm St', '555-2222', 'shopper@example.com', 'pending', null, null],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        4,
+        5,
         'UPDATE clients SET address = $1 WHERE client_id = $2',
         ['456 Elm St', 456],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        5,
+        6,
         expect.stringContaining('INSERT INTO delivery_order_items'),
         [77, 21, 2],
       );
@@ -244,14 +259,15 @@ describe('deliveryOrderController', () => {
             categoryName: 'Bakery',
           },
         ],
-    });
+      });
 
-    expect(sendTemplatedEmail).toHaveBeenCalledWith({
-      to: 'ops@example.com',
-      templateId: 16,
+      expect(sendTemplatedEmail).toHaveBeenCalledWith({
+        to: 'ops@example.com',
+        templateId: 16,
         params: {
           orderId: 77,
           clientId: 456,
+          clientName: 'Pat Delivery',
           address: '456 Elm St',
           phone: '555-2222',
           email: 'shopper@example.com',
@@ -302,7 +318,7 @@ describe('deliveryOrderController', () => {
         .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
       const req = {
-        user: { role: 'delivery', id: '555', type: 'user' },
+        user: { role: 'delivery', id: '555', type: 'user', name: 'Taylor Client' },
         body: {
           clientId: 555,
           address: '789 Pine Ave',
@@ -383,6 +399,7 @@ describe('deliveryOrderController', () => {
         params: {
           orderId: 88,
           clientId: 555,
+          clientName: 'Taylor Client',
           address: '789 Pine Ave',
           phone: '555-3333',
           email: 'client@example.com',

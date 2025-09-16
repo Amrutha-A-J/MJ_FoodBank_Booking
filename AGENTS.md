@@ -68,7 +68,7 @@ See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
 | `CLIENT_RESCHEDULE_TEMPLATE_ID` | Booking reschedule notifications for clients | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
 | `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Volunteer shift reschedule emails | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
-| `DELIVERY_REQUEST_TEMPLATE_ID` | Delivery request notifications for staff | `orderId`, `clientId`, `address`, `phone`, `email`, `itemList`, `createdAt` |
+| `DELIVERY_REQUEST_TEMPLATE_ID` | Delivery request notifications for staff | `orderId`, `clientId`, `clientName`, `address`, `phone`, `email`, `itemList`, `createdAt` |
 | `DONOR_TEMPLATE_ID_*` | Monetary donor emails for tiered amounts ($1–$100, $101–$500, $501–$1,000, $1,001–$10,000, $10,001–$30,000) | `firstName`, `amount`, `families`, `adults`, `children`, `pounds`, `month`, `year` |
 
 Client and volunteer reschedule emails currently use Brevo template ID **10**.

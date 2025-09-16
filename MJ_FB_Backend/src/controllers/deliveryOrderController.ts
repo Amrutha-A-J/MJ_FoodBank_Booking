@@ -41,6 +41,11 @@ interface DeliveryOrderItemRow {
   categoryName: string;
 }
 
+interface ClientNameRow {
+  firstName: string | null;
+  lastName: string | null;
+}
+
 interface DeliveryOrderItemDetail {
   itemId: number;
   quantity: number;
@@ -118,6 +123,7 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
   const isStaff = req.user.role === 'staff' || req.user.role === 'admin';
 
   let shouldUpdateClientProfile = false;
+  let clientName: string | null = null;
 
   if (!isClient && !isStaff) {
     return res.status(403).json({ message: 'Forbidden' });
@@ -132,9 +138,12 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     const currentAddress = req.user.address ?? '';
     const currentPhone = req.user.phone ?? '';
     const currentEmail = req.user.email ?? '';
+    const currentName = req.user.name?.trim() ?? '';
 
     shouldUpdateClientProfile =
       currentAddress !== address || currentPhone !== phone || currentEmail !== email;
+
+    clientName = currentName.length > 0 ? currentName : null;
   }
 
   // created_at is stored in UTC, so convert to Regina time before truncating to the month
@@ -155,6 +164,18 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     return res.status(400).json({
       message: `You have already used the food bank ${monthlyOrderCount} times this month, please request again next month`,
     });
+  }
+
+  if (isStaff) {
+    const clientNameResult = await pool.query<ClientNameRow>(
+      `SELECT first_name AS "firstName", last_name AS "lastName" FROM clients WHERE client_id = $1`,
+      [clientId],
+    );
+    if ((clientNameResult.rowCount ?? 0) > 0) {
+      const { firstName, lastName } = clientNameResult.rows[0];
+      const fullName = `${firstName ?? ''} ${lastName ?? ''}`.trim();
+      clientName = fullName.length > 0 ? fullName : null;
+    }
   }
 
   let itemDetails: DeliveryOrderItemDetail[] = [];
@@ -284,6 +305,7 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
       params: {
         orderId: order.id,
         clientId,
+        clientName: clientName ?? '',
         address,
         phone,
         email,
