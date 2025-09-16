@@ -52,23 +52,25 @@ describe("leave requests controller", () => {
   });
 
   it("creates a leave request", async () => {
-    (mockPool.query as jest.Mock).mockResolvedValueOnce({
-      rows: [
-        {
-          id: 1,
-          staff_id: 1,
-          start_date: "2024-01-02",
-          end_date: "2024-01-03",
-          type: "vacation",
-          status: "pending",
-          reason: null,
-          requester_name: "Test User",
-          created_at: "now",
-          updated_at: "now",
-        },
-      ],
-      rowCount: 1,
-    });
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 1,
+            staff_id: 1,
+            start_date: "2024-01-02",
+            end_date: "2024-01-03",
+            type: "vacation",
+            status: "pending",
+            reason: null,
+            requester_name: "Test User",
+            created_at: "now",
+            updated_at: "now",
+          },
+        ],
+        rowCount: 1,
+      });
     const req: any = {
       user: { id: "1", role: "staff", type: "staff" },
       body: {

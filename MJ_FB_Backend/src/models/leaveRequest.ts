@@ -19,6 +19,11 @@ export interface LeaveRequest {
   updated_at: string;
 }
 
+export type LeaveRequestOverlap = Pick<
+  LeaveRequest,
+  "id" | "start_date" | "end_date" | "status" | "type"
+>;
+
 export async function insertLeaveRequest(
   staffId: number,
   startDate: string,
@@ -68,7 +73,7 @@ export async function selectLeaveRequestsByStaffId(
 export async function updateLeaveRequestStatus(
   id: number,
   status: string,
-): Promise<LeaveRequest> {
+): Promise<LeaveRequest | null> {
   const res = await pool.query(
     `WITH upd AS (
        UPDATE leave_requests lr
@@ -81,7 +86,7 @@ export async function updateLeaveRequestStatus(
      JOIN staff s ON s.id = upd.staff_id`,
     [status, id],
   );
-  return res.rows[0];
+  return res.rows[0] ?? null;
 }
 
 export async function countApprovedPersonalDaysThisQuarter(
@@ -98,4 +103,21 @@ export async function countApprovedPersonalDaysThisQuarter(
     [staffId, LeaveType.Personal],
   );
   return res.rows[0]?.count ?? 0;
+}
+
+export async function findLeaveRequestOverlaps(
+  staffId: number,
+  startDate: string,
+  endDate: string,
+): Promise<LeaveRequestOverlap[]> {
+  const res = await pool.query<LeaveRequestOverlap>(
+    `SELECT id, start_date, end_date, status, type
+     FROM leave_requests
+     WHERE staff_id = $1
+       AND status != 'rejected'
+       AND NOT ($3 < start_date OR $2 > end_date)
+     ORDER BY start_date`,
+    [staffId, startDate, endDate],
+  );
+  return res.rows;
 }
