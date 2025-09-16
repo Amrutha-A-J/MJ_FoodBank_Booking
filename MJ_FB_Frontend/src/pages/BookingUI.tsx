@@ -559,7 +559,10 @@ export default function BookingUI<T = Slot>({
             sx={{
               p: 2,
               borderRadius: 2,
-              maxHeight: { xs: 420, md: 560, xl: 640 },
+              maxHeight: {
+                xs: 420,
+                md: 'clamp(560px, calc(100vh - 240px), 960px)',
+              },
               overflow: 'auto',
               width: '100%',
             }}
