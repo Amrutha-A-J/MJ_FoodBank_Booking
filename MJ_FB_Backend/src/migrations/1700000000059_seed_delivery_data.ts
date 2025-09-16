@@ -1,6 +1,6 @@
 import type { MigrationBuilder } from 'node-pg-migrate';
 import type { Queryable } from '../models/bookingRepository';
-import seedDeliveryData, { DELIVERY_CATEGORY_SEEDS } from '../utils/deliverySeeder';
+import seedDeliveryData, { DELIVERY_CATEGORY_SEEDS } from '../utils/deliverySeeder.js';
 
 export async function up(pgm: MigrationBuilder): Promise<void> {
   await seedDeliveryData(undefined, pgm.db as unknown as Queryable);
