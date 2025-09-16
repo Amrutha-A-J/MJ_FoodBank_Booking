@@ -105,9 +105,46 @@ describe('BookDelivery', () => {
     expect(emailField).toHaveValue(mockProfile.email);
     const addressField = screen.getByLabelText(/delivery address/i) as HTMLInputElement;
     expect(addressField).toHaveAttribute('readonly');
+    expect(
+      screen.getByRole('button', { name: /edit contact info/i }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/address is correct/i)).not.toBeChecked();
     expect(screen.getByLabelText(/phone number is correct/i)).not.toBeChecked();
     expect(screen.getByLabelText(/email is correct/i)).not.toBeChecked();
+  });
+
+  test('enables contact editing when profile contact info is missing', async () => {
+    mockGetUserProfile.mockResolvedValue({
+      ...mockProfile,
+      email: '',
+    });
+
+    renderPage();
+
+    const addressField = await screen.findByLabelText(/delivery address/i);
+    const phoneField = screen.getByLabelText(/^phone number$/i);
+    const emailField = screen.getByLabelText(/^email$/i);
+
+    expect(addressField).not.toHaveAttribute('readonly');
+    expect(phoneField).not.toHaveAttribute('readonly');
+    expect(emailField).not.toHaveAttribute('readonly');
+    expect(
+      screen.queryByRole('button', { name: /edit contact info/i }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.change(emailField, { target: { value: 'updated@example.com' } });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /done editing/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /done editing/i }));
+    expect(addressField).toHaveAttribute('readonly');
+    expect(phoneField).toHaveAttribute('readonly');
+    expect(emailField).toHaveAttribute('readonly');
+    expect(
+      screen.getByRole('button', { name: /edit contact info/i }),
+    ).toBeInTheDocument();
   });
 
   test('requires confirming contact information before enabling submission', async () => {
@@ -150,10 +187,12 @@ describe('BookDelivery', () => {
     fireEvent.click(emailConfirm);
     expect(submitButton).not.toBeDisabled();
 
-    fireEvent.click(screen.getByRole('button', { name: /edit address/i }));
+    fireEvent.click(screen.getByRole('button', { name: /edit contact info/i }));
     const addressField = screen.getByLabelText(/delivery address/i) as HTMLInputElement;
     expect(addressField).not.toHaveAttribute('readonly');
     expect(addressConfirm).not.toBeChecked();
+    expect(phoneConfirm).not.toBeChecked();
+    expect(emailConfirm).not.toBeChecked();
     expect(submitButton).toBeDisabled();
 
     fireEvent.change(addressField, { target: { value: '456 New Street' } });
@@ -161,6 +200,9 @@ describe('BookDelivery', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /done editing/i }));
     expect(addressField).toHaveAttribute('readonly');
+    expect(
+      screen.getByRole('button', { name: /edit contact info/i }),
+    ).toBeInTheDocument();
   });
 
   test('submits updated contact information in delivery payload', async () => {
@@ -173,19 +215,13 @@ describe('BookDelivery', () => {
     const cereal = await screen.findByRole('checkbox', { name: /cereal/i });
     fireEvent.click(cereal);
 
-    fireEvent.click(screen.getByRole('button', { name: /edit address/i }));
+    fireEvent.click(screen.getByRole('button', { name: /edit contact info/i }));
     fireEvent.change(screen.getByLabelText(/delivery address/i), {
       target: { value: ' 456 New Street ' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /done editing/i }));
-
-    fireEvent.click(screen.getByRole('button', { name: /edit phone/i }));
     fireEvent.change(screen.getByLabelText(/^phone number$/i), {
       target: { value: ' 306-555-2222 ' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /done editing/i }));
-
-    fireEvent.click(screen.getByRole('button', { name: /edit email/i }));
     fireEvent.change(screen.getByLabelText(/^email$/i), {
       target: { value: ' new@example.com ' },
     });
