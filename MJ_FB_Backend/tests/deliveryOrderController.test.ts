@@ -56,9 +56,11 @@ describe('deliveryOrderController', () => {
       expect(mockDb.query).toHaveBeenCalledTimes(2);
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('FROM delivery_orders'),
+        expect.stringContaining('America/Regina'),
         [123],
       );
+      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
+      expect(firstQuery).toContain('FROM delivery_orders');
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM delivery_items'),
@@ -111,9 +113,11 @@ describe('deliveryOrderController', () => {
       expect(mockDb.query).toHaveBeenCalledTimes(2);
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('FROM delivery_orders'),
+        expect.stringContaining('America/Regina'),
         [123],
       );
+      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
+      expect(firstQuery).toContain('FROM delivery_orders');
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM delivery_items'),
@@ -175,9 +179,11 @@ describe('deliveryOrderController', () => {
 
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('FROM delivery_orders'),
+        expect.stringContaining('America/Regina'),
         [456],
       );
+      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
+      expect(firstQuery).toContain('FROM delivery_orders');
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM delivery_items'),
@@ -260,9 +266,11 @@ describe('deliveryOrderController', () => {
       });
       expect(mockDb.query).toHaveBeenCalledTimes(1);
       expect(mockDb.query).toHaveBeenCalledWith(
-        expect.stringContaining('FROM delivery_orders'),
+        expect.stringContaining('America/Regina'),
         [321],
       );
+      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
+      expect(firstQuery).toContain('FROM delivery_orders');
       expect(sendTemplatedEmail).not.toHaveBeenCalled();
     });
   });
