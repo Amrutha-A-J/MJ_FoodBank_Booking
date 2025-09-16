@@ -4,7 +4,7 @@ import DialogCloseButton from './DialogCloseButton';
 
 interface ConfirmDialogProps {
   message: string;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
   onCancel: () => void;
   children?: ReactNode;
 }

@@ -611,8 +611,8 @@ export default function ManageAvailability() {
           {confirm && (
             <ConfirmDialog
               message={confirm.message}
-              onConfirm={() => {
-                void confirm.onConfirm();
+              onConfirm={async () => {
+                await confirm.onConfirm();
               }}
               onCancel={() => setConfirm(null)}
             />
