@@ -27,7 +27,7 @@
 - `POST /auth/resend-password-setup` regenerates password setup links using `generatePasswordSetupToken`; requests are rate limited per email or client ID.
 - Profile pages send a password reset link without requiring current or new password fields.
 - Coordinator notification addresses for volunteer booking updates live in `src/config/coordinatorEmails.json`.
-- Staff or agency users can create bookings for unregistered individuals via `POST /bookings/new-client`; staff may review or delete these records through `/new-clients` routes.
+- Staff can create bookings for unregistered individuals via `POST /bookings/new-client` and review or delete these records through `/new-clients` routes.
 - The `new_clients.email` field is nullable; `POST /bookings/new-client` accepts requests without an email address.
 - A daily reminder job (`src/utils/bookingReminderJob.ts`) emails clients about next-day bookings using the `enqueueEmail` queue. It runs nightly at 7:00 PM Regina time via `node-cron` (`0 19 * * *`) and exposes `startBookingReminderJob`/`stopBookingReminderJob`.
 - A volunteer shift reminder job (`src/utils/volunteerShiftReminderJob.ts`) emails volunteers about next-day shifts on the same schedule. It runs nightly at 7:00 PM Regina time and exposes `startVolunteerShiftReminderJob`/`stopVolunteerShiftReminderJob`.
@@ -65,9 +65,9 @@
 - Bookings accept optional notes; clients may include a message during booking, and staff see it in Manage Booking and Manage Volunteer Shift dialogs.
 - Creating a client visit will automatically mark the client's approved booking on that date as visited.
 - `/bookings/history?includeVisits=true` merges walk-in visits (`client_visits`) with booking history.
-- Staff users automatically receive staff notes from `/bookings/history`; agency users may append `includeStaffNotes=true` to retrieve them.
+- Staff users automatically receive staff notes from `/bookings/history`; responses for other roles exclude staff notes.
 - Visit history can be filtered by note text using the `notes` query parameter on `/bookings/history`.
-- Agencies can filter booking history for multiple clients and paginate results via `/bookings/history?clientIds=1,2&limit=10&offset=0`.
+- Staff can filter booking history for multiple clients and paginate results via `/bookings/history?clientIds=1,2&limit=10&offset=0`.
 - Staff can create, update, or delete slots and adjust their capacities via `/slots` routes.
 - `PUT /slots/capacity` updates the `max_capacity` for all slots.
 
@@ -86,7 +86,7 @@ For timesheet and leave features, confirm the following before merging:
 - Staff can query `GET /volunteer-stats/no-show-ranking` for a list of volunteers with high no-show rates to surface in management dashboards.
 - Group volunteer statistics via `GET /volunteer-stats/group` return total volunteer hours, weekly and monthly food pounds handled, distinct families served in the current month, along with current-month hours and a configurable goal for dashboard progress.
 - `GET /slots` returns an empty array with a 200 status on holidays.
-- Agencies can retrieve holiday dates via `GET /holidays` to disable bookings on those days.
+- Booking interfaces retrieve holiday dates via `GET /holidays` to disable bookings on those days.
 - Milestone badge awards queue a thank-you card email and expose a downloadable card link via `/stats`.
 - Volunteers see a random appreciation message on login.
 - The volunteer dashboard rotates encouragement messages when no milestone is reached.
