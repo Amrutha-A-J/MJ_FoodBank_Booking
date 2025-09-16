@@ -41,6 +41,5 @@ describe('Volunteer with shopper profile', () => {
     fireEvent.click(bookLink);
     await screen.findByText(/BookingUI Component/i);
     await waitFor(() => expect(apiFetch).toHaveBeenCalledTimes(2));
-    await new Promise(resolve => setTimeout(resolve, 0));
   });
 });
