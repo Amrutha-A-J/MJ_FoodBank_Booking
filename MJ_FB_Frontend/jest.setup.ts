@@ -6,6 +6,8 @@ import {
   clearTimeout as nodeClearTimeout,
   setInterval as nodeSetInterval,
   clearInterval as nodeClearInterval,
+  setImmediate as nodeSetImmediate,
+  clearImmediate as nodeClearImmediate,
 } from 'timers';
 
 // Polyfill TextEncoder/Decoder for testing environment
@@ -13,8 +15,6 @@ import {
 (global as any).TextDecoder = TextDecoder as any;
 (global as any).ReadableStream = ReadableStream as any;
 (global as any).WritableStream = WritableStream as any;
-(global as any).clearImmediate =
-  (global as any).clearImmediate || ((id: number) => clearTimeout(id));
 (global as any).performance = (global as any).performance || ({} as any);
 (global as any).performance.markResourceTiming =
   (global as any).performance.markResourceTiming || (() => {});
@@ -24,6 +24,8 @@ import {
 (global as any).clearTimeout = nodeClearTimeout;
 (global as any).setInterval = nodeSetInterval;
 (global as any).clearInterval = nodeClearInterval;
+(global as any).setImmediate = nodeSetImmediate;
+(global as any).clearImmediate = nodeClearImmediate;
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { fetch, Headers, Request, Response, FormData, File } = require('undici');
