@@ -2,6 +2,11 @@ import request from 'supertest';
 import express from 'express';
 import maintenanceRouter from '../src/routes/maintenance';
 import pool from '../src/db';
+import {
+  setMaintenanceMode,
+  setMaintenanceNotice,
+} from '../src/controllers/maintenanceController';
+import logger from '../src/utils/logger';
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (
@@ -70,5 +75,71 @@ describe('maintenance routes', () => {
     const res = await request(app).delete('/maintenance/stats');
     expect(res.status).toBe(204);
     expect((pool.query as jest.Mock).mock.calls[0][0]).toContain('DELETE FROM stats');
+  });
+});
+
+describe('maintenance controllers', () => {
+  describe('setMaintenanceMode', () => {
+    it('skips database update when maintenanceMode is missing', async () => {
+      const req = { body: {} } as express.Request;
+      const res = {} as express.Response;
+      const next = jest.fn();
+
+      await setMaintenanceMode(req, res, next);
+
+      expect(pool.query as jest.Mock).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith();
+    });
+
+    it('logs and forwards errors when updating maintenance mode fails', async () => {
+      const error = new Error('Database failure');
+      (pool.query as jest.Mock).mockRejectedValueOnce(error);
+
+      const req = { body: { maintenanceMode: true } } as express.Request;
+      const res = {} as express.Response;
+      const next = jest.fn();
+
+      await setMaintenanceMode(req, res, next);
+
+      expect(pool.query as jest.Mock).toHaveBeenCalledTimes(1);
+      expect(logger.error).toHaveBeenCalledWith(
+        'Error setting maintenance mode:',
+        error,
+      );
+      expect(next).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('setMaintenanceNotice', () => {
+    it('skips database update when notice is missing', async () => {
+      const req = { body: {} } as express.Request;
+      const res = {} as express.Response;
+      const next = jest.fn();
+
+      await setMaintenanceNotice(req, res, next);
+
+      expect(pool.query as jest.Mock).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith();
+    });
+
+    it('logs and forwards errors when updating maintenance notice fails', async () => {
+      const error = new Error('Database failure');
+      (pool.query as jest.Mock).mockRejectedValueOnce(error);
+
+      const req = { body: { notice: 'Scheduled maintenance' } } as express.Request;
+      const res = {} as express.Response;
+      const next = jest.fn();
+
+      await setMaintenanceNotice(req, res, next);
+
+      expect(pool.query as jest.Mock).toHaveBeenCalledTimes(1);
+      expect(logger.error).toHaveBeenCalledWith(
+        'Error setting maintenance notice:',
+        error,
+      );
+      expect(next).toHaveBeenCalledWith(error);
+    });
   });
 });
