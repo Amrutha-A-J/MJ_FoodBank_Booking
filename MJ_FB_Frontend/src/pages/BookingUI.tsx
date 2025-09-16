@@ -532,7 +532,10 @@ export default function BookingUI<T = Slot>({
             )}
           </Paper>
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid
+          size={{ xs: 12, md: 'auto' }}
+          sx={{ flexGrow: 1, flexBasis: { md: 0 }, minWidth: { md: 0 } }}
+        >
           <Paper
             ref={slotsRef}
             sx={{
