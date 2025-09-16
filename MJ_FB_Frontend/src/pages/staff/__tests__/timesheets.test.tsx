@@ -7,54 +7,58 @@ import { MemoryRouter } from 'react-router-dom';
 const mockSubmit = jest.fn();
 const mockUpdate = jest.fn();
 const mockUseTimesheets = jest.fn();
-const mockUseTimesheetDays = jest.fn(() => ({
-  days: [
-    {
-      id: 1,
-      timesheet_id: 1,
-      work_date: '2024-01-01',
-      expected_hours: 8,
-      reg_hours: 0,
-      ot_hours: 0,
-      stat_hours: 8,
-      sick_hours: 0,
-      vac_hours: 0,
-      note: null,
-      locked_by_rule: true,
-      locked_by_leave: false,
-    },
-    {
-      id: 2,
-      timesheet_id: 1,
-      work_date: '2024-01-02',
-      expected_hours: 8,
-      reg_hours: 8,
-      ot_hours: 0,
-      stat_hours: 0,
-      sick_hours: 0,
-      vac_hours: 0,
-      note: null,
-      locked_by_rule: false,
-      locked_by_leave: false,
-    },
-    {
-      id: 3,
-      timesheet_id: 1,
-      work_date: '2024-01-03',
-      expected_hours: 8,
-      reg_hours: 8,
-      ot_hours: 1,
-      stat_hours: 0,
-      sick_hours: 0,
-      vac_hours: 0,
-      note: null,
-      locked_by_rule: false,
-      locked_by_leave: false,
-    },
-  ],
+const defaultTimesheetDays = [
+  {
+    id: 1,
+    timesheet_id: 1,
+    work_date: '2024-01-01',
+    expected_hours: 8,
+    reg_hours: 0,
+    ot_hours: 0,
+    stat_hours: 8,
+    sick_hours: 0,
+    vac_hours: 0,
+    note: null,
+    locked_by_rule: true,
+    locked_by_leave: false,
+  },
+  {
+    id: 2,
+    timesheet_id: 1,
+    work_date: '2024-01-02',
+    expected_hours: 8,
+    reg_hours: 8,
+    ot_hours: 0,
+    stat_hours: 0,
+    sick_hours: 0,
+    vac_hours: 0,
+    note: null,
+    locked_by_rule: false,
+    locked_by_leave: false,
+  },
+  {
+    id: 3,
+    timesheet_id: 1,
+    work_date: '2024-01-03',
+    expected_hours: 8,
+    reg_hours: 8,
+    ot_hours: 1,
+    stat_hours: 0,
+    sick_hours: 0,
+    vac_hours: 0,
+    note: null,
+    locked_by_rule: false,
+    locked_by_leave: false,
+  },
+];
+
+const defaultUseTimesheetDaysImplementation = () => ({
+  days: defaultTimesheetDays,
   isLoading: false,
   error: null,
-}));
+});
+
+const mockUseTimesheetDays = jest.fn(defaultUseTimesheetDaysImplementation);
 const mockUseAllTimesheets = jest.fn();
 const mockSearchStaff = jest.fn();
 const mockAdminSearchStaff = jest.fn();
@@ -106,9 +110,12 @@ beforeEach(() => {
     error: null,
   });
   mockUseTimesheetDays.mockClear();
+  mockUseTimesheetDays.mockImplementation(defaultUseTimesheetDaysImplementation);
   mockUseAllTimesheets.mockClear();
   mockSearchStaff.mockClear();
+  mockSearchStaff.mockResolvedValue([]);
   mockAdminSearchStaff.mockClear();
+  mockAdminSearchStaff.mockResolvedValue([]);
 });
 
 function render(path = '/timesheet') {
@@ -147,7 +154,9 @@ describe('Timesheets', () => {
     expect(regInput).toHaveAttribute('aria-invalid', 'true');
     const cells = within(dayRow).getAllByRole('cell');
     const paidCell = cells[cells.length - 1];
-    expect(paidCell.style.color).toBe('rgb(211, 47, 47)');
+    expect(within(paidCell).getByText('9')).toHaveStyle({
+      color: 'rgb(148, 24, 24)',
+    });
   });
 
   it('calculates footer summaries', async () => {
@@ -158,9 +167,11 @@ describe('Timesheets', () => {
     expect(cells[2]).toHaveTextContent('1');
     expect(cells[3]).toHaveTextContent('8');
     expect(cells[7]).toHaveTextContent('25');
-    expect(await screen.findByText(/Expected Hours: 24/)).toBeInTheDocument();
+    expect(await screen.findByText(/Expected: 24/)).toBeInTheDocument();
     expect(await screen.findByText(/Shortfall: -1/)).toBeInTheDocument();
-    expect(await screen.findByText(/OT Bank Remaining: 39/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/OT bank remaining: 39/),
+    ).toBeInTheDocument();
   });
 
   it('submits timesheet', async () => {
@@ -184,11 +195,11 @@ describe('Timesheets', () => {
       balance_hours: 0,
       ot_hours: 0,
     }));
-    mockUseTimesheets.mockReturnValueOnce({
+    mockUseTimesheets.mockImplementation(() => ({
       timesheets,
       isLoading: false,
       error: null,
-    });
+    }));
     await act(async () => render());
     const tabs = await screen.findAllByRole('tab');
     expect(tabs).toHaveLength(10);
@@ -197,26 +208,27 @@ describe('Timesheets', () => {
   });
 
   it('locks day when leave approved', async () => {
-    mockUseTimesheetDays.mockReturnValueOnce({
-      days: [
-        {
-          id: 1,
-          timesheet_id: 1,
-          work_date: '2024-02-01',
-          expected_hours: 8,
-          reg_hours: 0,
-          ot_hours: 0,
-          stat_hours: 0,
-          sick_hours: 0,
-          vac_hours: 8,
-          note: null,
-          locked_by_rule: false,
-          locked_by_leave: true,
-        },
-      ],
+    const lockedDays = [
+      {
+        id: 1,
+        timesheet_id: 1,
+        work_date: '2024-02-01',
+        expected_hours: 8,
+        reg_hours: 0,
+        ot_hours: 0,
+        stat_hours: 0,
+        sick_hours: 0,
+        vac_hours: 8,
+        note: null,
+        locked_by_rule: false,
+        locked_by_leave: true,
+      },
+    ];
+    mockUseTimesheetDays.mockImplementation(() => ({
+      days: lockedDays,
       isLoading: false,
       error: null,
-    });
+    }));
     await act(async () => render());
     const rows = await screen.findAllByRole('row');
     const leaveRow = rows[1];
@@ -224,7 +236,11 @@ describe('Timesheets', () => {
     const inputs = within(leaveRow).getAllByRole('spinbutton');
     const vacInput = inputs[4];
     expect(vacInput).toBeDisabled();
-    expect(await screen.findByText('Leave day is locked')).toBeInTheDocument();
+    expect(
+      within(leaveRow).getByLabelText(
+        "Leave request locked; hours can't be changed",
+      ),
+    ).toBeInTheDocument();
   });
 
   it('shows select staff message for admin', async () => {
@@ -234,48 +250,49 @@ describe('Timesheets', () => {
       error: null,
     });
     await act(async () => render('/admin/timesheet'));
-    expect(await screen.findByText('Select Staff')).toBeInTheDocument();
+    expect(await screen.findByText('Select staff')).toBeInTheDocument();
   });
 
   it('loads timesheets after selecting staff in admin', async () => {
-    jest.useFakeTimers({ legacyFakeTimers: true });
     mockAdminSearchStaff.mockResolvedValueOnce([
       { id: 2, firstName: 'Alice', lastName: 'Smith', email: '', access: [] },
     ]);
+    const adminTimesheets = {
+      timesheets: [
+        {
+          id: 10,
+          staff_id: 2,
+          start_date: '2024-01-01',
+          end_date: '2024-01-07',
+          submitted_at: '2024-01-02',
+          approved_at: null,
+          total_hours: 0,
+          expected_hours: 0,
+          balance_hours: 0,
+          ot_hours: 0,
+        },
+      ],
+      isLoading: false,
+      error: null,
+    };
+    const emptyAdminTimesheets = { timesheets: [], isLoading: false, error: null };
     mockUseAllTimesheets.mockImplementation((id?: number) =>
-      id === 2
-        ? {
-            timesheets: [
-              {
-                id: 10,
-                staff_id: 2,
-                start_date: '2024-01-01',
-                end_date: '2024-01-07',
-                submitted_at: '2024-01-02',
-                approved_at: null,
-                total_hours: 0,
-                expected_hours: 0,
-                balance_hours: 0,
-                ot_hours: 0,
-              },
-            ],
-            isLoading: false,
-            error: null,
-          }
-        : { timesheets: [], isLoading: false, error: null },
+      id === 2 ? adminTimesheets : emptyAdminTimesheets,
     );
-    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    const user = userEvent.setup();
     await act(async () => render('/admin/timesheet'));
     const input = await screen.findByLabelText('Staff');
     await user.type(input, 'Ali');
-    await act(async () => {
-      jest.advanceTimersByTime(500);
-    });
     const option = await screen.findByText('Alice Smith');
     await user.click(option);
-    expect(mockUseAllTimesheets).toHaveBeenLastCalledWith(2);
+    const lastCall = mockUseAllTimesheets.mock.calls.at(-1);
+    expect(lastCall?.[0]).toBe(2);
+    await user.click(
+      await screen.findByRole('button', {
+        name: '2024-01-01 - 2024-01-07',
+      }),
+    );
     await screen.findByText('Reject');
-    jest.useRealTimers();
   });
 });
 
