@@ -7,6 +7,11 @@ describe('config', () => {
   const originalPasswordTemplate = process.env.PASSWORD_SETUP_TEMPLATE_ID;
   const originalClientRescheduleTemplate = process.env.CLIENT_RESCHEDULE_TEMPLATE_ID;
   const originalVolunteerRescheduleTemplate = process.env.VOLUNTEER_RESCHEDULE_TEMPLATE_ID;
+  const originalBrevoApiKey = process.env.BREVO_API_KEY;
+  const originalBrevoFromEmail = process.env.BREVO_FROM_EMAIL;
+  const originalIcsBaseUrl = process.env.ICS_BASE_URL;
+  const originalCookieDomain = process.env.COOKIE_DOMAIN;
+  const originalNodeEnv = process.env.NODE_ENV;
 
   afterEach(() => {
     if (originalFrontend === undefined) {
@@ -38,6 +43,31 @@ describe('config', () => {
       delete process.env.VOLUNTEER_RESCHEDULE_TEMPLATE_ID;
     } else {
       process.env.VOLUNTEER_RESCHEDULE_TEMPLATE_ID = originalVolunteerRescheduleTemplate;
+    }
+    if (originalBrevoApiKey === undefined) {
+      delete process.env.BREVO_API_KEY;
+    } else {
+      process.env.BREVO_API_KEY = originalBrevoApiKey;
+    }
+    if (originalBrevoFromEmail === undefined) {
+      delete process.env.BREVO_FROM_EMAIL;
+    } else {
+      process.env.BREVO_FROM_EMAIL = originalBrevoFromEmail;
+    }
+    if (originalIcsBaseUrl === undefined) {
+      delete process.env.ICS_BASE_URL;
+    } else {
+      process.env.ICS_BASE_URL = originalIcsBaseUrl;
+    }
+    if (originalCookieDomain === undefined) {
+      delete process.env.COOKIE_DOMAIN;
+    } else {
+      process.env.COOKIE_DOMAIN = originalCookieDomain;
+    }
+    if (originalNodeEnv === undefined) {
+      delete process.env.NODE_ENV;
+    } else {
+      process.env.NODE_ENV = originalNodeEnv;
     }
     jest.resetModules();
   });
@@ -99,5 +129,47 @@ describe('config', () => {
     jest.resetModules();
     const config = require('../src/config').default;
     expect(config.volunteerRescheduleTemplateId).toBe(10);
+  });
+
+  it('invokes dotenv.config when NODE_ENV is not test', async () => {
+    process.env.NODE_ENV = 'development';
+    const dotenvConfig = jest.fn();
+
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock('dotenv', () => ({ config: dotenvConfig }));
+      await import('../src/config');
+    });
+
+    expect(dotenvConfig).toHaveBeenCalledTimes(1);
+  });
+
+  it('defaults optional Brevo and ICS values to empty strings but uses overrides when provided', () => {
+    delete process.env.BREVO_API_KEY;
+    delete process.env.BREVO_FROM_EMAIL;
+    delete process.env.ICS_BASE_URL;
+    jest.resetModules();
+
+    let config = require('../src/config').default;
+    expect(config.brevoApiKey).toBe('');
+    expect(config.brevoFromEmail).toBe('');
+    expect(config.icsBaseUrl).toBe('');
+
+    jest.resetModules();
+    process.env.BREVO_API_KEY = 'live-api-key';
+    process.env.BREVO_FROM_EMAIL = 'hello@example.com';
+    process.env.ICS_BASE_URL = 'https://ics.example.com';
+
+    config = require('../src/config').default;
+    expect(config.brevoApiKey).toBe('live-api-key');
+    expect(config.brevoFromEmail).toBe('hello@example.com');
+    expect(config.icsBaseUrl).toBe('https://ics.example.com');
+  });
+
+  it('surfaces COOKIE_DOMAIN when provided', () => {
+    process.env.COOKIE_DOMAIN = '.example.com';
+    jest.resetModules();
+
+    const config = require('../src/config').default;
+    expect(config.cookieDomain).toBe('.example.com');
   });
 });
