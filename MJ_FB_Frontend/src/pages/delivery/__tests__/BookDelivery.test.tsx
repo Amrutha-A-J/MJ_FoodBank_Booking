@@ -4,6 +4,12 @@ import BookDelivery from '../BookDelivery';
 import type { DeliveryCategory } from '../../../types';
 import { apiFetch, handleResponse } from '../../../api/client';
 
+const mockUseAuth = jest.fn();
+
+jest.mock('../../../hooks/useAuth', () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
 jest.mock('../../../api/client', () => ({
   API_BASE: '/api/v1',
   apiFetch: jest.fn(),
@@ -33,6 +39,19 @@ describe('BookDelivery', () => {
     (apiFetch as jest.Mock).mockResolvedValue(
       new Response(null, { status: 200, headers: { 'Content-Type': 'application/json' } }),
     );
+    mockUseAuth.mockReset();
+    mockUseAuth.mockReturnValue({
+      id: 321,
+      isAuthenticated: true,
+      role: 'delivery',
+      name: 'Test User',
+      userRole: '',
+      access: [],
+      login: jest.fn(),
+      logout: jest.fn(),
+      cardUrl: '',
+      ready: true,
+    });
   });
 
   test('disables unchecked items when category limit reached', async () => {
@@ -88,12 +107,55 @@ describe('BookDelivery', () => {
     expect(postCall[1]).toMatchObject({ method: 'POST' });
     const body = JSON.parse(postCall[1].body);
     expect(body).toEqual({
+      clientId: 321,
       address: '123 Main Street',
       phone: '306-555-0100',
       email: 'test@example.com',
-      items: [{ itemId: 10, quantity: 1 }],
+      selections: [{ itemId: 10, quantity: 1 }],
     });
 
     expect(await screen.findByText(/delivery request submitted/i)).toBeInTheDocument();
+  });
+
+  test('shows an error when the client id is unavailable', async () => {
+    (handleResponse as jest.Mock)
+      .mockResolvedValueOnce(mockCategories)
+      .mockResolvedValueOnce({});
+
+    mockUseAuth.mockReturnValue({
+      id: null,
+      isAuthenticated: true,
+      role: 'delivery',
+      name: 'Test User',
+      userRole: '',
+      access: [],
+      login: jest.fn(),
+      logout: jest.fn(),
+      cardUrl: '',
+      ready: true,
+    });
+
+    render(
+      <MemoryRouter>
+        <BookDelivery />
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(await screen.findByLabelText(/delivery address/i), {
+      target: { value: '123 Main Street' },
+    });
+    fireEvent.change(screen.getByLabelText(/phone number/i), {
+      target: { value: '306-555-0100' },
+    });
+    fireEvent.change(screen.getByLabelText(/^email$/i), {
+      target: { value: 'test@example.com' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /submit delivery request/i }));
+
+    expect(
+      await screen.findByText(/we could not confirm your account. please sign in again./i),
+    ).toBeInTheDocument();
+    expect(apiFetch).toHaveBeenCalledTimes(1);
   });
 });
