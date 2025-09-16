@@ -7,8 +7,10 @@ import {
 import { MemoryRouter } from 'react-router-dom';
 import UserHistory from '../UserHistory';
 import { getDeliveryOrdersForClient } from '../../../../api/deliveryOrders';
+import { getUserByClientId } from '../../../../api/users';
 
 type MockedGetOrders = jest.MockedFunction<typeof getDeliveryOrdersForClient>;
+type MockedGetUserByClientId = jest.MockedFunction<typeof getUserByClientId>;
 
 jest.mock('../../../../components/EntitySearch', () => ({
   __esModule: true,
@@ -31,7 +33,13 @@ jest.mock('../../../../api/deliveryOrders', () => ({
   getDeliveryOrdersForClient: jest.fn(),
 }));
 
+jest.mock('../../../../api/users', () => ({
+  __esModule: true,
+  getUserByClientId: jest.fn(),
+}));
+
 const mockGetDeliveryOrdersForClient = getDeliveryOrdersForClient as MockedGetOrders;
+const mockGetUserByClientId = getUserByClientId as MockedGetUserByClientId;
 
 const originalFetch = globalThis.fetch;
 
@@ -67,8 +75,17 @@ beforeEach(() => {
 });
 
 describe('UserHistory delivery orders', () => {
-  it('fetches delivery orders when a client is selected from search', async () => {
-    mockGetDeliveryOrdersForClient.mockResolvedValueOnce([]);
+  it('skips delivery history when the selected client is not a delivery user', async () => {
+    mockGetUserByClientId.mockResolvedValueOnce({
+      clientId: 456,
+      firstName: 'Search',
+      lastName: 'Result',
+      email: null,
+      phone: null,
+      onlineAccess: true,
+      hasPassword: true,
+      role: 'shopper',
+    });
 
     renderWithProviders(
       <MemoryRouter>
@@ -78,16 +95,34 @@ describe('UserHistory delivery orders', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /select client/i }));
 
-    await waitFor(() => {
-      expect(mockGetDeliveryOrdersForClient).toHaveBeenCalledWith(456);
-    });
+    await waitFor(() =>
+      expect(mockGetUserByClientId).toHaveBeenCalledWith('456'),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('booking-management-base')).toHaveTextContent(
+        'History for 456',
+      ),
+    );
+    expect(mockGetDeliveryOrdersForClient).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Delivery history/i)).not.toBeInTheDocument();
   });
 
-  it('displays delivery order details for the selected client', async () => {
+  it('renders delivery history inline when the selected client has the delivery role', async () => {
+    mockGetUserByClientId.mockResolvedValueOnce({
+      clientId: 456,
+      firstName: 'Search',
+      lastName: 'Result',
+      email: null,
+      phone: null,
+      onlineAccess: true,
+      hasPassword: true,
+      role: 'delivery',
+    });
     mockGetDeliveryOrdersForClient.mockResolvedValueOnce([
       {
         id: 10,
-        clientId: 123,
+        clientId: 456,
         status: 'scheduled',
         createdAt: '2024-05-01T17:00:00.000Z',
         scheduledFor: '2024-05-14T15:30:00.000Z',
@@ -116,15 +151,18 @@ describe('UserHistory delivery orders', () => {
 
     renderWithProviders(
       <MemoryRouter>
-        <UserHistory initialUser={{ name: 'Client Example', client_id: 123 }} />
+        <UserHistory />
       </MemoryRouter>,
     );
 
-    await waitFor(() => {
-      expect(mockGetDeliveryOrdersForClient).toHaveBeenCalledWith(123);
-    });
+    fireEvent.click(screen.getByRole('button', { name: /select client/i }));
 
-    expect(await screen.findByText('Order #10')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(mockGetDeliveryOrdersForClient).toHaveBeenCalledWith(456),
+    );
+
+    expect(screen.getByText('Delivery history')).toBeInTheDocument();
+    expect(screen.getByText('Order #10')).toBeInTheDocument();
     expect(screen.getByText('Scheduled: Tue, May 14, 2024')).toBeInTheDocument();
     expect(screen.getByText('Address: 123 Main St')).toBeInTheDocument();
     expect(screen.getByText('Phone: 306-555-1234')).toBeInTheDocument();
@@ -134,5 +172,30 @@ describe('UserHistory delivery orders', () => {
     expect(screen.getByText('Bread × 1')).toBeInTheDocument();
     expect(screen.getByText('Dairy')).toBeInTheDocument();
     expect(screen.getByText('Bakery')).toBeInTheDocument();
+    expect(screen.queryByTestId('booking-management-base')).not.toBeInTheDocument();
+  });
+
+  it('shows an empty state when no delivery orders are found', async () => {
+    mockGetDeliveryOrdersForClient.mockResolvedValueOnce([]);
+
+    renderWithProviders(
+      <MemoryRouter>
+        <UserHistory
+          initialUser={{
+            name: 'Client Example',
+            client_id: 123,
+            role: 'delivery',
+          }}
+        />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() =>
+      expect(mockGetDeliveryOrdersForClient).toHaveBeenCalledWith(123),
+    );
+
+    expect(screen.getByText('Delivery history')).toBeInTheDocument();
+    expect(screen.getByText('No delivery orders yet')).toBeInTheDocument();
+    expect(mockGetUserByClientId).not.toHaveBeenCalled();
   });
 });

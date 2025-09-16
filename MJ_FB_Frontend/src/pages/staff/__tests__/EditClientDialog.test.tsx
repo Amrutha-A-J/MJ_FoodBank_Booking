@@ -30,6 +30,7 @@ describe('EditClientDialog', () => {
       phone: '',
       onlineAccess: true,
       hasPassword: true,
+      role: 'shopper',
     });
 
     renderWithProviders(
@@ -54,6 +55,7 @@ describe('EditClientDialog', () => {
       phone: '',
       onlineAccess: false,
       hasPassword: false,
+      role: 'shopper',
     });
 
     renderWithProviders(

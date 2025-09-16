@@ -25,6 +25,7 @@ describe('EditClientDialog', () => {
       phone: '',
       onlineAccess: true,
       hasPassword: true,
+      role: 'shopper',
     });
 
     render(<EditClientDialog {...props} />);
@@ -40,6 +41,7 @@ describe('EditClientDialog', () => {
       phone: '',
       onlineAccess: false,
       hasPassword: false,
+      role: 'shopper',
     });
 
     render(<EditClientDialog {...props} />);

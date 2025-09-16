@@ -8,6 +8,7 @@ import {
 } from '../../../api/bookings';
 import { deleteClientVisit } from '../../../api/clientVisits';
 import { getDeliveryOrdersForClient } from '../../../api/deliveryOrders';
+import { getUserByClientId } from '../../../api/users';
 import EntitySearch from '../../../components/EntitySearch';
 import BookingManagementBase from '../../../components/BookingManagementBase';
 import EditClientDialog from './EditClientDialog';
@@ -31,11 +32,12 @@ import {
 import Grid from '@mui/material/GridLegacy';
 import getApiErrorMessage from '../../../utils/getApiErrorMessage';
 import { formatLocaleDate } from '../../../utils/date';
-import type { DeliveryOrder, DeliveryOrderStatus } from '../../../types';
+import type { DeliveryOrder, DeliveryOrderStatus, UserRole } from '../../../types';
 
 interface User {
   name: string;
   client_id: number;
+  role?: UserRole;
 }
 
 function getStatusColor(
@@ -134,11 +136,18 @@ export default function UserHistory({
 }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [selected, setSelected] = useState<User | null>(initialUser || null);
+  const [selected, setSelected] = useState<User | null>(
+    initialUser ? { ...initialUser } : null,
+  );
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [deliveryOrders, setDeliveryOrders] = useState<DeliveryOrder[]>([]);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [deliveryError, setDeliveryError] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<UserRole | null>(
+    initialUser?.role ?? null,
+  );
+  const [roleLoading, setRoleLoading] = useState(false);
+  const [roleError, setRoleError] = useState<string | null>(null);
   const { role } = useAuth();
   const showNotes = role === 'staff';
 
@@ -148,11 +157,70 @@ export default function UserHistory({
     const clientId = searchParams.get('clientId');
     if (name && clientId) {
       setSelected({ name, client_id: Number(clientId) });
+      setSelectedRole(null);
     }
   }, [searchParams, initialUser]);
 
   useEffect(() => {
-    if (!selected || role !== 'staff') {
+    if (!selected) {
+      setSelectedRole(null);
+      setRoleError(null);
+      setRoleLoading(false);
+      return;
+    }
+
+    if (selected.role) {
+      setSelectedRole(selected.role);
+      setRoleError(null);
+      setRoleLoading(false);
+      return;
+    }
+
+    if (
+      initialUser &&
+      initialUser.role &&
+      initialUser.client_id === selected.client_id
+    ) {
+      setSelectedRole(initialUser.role);
+      setRoleError(null);
+      setRoleLoading(false);
+      return;
+    }
+
+    if (role !== 'staff') {
+      setRoleError(null);
+      setRoleLoading(false);
+      return;
+    }
+
+    let active = true;
+    setRoleLoading(true);
+    setRoleError(null);
+
+    getUserByClientId(String(selected.client_id))
+      .then(user => {
+        if (!active) return;
+        setSelectedRole(user.role);
+        setSelected(prev => (prev ? { ...prev, role: user.role } : prev));
+      })
+      .catch(err => {
+        if (!active) return;
+        setSelectedRole(null);
+        setRoleError(
+          getApiErrorMessage(err, 'Unable to load client details'),
+        );
+      })
+      .finally(() => {
+        if (active) setRoleLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selected, role, initialUser]);
+
+  useEffect(() => {
+    if (!selected || role !== 'staff' || selectedRole !== 'delivery') {
       setDeliveryOrders([]);
       setDeliveryLoading(false);
       setDeliveryError(null);
@@ -182,7 +250,17 @@ export default function UserHistory({
     return () => {
       active = false;
     };
-  }, [selected?.client_id, role]);
+  }, [selected?.client_id, role, selectedRole]);
+
+  const handleSelect = (u: User) => {
+    const user = { ...u };
+    setSelected(user);
+    setSelectedRole(user.role ?? null);
+    setRoleError(null);
+  };
+
+  const shouldShowRoleSpinner =
+    role === 'staff' && roleLoading && !selectedRole && !!selected;
 
   return (
     <Box>
@@ -195,7 +273,7 @@ export default function UserHistory({
             <EntitySearch
               type="user"
               placeholder="Search by name or client ID"
-              onSelect={u => setSelected(u as User)}
+              onSelect={u => handleSelect(u as User)}
               onNotFound={id => {
                 (document.activeElement as HTMLElement | null)?.blur();
                 setPendingId(id);
@@ -209,51 +287,17 @@ export default function UserHistory({
               alignItems="flex-start"
               sx={{ mt: initialUser ? 0 : 2 }}
             >
-              <Grid item xs={12} md={role === 'staff' ? 7 : 12}>
-                <BookingManagementBase
-                  user={selected}
-                  getBookingHistory={getBookingHistory}
-                  cancelBooking={cancelBooking}
-                  rescheduleBookingByToken={rescheduleBookingByToken}
-                  getSlots={getSlots}
-                  onDeleteVisit={deleteClientVisit}
-                  showNotes={showNotes}
-                  showFilter={!initialUser}
-                  showUserHeading={!initialUser}
-                  renderEditDialog={
-                    role === 'staff'
-                      ? ({ open, onClose, onUpdated }) => (
-                          <EditClientDialog
-                            open={open}
-                            clientId={selected.client_id}
-                            onClose={onClose}
-                            onUpdated={onUpdated}
-                            onClientUpdated={name =>
-                              setSelected({ ...selected, name })
-                            }
-                          />
-                        )
-                      : undefined
-                  }
-                  renderDeleteVisitButton={(b, isSmall, open) =>
-                    role === 'staff' && b.status === 'visited' && !b.slot_id ? (
-                      <Button
-                        key="deleteVisit"
-                        onClick={open}
-                        variant="outlined"
-                        color="error"
-                        fullWidth={isSmall}
-                      >
-                        Delete visit
-                      </Button>
-                    ) : null
-                  }
-                />
-              </Grid>
-              {role === 'staff' && (
-                <Grid item xs={12} md={5}>
+              <Grid item xs={12}>
+                {shouldShowRoleSpinner ? (
+                  <Box display="flex" justifyContent="center" py={4}>
+                    <CircularProgress size={24} />
+                  </Box>
+                ) : selectedRole === 'delivery' ? (
                   <Card>
-                    <CardHeader title="Delivery orders" subheader="Review hamper requests" />
+                    <CardHeader
+                      title="Delivery history"
+                      subheader="Review hamper requests"
+                    />
                     <CardContent>
                       {deliveryLoading ? (
                         <Box display="flex" justifyContent="center" py={2}>
@@ -263,7 +307,7 @@ export default function UserHistory({
                         <Typography color="error">{deliveryError}</Typography>
                       ) : deliveryOrders.length === 0 ? (
                         <Typography color="text.secondary">
-                          No delivery orders
+                          No delivery orders yet
                         </Typography>
                       ) : (
                         <Stack spacing={2} divider={<Divider flexItem />}>
@@ -274,8 +318,55 @@ export default function UserHistory({
                       )}
                     </CardContent>
                   </Card>
-                </Grid>
-              )}
+                ) : (
+                  <>
+                    {roleError && (
+                      <Box mb={2}>
+                        <Typography color="error">{roleError}</Typography>
+                      </Box>
+                    )}
+                    <BookingManagementBase
+                      user={selected}
+                      getBookingHistory={getBookingHistory}
+                      cancelBooking={cancelBooking}
+                      rescheduleBookingByToken={rescheduleBookingByToken}
+                      getSlots={getSlots}
+                      onDeleteVisit={deleteClientVisit}
+                      showNotes={showNotes}
+                      showFilter={!initialUser}
+                      showUserHeading={!initialUser}
+                      renderEditDialog={
+                        role === 'staff'
+                          ? ({ open, onClose, onUpdated }) => (
+                              <EditClientDialog
+                                open={open}
+                                clientId={selected.client_id}
+                                onClose={onClose}
+                                onUpdated={onUpdated}
+                                onClientUpdated={name =>
+                                  setSelected({ ...selected, name })
+                                }
+                              />
+                            )
+                          : undefined
+                      }
+                      renderDeleteVisitButton={(b, isSmall, open) =>
+                        role === 'staff' && b.status === 'visited' && !b.slot_id ? (
+                          <Button
+                            key="deleteVisit"
+                            onClick={open}
+                            variant="outlined"
+                            color="error"
+                            fullWidth={isSmall}
+                          >
+                            Delete visit
+                          </Button>
+                        ) : null
+                      }
+                    />
+                  </>
+                )}
+              </Grid>
             </Grid>
           )}
         </Box>

@@ -430,7 +430,7 @@ export default function App() {
                       path="/booking-history"
                       element={
                         <UserHistory
-                          initialUser={{ name, client_id: 0 }}
+                          initialUser={{ name, client_id: 0, role: 'shopper' }}
                         />
                       }
                     />
@@ -443,7 +443,7 @@ export default function App() {
                       path="/booking-history"
                       element={
                         <UserHistory
-                          initialUser={{ name, client_id: 0 }}
+                          initialUser={{ name, client_id: 0, role: 'shopper' }}
                         />
                       }
                     />
