@@ -48,8 +48,8 @@ describe('Donor Donation Log', () => {
     );
 
     expect(await screen.findByText('john@example.com')).toBeInTheDocument();
-    expect(await screen.findByText('$50.00')).toBeInTheDocument();
-    expect(screen.queryByText('$75.00')).not.toBeInTheDocument();
+    expect(await screen.findByText('CA$50.00')).toBeInTheDocument();
+    expect(screen.queryByText('CA$75.00')).not.toBeInTheDocument();
   });
 
   it('edits and deletes a donation', async () => {
@@ -69,7 +69,7 @@ describe('Donor Donation Log', () => {
     );
 
     await screen.findByText('john@example.com');
-    expect(await screen.findByText('$50.00')).toBeInTheDocument();
+    expect(await screen.findByText('CA$50.00')).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Edit donation'));
     const amountField = screen.getByLabelText('Amount');

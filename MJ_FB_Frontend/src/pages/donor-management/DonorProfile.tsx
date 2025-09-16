@@ -58,7 +58,7 @@ export default function DonorProfile() {
     enabled: !Number.isNaN(donorId),
   });
 
-  const currency = new Intl.NumberFormat('en-CA', {
+  const currency = new Intl.NumberFormat('en', {
     style: 'currency',
     currency: 'CAD',
   });

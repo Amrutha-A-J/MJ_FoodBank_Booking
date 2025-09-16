@@ -95,7 +95,7 @@ export default function DonationLog() {
   }
 
   const currency = useMemo(
-    () => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }),
+    () => new Intl.NumberFormat('en', { style: 'currency', currency: 'CAD' }),
     [],
   );
 
