@@ -483,7 +483,13 @@ export default function BookingUI<T = Slot>({
     : '';
 
   const content = (
-      <Container maxWidth="lg" sx={{ pb: 9 }}>
+    <Container
+      maxWidth="xl"
+      sx={{
+        pb: 9,
+        px: { xs: 2, sm: 3, lg: 4, xl: 6 },
+      }}
+    >
       <Toolbar />
       <Typography variant="h5" gutterBottom>
         {`Booking for ${displayName}`}
@@ -495,9 +501,21 @@ export default function BookingUI<T = Slot>({
         <AccessTime fontSize="small" />
         {`Available slots for ${date.format('ddd, MMM D, YYYY')}`}
       </Typography>
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 5, lg: 4 }}>
-          <Paper sx={{ p: 2, borderRadius: 2 }}>
+      <Grid
+        container
+        spacing={{ xs: 2, md: 3, xl: 4 }}
+        sx={{ alignItems: 'stretch' }}
+      >
+        <Grid size={{ xs: 12, md: 5, lg: 4, xl: 3 }}>
+          <Paper
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
             {!holidaysReady ? (
               <Skeleton variant="rectangular" height={296} />
             ) : (
@@ -533,7 +551,7 @@ export default function BookingUI<T = Slot>({
           </Paper>
         </Grid>
         <Grid
-          size={{ xs: 12, md: 7, lg: 8 }}
+          size={{ xs: 12, md: 7, lg: 8, xl: 9 }}
           sx={{ flexGrow: 1, flexBasis: { md: 0 }, minWidth: { md: 0 } }}
         >
           <Paper
@@ -541,7 +559,7 @@ export default function BookingUI<T = Slot>({
             sx={{
               p: 2,
               borderRadius: 2,
-              maxHeight: { xs: 420, md: 560 },
+              maxHeight: { xs: 420, md: 560, xl: 640 },
               overflow: 'auto',
               width: '100%',
             }}
