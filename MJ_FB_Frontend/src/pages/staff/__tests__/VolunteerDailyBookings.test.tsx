@@ -1,6 +1,5 @@
 import { renderWithProviders, screen } from '../../../../testUtils/renderWithProviders';
-import { act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { act, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import VolunteerDailyBookings from '../VolunteerDailyBookings';
 import {
@@ -8,113 +7,155 @@ import {
   updateVolunteerBookingStatus,
 } from '../../../api/volunteers';
 
-const realSetTimeout = global.setTimeout.bind(global);
-const realClearTimeout = global.clearTimeout.bind(global);
-const realSetImmediate =
-  (global as any).setImmediate?.bind(global) ||
-  ((fn: (...args: any[]) => void, ...args: any[]) => {
-    realSetTimeout(fn, 0, ...args);
-  });
-const realWindowSetTimeout = (global as any).window?.setTimeout?.bind((global as any).window);
-const realWindowClearTimeout = (global as any).window?.clearTimeout?.bind((global as any).window);
-let usingFakeTimers = false;
-
-const advanceTimers = (ms: number) => {
-  if (usingFakeTimers) {
-    jest.advanceTimersByTime(ms);
-  }
-};
-
 type TimerConfig = {
   id: unknown;
   handler: Parameters<typeof setTimeout>[0];
   timeout: Parameters<typeof setTimeout>[1];
   args: any[];
 };
-
-let timerConfigs: WeakMap<object, TimerConfig> = new WeakMap();
-
-const applyFakeTimersWithRefresh = () => {
-  jest.useFakeTimers('modern');
-  timerConfigs = new WeakMap();
-  usingFakeTimers = true;
-
+const installTimerRefreshPolyfill = () => {
   const nodeGlobal = global as any;
-  const domWindow = nodeGlobal.window as any;
-  const fakeSetTimeout: typeof setTimeout = nodeGlobal.setTimeout.bind(nodeGlobal);
-  const fakeClearTimeout: typeof clearTimeout = nodeGlobal.clearTimeout.bind(nodeGlobal);
+  const originalSetTimeout: typeof setTimeout = nodeGlobal.setTimeout;
+  const originalClearTimeout: typeof clearTimeout = nodeGlobal.clearTimeout;
+  const originalWindowSetTimeout: typeof setTimeout | undefined =
+    nodeGlobal.window?.setTimeout;
 
-  const attachRefresh = (handle: any, config: TimerConfig) => {
-    const refresh = () => {
-      fakeClearTimeout(config.id as any);
-      const newId = fakeSetTimeout(
-        config.handler as any,
-        config.timeout as any,
-        ...config.args,
-      );
-      config.id = newId;
-      return handle;
+  const createHandle = (config: TimerConfig) => {
+    const handle: any = {
+      id: config.id,
+      refresh() {
+        originalClearTimeout.call(nodeGlobal, config.id as any);
+        config.id = originalSetTimeout.call(
+          nodeGlobal,
+          config.handler as any,
+          config.timeout as any,
+          ...config.args,
+        );
+        handle.id = config.id;
+        return handle;
+      },
+      ref: () => handle,
+      unref: () => handle,
+      hasRef: () => true,
+      valueOf: () => config.id as any,
+      toString: () => String(config.id),
     };
-
-    handle.refresh = refresh;
-    if (typeof handle.ref !== 'function') {
-      handle.ref = () => handle;
-    }
-    if (typeof handle.unref !== 'function') {
-      handle.unref = () => handle;
-    }
-    if (typeof handle.hasRef !== 'function') {
-      handle.hasRef = () => true;
-    }
-    if (typeof handle[Symbol.toPrimitive] !== 'function') {
+    if (typeof Symbol === 'function' && Symbol.toPrimitive) {
       handle[Symbol.toPrimitive] = () => config.id as any;
     }
-    if (typeof handle.valueOf !== 'function') {
-      handle.valueOf = () => config.id as any;
-    }
-    if (typeof handle.toString !== 'function') {
-      handle.toString = () => String(config.id);
-    }
-
-    timerConfigs.set(handle, config);
     return handle;
   };
 
-  const patchedSetTimeout: typeof setTimeout = (
-    handler,
-    timeout,
-    ...args
-  ) => {
-    const id = fakeSetTimeout(handler as any, timeout as any, ...args) as unknown;
-    const config: TimerConfig = { id, handler, timeout, args };
-    if (typeof id === 'number') {
-      return attachRefresh({}, config);
+  const enhanceHandle = (handle: unknown, config: TimerConfig) => {
+    if (handle && typeof handle === 'object') {
+      const timer = handle as Record<PropertyKey, any>;
+      if (typeof timer.refresh !== 'function') {
+        timer.refresh = () => {
+          originalClearTimeout.call(nodeGlobal, config.id as any);
+          config.id = originalSetTimeout.call(
+            nodeGlobal,
+            config.handler as any,
+            config.timeout as any,
+            ...config.args,
+          );
+          timer.id = config.id;
+          return timer;
+        };
+      }
+      if (typeof timer.ref !== 'function') {
+        timer.ref = () => timer;
+      }
+      if (typeof timer.unref !== 'function') {
+        timer.unref = () => timer;
+      }
+      if (typeof timer.hasRef !== 'function') {
+        timer.hasRef = () => true;
+      }
+      if (typeof timer.valueOf !== 'function') {
+        timer.valueOf = () => config.id as any;
+      }
+      if (typeof timer.toString !== 'function') {
+        timer.toString = () => String(config.id);
+      }
+      if (
+        typeof Symbol === 'function' &&
+        Symbol.toPrimitive &&
+        typeof timer[Symbol.toPrimitive] !== 'function'
+      ) {
+        timer[Symbol.toPrimitive] = () => config.id as any;
+      }
+      timer.id = config.id;
+      return timer;
     }
-    if (typeof id === 'object' && id !== null) {
-      return attachRefresh(id as any, config);
-    }
-    return id as any;
+
+    return createHandle(config);
   };
 
-  nodeGlobal.setTimeout = patchedSetTimeout;
-  nodeGlobal.setImmediate = realSetImmediate;
-  if (domWindow) {
-    domWindow.setTimeout = patchedSetTimeout;
-    domWindow.setImmediate = realSetImmediate;
+  const patchedSetTimeout: typeof setTimeout = (handler, timeout, ...args) => {
+    const id = originalSetTimeout.call(nodeGlobal, handler as any, timeout as any, ...args);
+    const config: TimerConfig = { id, handler, timeout, args };
+    return enhanceHandle(id, config) as any;
+  };
+
+  nodeGlobal.setTimeout = patchedSetTimeout as any;
+  if (nodeGlobal.window) {
+    nodeGlobal.window.setTimeout = patchedSetTimeout as any;
+  }
+
+  return () => {
+    nodeGlobal.setTimeout = originalSetTimeout;
+    if (nodeGlobal.window) {
+      nodeGlobal.window.setTimeout = originalWindowSetTimeout ?? originalSetTimeout;
+    }
+  };
+};
+
+const flushTimersAndPromises = async () => {
+  for (let i = 0; i < 10; i += 1) {
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    if (typeof (jest as any).getTimerCount === 'function') {
+      if ((jest as any).getTimerCount() === 0) {
+        break;
+      }
+    }
   }
 };
 
+const waitForElement = async <T>(query: () => T): Promise<T> => {
+  let lastError: unknown;
+  for (let i = 0; i < 10; i += 1) {
+    try {
+      return query();
+    } catch (error) {
+      lastError = error;
+      await flushTimersAndPromises();
+    }
+  }
+  if (lastError instanceof Error) {
+    throw lastError;
+  }
+  throw new Error(String(lastError));
+};
+
+let restoreTimers: (() => void) | undefined;
+
 beforeAll(() => {
-  applyFakeTimersWithRefresh();
+  jest.useFakeTimers();
+  restoreTimers = installTimerRefreshPolyfill();
 });
 
 afterEach(() => {
-  applyFakeTimersWithRefresh();
+  jest.clearAllTimers();
 });
 
 afterAll(() => {
+  restoreTimers?.();
   jest.useRealTimers();
-  usingFakeTimers = false;
 });
 
 jest.mock('../../../api/volunteers', () => ({
@@ -178,21 +219,7 @@ describe('VolunteerDailyBookings', () => {
       </MemoryRouter>,
     );
 
-    act(() => {
-      jest.runOnlyPendingTimers();
-    });
-    jest.useRealTimers();
-    usingFakeTimers = false;
-    (global as any).setTimeout = realSetTimeout;
-    (global as any).clearTimeout = realClearTimeout;
-    (global as any).setImmediate = realSetImmediate;
-    if ((global as any).window) {
-      (global as any).window.setTimeout = realWindowSetTimeout ?? realSetTimeout;
-      (global as any).window.clearTimeout = realWindowClearTimeout ?? realClearTimeout;
-      (global as any).window.setImmediate = realSetImmediate;
-    }
-
-    expect(await screen.findByText('Pantry')).toBeInTheDocument();
+    await waitForElement(() => screen.getByText('Pantry'));
     expect(screen.getByText('Stocking')).toBeInTheDocument();
     expect(screen.getAllByText('9:00 AM – 10:00 AM')[0]).toBeInTheDocument();
     expect(screen.getByText('Alice')).toBeInTheDocument();
@@ -209,38 +236,17 @@ describe('VolunteerDailyBookings', () => {
       </MemoryRouter>,
     );
 
-    jest.useRealTimers();
-    usingFakeTimers = false;
-    (global as any).setTimeout = realSetTimeout;
-    (global as any).clearTimeout = realClearTimeout;
-    (global as any).setImmediate = realSetImmediate;
-    if ((global as any).window) {
-      (global as any).window.setTimeout = realWindowSetTimeout ?? realSetTimeout;
-      (global as any).window.clearTimeout = realWindowClearTimeout ?? realClearTimeout;
-      (global as any).window.setImmediate = realSetImmediate;
-    }
+    await waitForElement(() => screen.getByText('Pantry'));
 
-    const user = userEvent.setup({ advanceTimers });
-    await user.click(await screen.findByLabelText('Status'));
-    await user.click(
-      await screen.findByRole('option', { name: 'Completed' }),
-    );
+    const statusField = screen.getByLabelText('Status');
+    fireEvent.mouseDown(statusField);
 
-    applyFakeTimersWithRefresh();
-
-    act(() => {
-      jest.runOnlyPendingTimers();
+    const listbox = await waitForElement(() => screen.getByRole('listbox'));
+    const completedOption = within(listbox).getByRole('option', {
+      name: 'Completed',
     });
-    jest.useRealTimers();
-    usingFakeTimers = false;
-    (global as any).setTimeout = realSetTimeout;
-    (global as any).clearTimeout = realClearTimeout;
-    (global as any).setImmediate = realSetImmediate;
-    if ((global as any).window) {
-      (global as any).window.setTimeout = realWindowSetTimeout ?? realSetTimeout;
-      (global as any).window.clearTimeout = realWindowClearTimeout ?? realClearTimeout;
-      (global as any).window.setImmediate = realSetImmediate;
-    }
+    fireEvent.click(completedOption);
+    await flushTimersAndPromises();
 
     expect(updateVolunteerBookingStatus).toHaveBeenCalledWith(1, 'completed');
   });
