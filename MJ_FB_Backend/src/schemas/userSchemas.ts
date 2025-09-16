@@ -26,6 +26,7 @@ export const createUserSchema = z
     lastName: z.string().optional(),
     email: z.string().email().optional(),
     phone: z.string().optional(),
+    address: z.string().optional(),
     clientId: z.coerce.number().int().min(1).max(9_999_999),
     role: z.enum(['shopper', 'delivery']),
     onlineAccess: z.boolean(),
@@ -49,20 +50,28 @@ export const updateUserSchema = z.object({
   lastName: z.string().min(1),
   email: z.string().email().optional(),
   phone: z.string().optional(),
+  address: z.string().optional(),
   onlineAccess: z.boolean().optional(),
   password: passwordSchema.optional(),
 });
 
-// Schema for users updating their own contact information. Either
-// email or phone must be provided, but both are optional.
+// Schema for users updating their own contact information. At least one of
+// email, phone, or address must be provided, but all fields remain optional
+// individually.
 export const updateMyProfileSchema = z
   .object({
     email: z.string().email().optional(),
     phone: z.string().optional(),
+    address: z.string().optional(),
   })
-  .refine(data => data.email !== undefined || data.phone !== undefined, {
-    message: 'email or phone required',
-    path: ['email'],
+  .refine(
+    data =>
+      data.email !== undefined ||
+      data.phone !== undefined ||
+      data.address !== undefined,
+    {
+      message: 'email, phone, or address required',
+      path: ['email'],
   });
 
 

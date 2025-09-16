@@ -215,6 +215,11 @@ describe('deliveryOrderController', () => {
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
         4,
+        'UPDATE clients SET address = $1 WHERE client_id = $2',
+        ['456 Elm St', 456],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        5,
         expect.stringContaining('INSERT INTO delivery_order_items'),
         [77, 21, 2],
       );
@@ -338,6 +343,11 @@ describe('deliveryOrderController', () => {
         4,
         expect.stringContaining('INSERT INTO delivery_orders'),
         [555, '789 Pine Ave', '555-3333', 'client@example.com', 'pending', null, null],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        4,
+        'UPDATE clients SET address = $1 WHERE client_id = $2',
+        ['789 Pine Ave', 555],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
         5,

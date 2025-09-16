@@ -39,6 +39,7 @@ describe('Agency profile routes', () => {
       lastName: '',
       email: 'agency@example.com',
       phone: '123-4567',
+      address: null,
       role: 'agency',
     });
   });
@@ -64,6 +65,7 @@ describe('Agency profile routes', () => {
       lastName: '',
       email: 'new@example.com',
       phone: 'info',
+      address: null,
       role: 'agency',
     });
   });

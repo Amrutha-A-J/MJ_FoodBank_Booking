@@ -1,10 +1,18 @@
-import { createUser, loginUser, searchUsers, updateUserByClientId } from '../src/controllers/userController';
+import {
+  createUser,
+  getUserProfile,
+  loginUser,
+  searchUsers,
+  updateMyProfile,
+  updateUserByClientId,
+} from '../src/controllers/userController';
 import { refreshToken } from '../src/controllers/authController';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import logger from '../src/utils/logger';
 import issueAuthTokens from '../src/utils/authUtils';
+import { getClientBookingsThisMonth } from '../src/controllers/clientVisitController';
 
 jest.mock('../src/db');
 jest.mock('bcrypt');
@@ -17,10 +25,20 @@ jest.mock('../src/utils/authUtils', () => {
     default: jest.fn(),
   };
 });
+jest.mock('../src/controllers/clientVisitController', () => ({
+  getClientBookingsThisMonth: jest.fn(),
+}));
+
+const mockGetClientBookingsThisMonth =
+  getClientBookingsThisMonth as jest.MockedFunction<
+    typeof getClientBookingsThisMonth
+  >;
 
 describe('userController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetClientBookingsThisMonth.mockReset();
+    mockGetClientBookingsThisMonth.mockResolvedValue(0);
   });
 
   // createUser tests
@@ -230,6 +248,95 @@ describe('userController', () => {
 
       expect(spy).toHaveBeenCalledWith('Error updating user info:', err);
       expect(next).toHaveBeenCalledWith(err);
+    });
+  });
+
+  describe('getUserProfile', () => {
+    it('returns client profile with address', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            client_id: 7,
+            first_name: 'Sam',
+            last_name: 'Client',
+            email: 'sam@example.com',
+            phone: '555-1234',
+            address: '123 Main St',
+            role: 'delivery',
+            consent: true,
+          },
+        ],
+      });
+      mockGetClientBookingsThisMonth.mockResolvedValueOnce(2);
+
+      const req: any = { user: { id: 7, type: 'user' } };
+      const res: any = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+
+      await getUserProfile(req, res, jest.fn());
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('FROM clients WHERE client_id = $1'),
+        [7],
+      );
+      expect(mockGetClientBookingsThisMonth).toHaveBeenCalledWith(7);
+      expect(res.json).toHaveBeenCalledWith({
+        firstName: 'Sam',
+        lastName: 'Client',
+        email: 'sam@example.com',
+        phone: '555-1234',
+        address: '123 Main St',
+        clientId: 7,
+        role: 'delivery',
+        bookingsThisMonth: 2,
+        consent: true,
+      });
+    });
+  });
+
+  describe('updateMyProfile', () => {
+    it('updates client address', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            client_id: 7,
+            first_name: 'Sam',
+            last_name: 'Client',
+            email: 'sam@example.com',
+            phone: '555-1234',
+            address: '456 Oak Ave',
+            role: 'delivery',
+            consent: true,
+          },
+        ],
+      });
+      mockGetClientBookingsThisMonth.mockResolvedValueOnce(3);
+
+      const req: any = {
+        user: { id: 7, type: 'user' },
+        body: { address: '456 Oak Ave' },
+      };
+      const res: any = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+
+      await updateMyProfile(req, res, jest.fn());
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('address = COALESCE($3, address)'),
+        [undefined, undefined, '456 Oak Ave', 7],
+      );
+      expect(mockGetClientBookingsThisMonth).toHaveBeenCalledWith(7);
+      expect(res.json).toHaveBeenCalledWith({
+        firstName: 'Sam',
+        lastName: 'Client',
+        email: 'sam@example.com',
+        phone: '555-1234',
+        address: '456 Oak Ave',
+        clientId: 7,
+        role: 'delivery',
+        bookingsThisMonth: 3,
+        consent: true,
+      });
     });
   });
 

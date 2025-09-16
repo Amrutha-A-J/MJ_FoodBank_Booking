@@ -274,6 +274,7 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     lastName,
     email,
     phone,
+    address,
     clientId,
     role,
     onlineAccess,
@@ -284,6 +285,7 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     lastName?: string;
     email?: string;
     phone?: string;
+    address?: string;
     clientId: number;
     role: UserRole;
     onlineAccess: boolean;
@@ -325,13 +327,14 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
     await pool.query(
-      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access, profile_link, consent)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)`,
+      `INSERT INTO clients (first_name, last_name, email, phone, address, client_id, role, password, online_access, profile_link, consent)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true)`,
       [
         firstName || null,
         lastName || null,
         email || null,
         phone || null,
+        address || null,
         clientId,
         role,
         hashedPassword,
@@ -399,7 +402,7 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
   try {
     const { clientId } = req.params;
     const result = await pool.query(
-      `SELECT client_id, first_name, last_name, email, phone, online_access, password, consent
+      `SELECT client_id, first_name, last_name, email, phone, address, online_access, password, consent
        FROM clients WHERE client_id = $1`,
       [clientId]
     );
@@ -412,6 +415,7 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
       lastName: row.last_name,
       email: row.email,
       phone: row.phone,
+      address: row.address,
       clientId: row.client_id,
       onlineAccess: row.online_access,
       hasPassword: row.password != null,
@@ -442,6 +446,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
         lastName: row.last_name,
         email: row.email,
         phone: null,
+        address: null,
         role: 'staff',
         roles: row.access || [],
         consent: row.consent,
@@ -470,6 +475,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
         lastName: row.last_name,
         email: row.email,
         phone: row.phone,
+        address: null,
         role: 'volunteer',
         trainedAreas: trainedRes.rows.map(r => r.name),
         consent: row.consent,
@@ -491,6 +497,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
         lastName: '',
         email: row.email,
         phone: row.contact_info,
+        address: null,
         role: 'agency',
         consent: row.consent,
       });
@@ -526,7 +533,11 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
 export async function updateMyProfile(req: Request, res: Response, next: NextFunction) {
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
-  const { email, phone } = req.body as { email?: string; phone?: string };
+  const { email, phone, address } = req.body as {
+    email?: string;
+    phone?: string;
+    address?: string;
+  };
   try {
     if (user.type === 'staff') {
       const result = await pool.query(
@@ -545,6 +556,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
         lastName: row.last_name,
         email: row.email,
         phone: null,
+        address: null,
         role: 'staff',
         roles: row.access || [],
         consent: row.consent,
@@ -577,6 +589,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
         lastName: row.last_name,
         email: row.email,
         phone: row.phone,
+        address: null,
         role: 'volunteer',
         trainedAreas: trainedRes.rows.map(r => r.name),
         consent: row.consent,
@@ -602,6 +615,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
         lastName: '',
         email: row.email,
         phone: row.contact_info,
+        address: null,
         role: 'agency',
         consent: row.consent,
       });
@@ -610,10 +624,11 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
     const result = await pool.query(
       `UPDATE clients
        SET email = COALESCE($1, email),
-           phone = COALESCE($2, phone)
-       WHERE client_id = $3
-       RETURNING client_id, first_name, last_name, email, phone, role, consent`,
-      [email, phone, user.id],
+           phone = COALESCE($2, phone),
+           address = COALESCE($3, address)
+       WHERE client_id = $4
+       RETURNING client_id, first_name, last_name, email, phone, address, role, consent`,
+      [email, phone, address, user.id],
     );
     if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'User not found' });
@@ -625,6 +640,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
       lastName: row.last_name,
       email: row.email,
       phone: row.phone,
+      address: row.address,
       clientId: row.client_id,
       role: row.role,
       bookingsThisMonth,
@@ -672,12 +688,13 @@ export async function updateUserByClientId(
     return res.status(403).json({ message: 'Forbidden' });
   }
   const { clientId } = req.params;
-  const { firstName, lastName, email, phone, onlineAccess, password } =
+  const { firstName, lastName, email, phone, address, onlineAccess, password } =
     req.body as {
       firstName: string;
       lastName: string;
       email?: string;
       phone?: string;
+      address?: string;
       onlineAccess?: boolean;
       password?: string;
     };
@@ -703,14 +720,15 @@ export async function updateUserByClientId(
       const result = await pool.query(
         `UPDATE clients
          SET first_name = $1, last_name = $2, email = $3, phone = $4,
-             online_access = true, password = COALESCE($5, password)
-         WHERE client_id = $6
-         RETURNING client_id, first_name, last_name, email, phone, profile_link, consent`,
+             address = $5, online_access = true, password = COALESCE($6, password)
+         WHERE client_id = $7
+         RETURNING client_id, first_name, last_name, email, phone, address, profile_link, consent`,
         [
           firstName,
           lastName,
           email || null,
           phone || null,
+          address || null,
           hashedPassword,
           clientId,
         ],
@@ -725,6 +743,7 @@ export async function updateUserByClientId(
         lastName: row.last_name,
         email: row.email,
         phone: row.phone,
+        address: row.address,
         profileLink: row.profile_link,
         consent: row.consent,
       });
@@ -732,10 +751,10 @@ export async function updateUserByClientId(
 
     const result = await pool.query(
       `UPDATE clients
-       SET first_name = $1, last_name = $2, email = $3, phone = $4
-       WHERE client_id = $5
-       RETURNING client_id, first_name, last_name, email, phone, profile_link, consent`,
-      [firstName, lastName, email || null, phone || null, clientId],
+       SET first_name = $1, last_name = $2, email = $3, phone = $4, address = $5
+       WHERE client_id = $6
+       RETURNING client_id, first_name, last_name, email, phone, address, profile_link, consent`,
+      [firstName, lastName, email || null, phone || null, address || null, clientId],
     );
     if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'User not found' });
@@ -747,6 +766,7 @@ export async function updateUserByClientId(
       lastName: row.last_name,
       email: row.email,
       phone: row.phone,
+      address: row.address,
       profileLink: row.profile_link,
       consent: row.consent,
     });
