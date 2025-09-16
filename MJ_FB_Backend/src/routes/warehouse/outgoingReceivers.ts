@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   listOutgoingReceivers,
   addOutgoingReceiver,
+  deleteOutgoingReceiver,
   topOutgoingReceivers,
 } from '../../controllers/warehouse/outgoingReceiverController';
 import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
@@ -14,5 +15,6 @@ const router = Router();
 router.get('/top', topOutgoingReceivers);
 router.get('/', authMiddleware, authorizeAccess('warehouse'), listOutgoingReceivers);
 router.post('/', authMiddleware, authorizeAccess('warehouse'), validate(addOutgoingReceiverSchema), addOutgoingReceiver);
+router.delete('/:id', authMiddleware, authorizeAccess('warehouse'), deleteOutgoingReceiver);
 
 export default router;
