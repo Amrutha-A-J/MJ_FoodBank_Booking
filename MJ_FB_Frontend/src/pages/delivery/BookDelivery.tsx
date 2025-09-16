@@ -26,6 +26,7 @@ import {
   handleResponse,
 } from '../../api/client';
 import type { DeliveryCategory, DeliveryItem } from '../../types';
+import { useAuth } from '../../hooks/useAuth';
 
 type SelectionState = Record<number, boolean>;
 
@@ -39,7 +40,6 @@ type FormErrors = {
   address?: string;
   phone?: string;
   email?: string;
-  items?: string;
 };
 
 const PHONE_REGEX = /^\+?[0-9 ()-]{7,}$/;
@@ -70,6 +70,7 @@ export default function BookDelivery() {
     message: '',
     severity: 'success',
   });
+  const { id: clientId } = useAuth();
 
   useEffect(() => {
     let active = true;
@@ -128,17 +129,6 @@ export default function BookDelivery() {
     });
     return totals;
   }, [categories, selectedItems]);
-
-  const hasSelections = useMemo(
-    () => Object.values(selectedItems).some(Boolean),
-    [selectedItems],
-  );
-
-  useEffect(() => {
-    if (hasSelections) {
-      setFormErrors(prev => ({ ...prev, items: undefined }));
-    }
-  }, [hasSelections]);
 
   const handleCheckboxChange = (item: DeliveryItem) => {
     setSelectedItems(prev => {
@@ -199,10 +189,6 @@ export default function BookDelivery() {
     } else if (!EMAIL_REGEX.test(trimmedEmail)) {
       nextErrors.email = 'Enter a valid email address';
     }
-    if (!hasSelections) {
-      nextErrors.items = 'Select at least one item to continue';
-    }
-
     setFormErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -211,11 +197,21 @@ export default function BookDelivery() {
     event.preventDefault();
     if (!validate()) return;
 
+    if (!clientId) {
+      setSnackbar({
+        open: true,
+        severity: 'error',
+        message: 'We could not confirm your account. Please sign in again.',
+      });
+      return;
+    }
+
     const payload = {
+      clientId,
       address: address.trim(),
       phone: phone.trim(),
       email: email.trim(),
-      items: Object.entries(selectedItems)
+      selections: Object.entries(selectedItems)
         .filter(([, selected]) => selected)
         .map(([itemId]) => ({
           itemId: Number(itemId),
@@ -352,12 +348,6 @@ export default function BookDelivery() {
           {categories.length === 0 && !error && (
             <Typography color="text.secondary" sx={{ mt: 2 }}>
               No delivery items are currently available.
-            </Typography>
-          )}
-
-          {formErrors.items && (
-            <Typography variant="body2" color="error" sx={{ mt: 2 }}>
-              {formErrors.items}
             </Typography>
           )}
 
