@@ -5,7 +5,8 @@
 - Clients with the **delivery** role see **Book Delivery** and **Delivery History** in the navigation.
 - Book Delivery fetches delivery categories and items from `/api/v1/delivery/categories`. Each category exposes a `maxItems` value that caps the total quantity shoppers can request from that category.
 - The request form requires the delivery address, phone number, and email. Duplicate item selections are merged automatically before the order is submitted.
-- Delivery History lists each request in reverse chronological order so clients can confirm what they previously asked for.
+- Delivery History lists each request in reverse chronological order so clients can confirm what they previously asked for, review status updates, and see any scheduled drop-off details.
+- Clients can cancel requests while they remain in **Pending**, **Approved**, or **Scheduled** status. Once a request is marked **Completed** or **Cancelled**, it is locked for historical reference.
 
 ## Configure categories and items
 
@@ -20,7 +21,23 @@
 
 - Every submission to `/api/v1/delivery/orders` sends a Brevo email using `DELIVERY_REQUEST_TEMPLATE_ID`. Update the template when wording changes so the notification still matches the operation team’s process.
 - The notification includes the order ID, client ID, client name, contact details, timestamp, and a grouped list of requested items. Each category renders as `<strong>Category</strong> - Item xQuantity` with `<br>` line breaks, and the summary falls back to “No items selected” when a shopper doesn’t add items. Use that email to coordinate fulfillment and scheduling.
-- When the delivery date is confirmed, reply to the client with the plan (email or phone) and document the outcome in internal logs as needed. The app does not yet track delivery status, so rely on your operations checklist.
+- Track progress from the Deliveries management page so everyone sees the latest status, scheduled delivery time, and any notes added for the client. Continue emailing or calling clients when you set or adjust delivery plans so the written record and real-time communication stay in sync.
+
+## Deliveries management for staff
+
+Staff see a **Deliveries** page in the staff navigation. The view lists the newest requests first with each card showing the client’s contact information, requested items, the current status, and any notes entered for the client. Inline actions let the team adjust the status, populate a scheduled delivery date, and mark the order complete without leaving the page. Notes appear verbatim in the client’s delivery history, so keep them clear and action-oriented for shoppers.
+
+- Requests move through five statuses: **Pending**, **Approved**, **Scheduled**, **Completed**, and **Cancelled**. Use Pending for new orders, Approved once the hamper is accepted, Scheduled after you confirm a delivery time, Completed once the hamper is delivered, and Cancelled for duplicates or withdrawals.
+- The **Scheduled for** field shows in Delivery History, so update it as soon as you confirm a date. Completed requests stay visible for reporting but drop out of the “needs action” queue.
+- Clients are limited to two deliveries per calendar month (cancelled requests do not count). When they reach the limit the app blocks additional submissions until the next month.
+
+### Completion workflow
+
+1. Open the Deliveries page daily to review new Pending requests. Confirm the contact information before proceeding.
+2. After approving a hamper, switch the status to **Approved** and add a brief note if the client needs to prepare anything ahead of time.
+3. Once a delivery time is confirmed, set the **Scheduled for** date/time and move the request to **Scheduled**. This information feeds the client-facing timeline so they know when to expect their order.
+4. Deliver the hamper, then update the request to **Completed**. Add a short note summarizing the outcome (for example, “Delivered on doorstep at 2 PM”) so the client can see the confirmation in Delivery History.
+5. If a request must be abandoned, set the status to **Cancelled** with an explanatory note. Clients can submit a new request immediately afterward as long as they remain under the monthly limit.
 
 ## Supporting clients
 
