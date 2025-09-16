@@ -74,6 +74,7 @@ describe('deliveryOrderController', () => {
       );
       const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
       expect(firstQuery).toContain('FROM delivery_orders');
+      expect(firstQuery).toContain("status <> 'cancelled'");
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM delivery_items'),
@@ -131,6 +132,7 @@ describe('deliveryOrderController', () => {
       );
       const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
       expect(firstQuery).toContain('FROM delivery_orders');
+      expect(firstQuery).toContain("status <> 'cancelled'");
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM delivery_items'),
@@ -200,6 +202,7 @@ describe('deliveryOrderController', () => {
       );
       const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
       expect(firstQuery).toContain('FROM delivery_orders');
+      expect(firstQuery).toContain("status <> 'cancelled'");
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM delivery_items'),
@@ -253,6 +256,126 @@ describe('deliveryOrderController', () => {
       });
     });
 
+    it('does not count cancelled orders toward the monthly limit', async () => {
+      const submittedAt = new Date('2024-07-10T18:15:00Z');
+      (mockDb.query as jest.Mock)
+        .mockImplementationOnce(async (query: string) => {
+          if (!query.includes("status <> 'cancelled'")) {
+            return { rows: [{ count: '2' }], rowCount: 1 };
+          }
+          return { rows: [{ count: '1' }], rowCount: 1 };
+        })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              itemId: 52,
+              categoryId: 9,
+              itemName: 'Fresh Produce Box',
+              categoryName: 'Produce',
+              maxItems: 2,
+            },
+          ],
+          rowCount: 1,
+        })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: 88,
+              clientId: 555,
+              address: '789 Pine Ave',
+              phone: '555-3333',
+              email: 'client@example.com',
+              status: 'pending',
+              scheduledFor: null,
+              notes: null,
+              createdAt: submittedAt,
+            },
+          ],
+          rowCount: 1,
+        })
+        .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+      const req = {
+        user: { role: 'delivery', id: '555', type: 'user' },
+        body: {
+          clientId: 555,
+          address: '789 Pine Ave',
+          phone: '555-3333',
+          email: 'client@example.com',
+          selections: [
+            { itemId: 52, quantity: 1 },
+          ],
+        },
+      } as any;
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      await createDeliveryOrder(req, res, jest.fn());
+      await flushPromises();
+
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        1,
+        expect.stringContaining('America/Regina'),
+        [555],
+      );
+      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
+      expect(firstQuery).toContain('FROM delivery_orders');
+      expect(firstQuery).toContain("status <> 'cancelled'");
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining('FROM delivery_items'),
+        [[52]],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        3,
+        expect.stringContaining('INSERT INTO delivery_orders'),
+        [555, '789 Pine Ave', '555-3333', 'client@example.com', 'pending', null, null],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        4,
+        expect.stringContaining('INSERT INTO delivery_order_items'),
+        [88, 52, 1],
+      );
+
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith({
+        id: 88,
+        clientId: 555,
+        address: '789 Pine Ave',
+        phone: '555-3333',
+        email: 'client@example.com',
+        status: 'pending',
+        scheduledFor: null,
+        notes: null,
+        createdAt: submittedAt.toISOString(),
+        items: [
+          {
+            itemId: 52,
+            quantity: 1,
+            itemName: 'Fresh Produce Box',
+            categoryId: 9,
+            categoryName: 'Produce',
+          },
+        ],
+      });
+
+      expect(sendTemplatedEmail).toHaveBeenCalledWith({
+        to: 'ops@example.com',
+        templateId: 16,
+        params: {
+          orderId: 88,
+          clientId: 555,
+          address: '789 Pine Ave',
+          phone: '555-3333',
+          email: 'client@example.com',
+          itemList: 'Produce: Fresh Produce Box x1',
+          createdAt: submittedAt.toISOString(),
+        },
+      });
+    });
+
     it('rejects a third order in the same month', async () => {
       (mockDb.query as jest.Mock).mockResolvedValueOnce({
         rows: [{ count: '2' }],
@@ -291,6 +414,7 @@ describe('deliveryOrderController', () => {
       );
       const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
       expect(firstQuery).toContain('FROM delivery_orders');
+      expect(firstQuery).toContain("status <> 'cancelled'");
       expect(sendTemplatedEmail).not.toHaveBeenCalled();
     });
   });
