@@ -112,11 +112,15 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     }
   }
 
+  // created_at is stored in UTC, so convert to Regina time before truncating to the month
   const monthlyOrderCountResult = await pool.query<CountRow>(
     `SELECT COUNT(*)::int AS count
        FROM delivery_orders
       WHERE client_id = $1
-        AND date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE)`,
+        AND date_trunc(
+              'month',
+              (created_at AT TIME ZONE 'UTC') AT TIME ZONE 'America/Regina'
+            ) = date_trunc('month', timezone('America/Regina', now()))`,
     [clientId],
   );
 
