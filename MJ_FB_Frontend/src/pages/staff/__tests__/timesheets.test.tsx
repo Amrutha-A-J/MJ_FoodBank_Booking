@@ -74,6 +74,7 @@ const defaultTimesheetsResponse = {
   isLoading: false,
   error: null,
 } as const;
+
 const mockUseAllTimesheets = jest.fn();
 const mockSearchStaff = jest.fn();
 const mockAdminSearchStaff = jest.fn();
@@ -255,26 +256,7 @@ describe('Timesheets', () => {
     ] as const;
     mockAdminSearchStaff.mockResolvedValue(staffResults);
     mockUseAllTimesheets.mockImplementation((id?: number) =>
-      id === 2
-        ? {
-            timesheets: [
-              {
-                id: 10,
-                staff_id: 2,
-                start_date: '2024-01-01',
-                end_date: '2024-01-07',
-                submitted_at: '2024-01-02',
-                approved_at: null,
-                total_hours: 0,
-                expected_hours: 0,
-                balance_hours: 0,
-                ot_hours: 0,
-              },
-            ],
-            isLoading: false,
-            error: null,
-          }
-        : { timesheets: [], isLoading: false, error: null },
+      id === 2 ? adminTimesheets : emptyAdminTimesheets,
     );
     const user = userEvent.setup();
     await act(async () => render('/admin/timesheet'));
