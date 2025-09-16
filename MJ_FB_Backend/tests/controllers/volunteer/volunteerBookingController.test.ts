@@ -48,6 +48,7 @@ import {
 } from '../../../src/utils/emailUtils';
 import { buildIcsFile } from '../../../src/utils/calendarLinks';
 import { notifyOps } from '../../../src/utils/opsAlert';
+import logger from '../../../src/utils/logger';
 
 const futureDate = '2099-01-06';
 const futureDateTwo = '2099-01-07';
@@ -57,6 +58,7 @@ describe('volunteerBookingController', () => {
   const poolConnect = mockPool.connect as jest.Mock;
   const client = { query: jest.fn(), release: jest.fn() } as any;
   const randomUUIDMock = crypto.randomUUID as jest.Mock;
+  const loggerMock = logger as jest.Mocked<typeof logger>;
 
   beforeEach(() => {
     poolQuery.mockReset();
@@ -74,6 +76,10 @@ describe('volunteerBookingController', () => {
     (sendTemplatedEmail as jest.Mock).mockResolvedValue(undefined);
     randomUUIDMock.mockReset();
     randomUUIDMock.mockReturnValue('uuid-123');
+    loggerMock.warn.mockClear();
+    loggerMock.error.mockClear();
+    loggerMock.info.mockClear();
+    loggerMock.debug.mockClear();
   });
 
   describe('createVolunteerBooking', () => {
@@ -444,27 +450,58 @@ describe('volunteerBookingController', () => {
   });
 
   describe('cancelVolunteerBookingOccurrence', () => {
-    it('sends a cancellation email when staff cancel an upcoming shift', async () => {
+    const queueCancellationQueries = ({
+      booking: bookingOverrides = {},
+      volunteer: volunteerOverrides = {},
+      slot: slotOverrides = {},
+    }: {
+      booking?: Partial<{
+        id: number;
+        slot_id: number;
+        volunteer_id: number;
+        date: string | Date;
+        status: string;
+        recurring_id: number | null;
+        reschedule_token: string;
+      }>;
+      volunteer?: Partial<{
+        email: string | null;
+        first_name?: string | null;
+        last_name?: string | null;
+      }>;
+      slot?: Partial<{ start_time: string; end_time: string }>;
+    } = {}) => {
+      const booking = {
+        id: 55,
+        slot_id: 10,
+        volunteer_id: 5,
+        date: futureDate,
+        status: 'approved',
+        recurring_id: null,
+        reschedule_token: 'token-abc',
+        ...bookingOverrides,
+      };
+      const volunteer = {
+        email: 'vol@example.com',
+        first_name: 'Alex',
+        last_name: 'Kim',
+        ...volunteerOverrides,
+      };
+      const slot = {
+        start_time: '09:00:00',
+        end_time: '12:00:00',
+        ...slotOverrides,
+      };
       poolQuery
-        .mockResolvedValueOnce({
-          rowCount: 1,
-          rows: [
-            {
-              id: 55,
-              slot_id: 10,
-              volunteer_id: 5,
-              date: futureDate,
-              status: 'approved',
-              recurring_id: null,
-              reschedule_token: 'token-abc',
-            },
-          ],
-        })
+        .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
         .mockResolvedValueOnce({ rowCount: 1 })
-        .mockResolvedValueOnce({
-          rows: [{ email: 'vol@example.com', first_name: 'Alex', last_name: 'Kim' }],
-        })
-        .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '12:00:00' }] });
+        .mockResolvedValueOnce({ rows: [volunteer] })
+        .mockResolvedValueOnce({ rows: [slot] });
+      return { booking, volunteer, slot };
+    };
+
+    it('sends a cancellation email when staff cancel an upcoming shift', async () => {
+      queueCancellationQueries();
 
       const req: any = {
         params: { id: '55' },
@@ -495,26 +532,7 @@ describe('volunteerBookingController', () => {
     });
 
     it('skips email when the volunteer cancels their own booking', async () => {
-      poolQuery
-        .mockResolvedValueOnce({
-          rowCount: 1,
-          rows: [
-            {
-              id: 55,
-              slot_id: 10,
-              volunteer_id: 5,
-              date: futureDate,
-              status: 'approved',
-              recurring_id: null,
-              reschedule_token: 'token-abc',
-            },
-          ],
-        })
-        .mockResolvedValueOnce({ rowCount: 1 })
-        .mockResolvedValueOnce({
-          rows: [{ email: 'vol@example.com', first_name: 'Alex', last_name: 'Kim' }],
-        })
-        .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '12:00:00' }] });
+      queueCancellationQueries();
 
       const req: any = {
         params: { id: '55' },
@@ -532,6 +550,113 @@ describe('volunteerBookingController', () => {
       expect((notifyOps as jest.Mock)).toHaveBeenCalledWith(
         expect.stringContaining('Alex Kim (volunteer) cancelled shift'),
       );
+    });
+
+    it('returns 400 when the booking is already cancelled', async () => {
+      queueCancellationQueries({ booking: { status: 'cancelled' } });
+
+      const req: any = {
+        params: { id: '55' },
+        body: { reason: 'sick' },
+        user: { role: 'staff' },
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await cancelVolunteerBookingOccurrence(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Booking already cancelled' });
+      expect(poolQuery).toHaveBeenCalledTimes(1);
+      expect(sendTemplatedEmail).not.toHaveBeenCalled();
+    });
+
+    it('returns 400 when the booking date is in the past', async () => {
+      queueCancellationQueries({ booking: { date: '2000-01-01' } });
+
+      const req: any = {
+        params: { id: '55' },
+        body: { reason: 'sick' },
+        user: { role: 'staff' },
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await cancelVolunteerBookingOccurrence(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Booking already occurred' });
+      expect(poolQuery).toHaveBeenCalledTimes(1);
+      expect(sendTemplatedEmail).not.toHaveBeenCalled();
+    });
+
+    it('formats Date instances returned from the database', async () => {
+      queueCancellationQueries({
+        booking: { date: new Date('2099-01-06T00:00:00-06:00') },
+      });
+
+      const req: any = {
+        params: { id: '55' },
+        body: { reason: 'sick' },
+        user: { role: 'staff' },
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await cancelVolunteerBookingOccurrence(req, res, jest.fn());
+
+      expect(res.json).toHaveBeenCalledWith({ message: 'Booking cancelled' });
+      expect(sendTemplatedEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: expect.objectContaining({
+            body: expect.stringContaining('Jan 6, 2099'),
+          }),
+        }),
+      );
+      expect((notifyOps as jest.Mock)).toHaveBeenCalledWith(
+        expect.stringContaining('Jan 6, 2099'),
+      );
+    });
+
+    it('logs a warning when a staff user cancels for a volunteer without email', async () => {
+      queueCancellationQueries({ volunteer: { email: null } });
+
+      const req: any = {
+        params: { id: '55' },
+        body: { reason: 'sick' },
+        user: { role: 'staff' },
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await cancelVolunteerBookingOccurrence(req, res, jest.fn());
+
+      expect(res.json).toHaveBeenCalledWith({ message: 'Booking cancelled' });
+      expect(sendTemplatedEmail).not.toHaveBeenCalled();
+      expect(loggerMock.warn).toHaveBeenCalledWith(
+        'Volunteer booking cancellation email not sent. Volunteer %s has no email.',
+        5,
+      );
+    });
+
+    it('logs and forwards errors when cancellation fails', async () => {
+      const error = new Error('database offline');
+      poolQuery.mockRejectedValueOnce(error);
+
+      const req: any = {
+        params: { id: '55' },
+        body: { reason: 'sick' },
+        user: { role: 'staff' },
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+      const next = jest.fn();
+
+      await cancelVolunteerBookingOccurrence(req, res, next);
+
+      expect(poolQuery).toHaveBeenCalledTimes(1);
+      expect(loggerMock.error).toHaveBeenCalledWith(
+        'Error cancelling volunteer booking:',
+        error,
+      );
+      expect(next).toHaveBeenCalledWith(error);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(sendTemplatedEmail).not.toHaveBeenCalled();
     });
   });
 });

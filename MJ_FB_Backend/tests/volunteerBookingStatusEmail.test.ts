@@ -3,7 +3,6 @@ import express from 'express';
 import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
-import logger from '../src/utils/logger';
 import { notifyOps } from '../src/utils/opsAlert';
 
 jest.mock('../src/utils/emailUtils', () => ({
@@ -112,7 +111,26 @@ describe('cancelVolunteerBookingOccurrence', () => {
     jest.clearAllMocks();
   });
 
-  function mockCommonQueries() {
+  function mockCommonQueries({
+    booking: bookingOverrides = {},
+    volunteer: volunteerOverrides = {},
+    slot: slotOverrides = {},
+  }: {
+    booking?: Partial<{
+      id: number;
+      slot_id: number;
+      volunteer_id: number;
+      date: string | Date;
+      status: string;
+      reschedule_token: string;
+    }>;
+    volunteer?: Partial<{
+      email: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+    }>;
+    slot?: Partial<{ start_time: string; end_time: string }>;
+  } = {}) {
     const booking = {
       id: 1,
       slot_id: 2,
@@ -120,12 +138,21 @@ describe('cancelVolunteerBookingOccurrence', () => {
       date: '2030-09-01',
       status: 'approved',
       reschedule_token: 'token',
+      ...bookingOverrides,
     };
+    const volunteer = {
+      email: 'vol@example.com',
+      first_name: 'A',
+      last_name: 'B',
+      ...volunteerOverrides,
+    };
+    const slot = { start_time: '09:00', end_time: '10:00', ...slotOverrides };
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
       .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({ rows: [{ email: 'vol@example.com', first_name: 'A', last_name: 'B' }] })
-      .mockResolvedValueOnce({ rows: [{ start_time: '09:00', end_time: '10:00' }] });
+      .mockResolvedValueOnce({ rows: [volunteer] })
+      .mockResolvedValueOnce({ rows: [slot] });
+    return { booking, volunteer, slot };
   }
 
     it('sends email when staff cancels with reason', async () => {
@@ -150,6 +177,7 @@ describe('cancelVolunteerBookingOccurrence', () => {
     expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
     expect(notifyOps).toHaveBeenCalled();
   });
+
 });
 
 describe('cancelRecurringVolunteerBooking', () => {
