@@ -125,7 +125,10 @@ function buildItemListHtml(items: DeliveryOrderItemDetail[]): string {
   return Array.from(grouped.values())
     .map(({ categoryName, selections }) => {
       const itemsText = selections
-        .map(selection => `${escapeHtml(selection.itemName)} x${selection.quantity}`)
+        .map(selection => {
+          const quantityText = selection.quantity > 1 ? ` x${selection.quantity}` : '';
+          return `${escapeHtml(selection.itemName)}${quantityText}`;
+        })
         .join(', ');
       return `<strong>${escapeHtml(categoryName)}</strong> - ${itemsText}<br>`;
     })
