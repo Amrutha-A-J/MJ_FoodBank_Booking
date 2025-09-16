@@ -579,17 +579,27 @@ export default function BookDelivery() {
             </Box>
           )}
 
-          <Box display="flex" justifyContent="flex-end">
+          <Box
+            display="flex"
+            justifyContent="flex-end"
+            flexDirection="column"
+            alignItems={{ xs: 'stretch', sm: 'flex-end' }}
+          >
             <Button
               type="submit"
               variant="contained"
               size="medium"
               disabled={submitting || !allConfirmed}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               {submitting ? 'Submitting…' : 'Submit Delivery Request'}
             </Button>
             {!allConfirmed && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 1, textAlign: { xs: 'left', sm: 'right' } }}
+              >
                 Confirm your address, phone, and email above to submit.
               </Typography>
             )}
