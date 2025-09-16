@@ -358,23 +358,40 @@ export async function refreshToken(req: Request, res: Response, _next: NextFunct
       userRole?: string;
       access?: string[];
     };
-    const subject = `${payload.type}:${payload.id}`;
-    const stored = await pool.query(
-      'SELECT token_id FROM refresh_tokens WHERE subject=$1',
-      [subject],
-    );
-    if ((stored.rowCount ?? 0) === 0) {
+    if (!payload.jti) {
       throw new Error('Invalid refresh token');
     }
-    if (stored.rows[0].token_id !== payload.jti) {
-      // Token subject exists but jti mismatch – likely another request refreshed already.
-      logger.warn('Refresh token jti mismatch for %s', subject);
-      return res.status(409).send();
+    const subject = `${payload.type}:${payload.id}`;
+    const stored = await pool.query(
+      'SELECT subject, expires_at FROM refresh_tokens WHERE token_id=$1',
+      [payload.jti],
+    );
+    if ((stored.rowCount ?? 0) === 0) {
+      logger.warn('Refresh token not found for %s', subject);
+      throw new Error('Invalid refresh token');
     }
+    const tokenRecord = stored.rows[0] as {
+      subject: string;
+      expires_at: string | Date;
+    };
+    if (tokenRecord.subject !== subject) {
+      logger.warn('Refresh token subject mismatch for %s', subject);
+      throw new Error('Invalid refresh token');
+    }
+    const expiresAt =
+      tokenRecord.expires_at instanceof Date
+        ? tokenRecord.expires_at
+        : new Date(tokenRecord.expires_at);
+    if (Number.isNaN(expiresAt.getTime()) || expiresAt.getTime() <= Date.now()) {
+      logger.warn('Refresh token expired for %s', subject);
+      throw new Error('Invalid refresh token');
+    }
+    const refreshExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
+    const newExpiresAt = new Date(Date.now() + refreshExpiry);
     const newJti = randomUUID();
     await pool.query(
-      `UPDATE refresh_tokens SET token_id=$1 WHERE subject=$2`,
-      [newJti, subject],
+      `UPDATE refresh_tokens SET token_id=$1, expires_at=$2 WHERE token_id=$3`,
+      [newJti, newExpiresAt, payload.jti],
     );
     const basePayload: any = {
       id: payload.id,
@@ -394,7 +411,6 @@ export async function refreshToken(req: Request, res: Response, _next: NextFunct
       config.jwtRefreshSecret,
       { expiresIn: '7d', algorithm: 'HS256' },
     );
-    const refreshExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
     res.cookie('token', accessToken, {
       ...resolvedCookieOptions,
       maxAge: 60 * 60 * 1000,
@@ -402,7 +418,7 @@ export async function refreshToken(req: Request, res: Response, _next: NextFunct
     res.cookie('refreshToken', newRefreshToken, {
       ...resolvedCookieOptions,
       maxAge: refreshExpiry,
-      expires: new Date(Date.now() + refreshExpiry),
+      expires: newExpiresAt,
     });
     return res.status(204).send();
   } catch (err) {
@@ -423,10 +439,11 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
         }) as {
           id: number | string;
           type: string;
+          jti?: string;
         };
-        await pool.query('DELETE FROM refresh_tokens WHERE subject=$1', [
-          `${payload.type}:${payload.id}`,
-        ]);
+        if (payload.jti) {
+          await pool.query('DELETE FROM refresh_tokens WHERE token_id=$1', [payload.jti]);
+        }
       } catch {
         // ignore
       }

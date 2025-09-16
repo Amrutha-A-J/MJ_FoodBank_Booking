@@ -51,13 +51,14 @@ export async function issueAuthTokens(
     algorithm: 'HS256',
   });
 
+  const refreshExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
+  const refreshExpiresAt = new Date(Date.now() + refreshExpiry);
+
   await pool.query(
-    `INSERT INTO refresh_tokens (token_id, subject) VALUES ($1,$2)
-     ON CONFLICT (subject) DO UPDATE SET token_id = EXCLUDED.token_id`,
-    [jti, subject],
+    `INSERT INTO refresh_tokens (token_id, subject, expires_at) VALUES ($1,$2,$3)`,
+    [jti, subject, refreshExpiresAt],
   );
 
-  const refreshExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
   res.cookie('token', token, {
     ...cookieOptions,
     maxAge: 60 * 60 * 1000,
@@ -65,7 +66,7 @@ export async function issueAuthTokens(
   res.cookie('refreshToken', refreshToken, {
     ...cookieOptions,
     maxAge: refreshExpiry,
-    expires: new Date(Date.now() + refreshExpiry),
+    expires: refreshExpiresAt,
   });
 
   return { token, refreshToken };

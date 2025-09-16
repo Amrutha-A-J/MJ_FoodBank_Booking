@@ -13,6 +13,7 @@ export async function cleanupExpiredTokens(): Promise<void> {
     await pool.query(
       "DELETE FROM client_email_verifications WHERE expires_at < (CURRENT_DATE - INTERVAL '10 days')",
     );
+    await pool.query('DELETE FROM refresh_tokens WHERE expires_at < CURRENT_TIMESTAMP');
   } catch (err) {
     logger.error('Failed to clean up expired tokens', err);
   }

@@ -27,6 +27,7 @@ describe('cleanupExpiredTokens', () => {
   it('removes expired password setup and email verification tokens', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1 })
+      .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({ rowCount: 1 });
     await cleanupExpiredTokens();
     expect(pool.query).toHaveBeenNthCalledWith(
@@ -36,6 +37,10 @@ describe('cleanupExpiredTokens', () => {
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
       "DELETE FROM client_email_verifications WHERE expires_at < (CURRENT_DATE - INTERVAL '10 days')",
+    );
+    expect(pool.query).toHaveBeenNthCalledWith(
+      3,
+      'DELETE FROM refresh_tokens WHERE expires_at < CURRENT_TIMESTAMP',
     );
   });
 
