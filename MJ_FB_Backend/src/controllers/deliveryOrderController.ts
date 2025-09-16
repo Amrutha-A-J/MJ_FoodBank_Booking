@@ -141,7 +141,9 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
 
   const monthlyOrderCount = Number(monthlyOrderCountResult.rows[0]?.count ?? 0);
   if (monthlyOrderCount >= 2) {
-    return res.status(400).json({ message: "You've reached the monthly delivery limit" });
+    return res.status(400).json({
+      message: `You have already used the food bank ${monthlyOrderCount} times this month, please request again next month`,
+    });
   }
 
   let itemDetails: DeliveryOrderItemDetail[] = [];

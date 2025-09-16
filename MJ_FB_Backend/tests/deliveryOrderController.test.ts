@@ -281,7 +281,8 @@ describe('deliveryOrderController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        message: "You've reached the monthly delivery limit",
+        message:
+          'You have already used the food bank 2 times this month, please request again next month',
       });
       expect(mockDb.query).toHaveBeenCalledTimes(1);
       expect(mockDb.query).toHaveBeenCalledWith(
