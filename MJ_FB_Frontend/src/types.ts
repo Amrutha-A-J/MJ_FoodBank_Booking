@@ -41,14 +41,17 @@ export type DeliveryOrderStatus =
 
 export interface DeliveryOrderItem {
   itemId: number;
-  name: string;
   quantity: number;
   categoryId: number;
+  name?: string;
+  itemName?: string;
   categoryName?: string | null;
 }
 
 export interface DeliveryOrder {
   id: number;
+  clientId?: number;
+  clientName?: string | null;
   status?: DeliveryOrderStatus | null;
   createdAt: string;
   scheduledFor?: string | null;
@@ -57,6 +60,10 @@ export interface DeliveryOrder {
   email?: string | null;
   notes?: string | null;
   items: DeliveryOrderItem[];
+}
+
+export interface DeliveryOutstandingOrder extends DeliveryOrder {
+  clientId: number;
 }
 
 export interface Staff {

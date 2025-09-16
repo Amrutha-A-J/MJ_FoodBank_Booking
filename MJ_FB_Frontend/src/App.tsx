@@ -138,6 +138,9 @@ const DeliveryHistory = React.lazy(
 const DeliveryDashboard = React.lazy(
   () => import('./pages/delivery/DeliveryDashboard')
 );
+const PantryDeliveries = React.lazy(
+  () => import('./pages/pantry/Deliveries')
+);
 
 const Spinner = () => <CircularProgress />;
 
@@ -183,6 +186,7 @@ export default function App() {
       { label: 'Pantry Visits', to: '/pantry/visits' },
       { label: 'Client Management', to: '/pantry/client-management' },
       { label: 'Agency Management', to: '/pantry/agency-management' },
+      { label: 'Deliveries', to: '/pantry/deliveries' },
     ];
     if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
     if (showVolunteerManagement)
@@ -376,6 +380,9 @@ export default function App() {
                   )}
                   {showStaff && (
                     <Route path="/pantry/schedule" element={<PantrySchedule />} />
+                  )}
+                  {showStaff && (
+                    <Route path="/pantry/deliveries" element={<PantryDeliveries />} />
                   )}
                   {showStaff && (
                     <Route path="/pantry/visits" element={<PantryVisits />} />
