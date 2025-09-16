@@ -1,5 +1,7 @@
 import {
   createUser,
+  deleteUserByClientId,
+  getUserByClientId,
   getUserProfile,
   loginUser,
   searchUsers,
@@ -13,6 +15,11 @@ import jwt from 'jsonwebtoken';
 import logger from '../src/utils/logger';
 import issueAuthTokens from '../src/utils/authUtils';
 import { getClientBookingsThisMonth } from '../src/controllers/clientVisitController';
+import {
+  buildPasswordSetupEmailParams,
+  generatePasswordSetupToken,
+} from '../src/utils/passwordSetupUtils';
+import { sendTemplatedEmail } from '../src/utils/emailUtils';
 
 jest.mock('../src/db');
 jest.mock('bcrypt');
@@ -28,17 +35,40 @@ jest.mock('../src/utils/authUtils', () => {
 jest.mock('../src/controllers/clientVisitController', () => ({
   getClientBookingsThisMonth: jest.fn(),
 }));
+jest.mock('../src/utils/passwordSetupUtils', () => ({
+  __esModule: true,
+  generatePasswordSetupToken: jest.fn(),
+  buildPasswordSetupEmailParams: jest.fn(),
+}));
+jest.mock('../src/utils/emailUtils', () => ({
+  __esModule: true,
+  sendTemplatedEmail: jest.fn(),
+}));
 
 const mockGetClientBookingsThisMonth =
   getClientBookingsThisMonth as jest.MockedFunction<
     typeof getClientBookingsThisMonth
   >;
+const mockGeneratePasswordSetupToken =
+  generatePasswordSetupToken as jest.MockedFunction<
+    typeof generatePasswordSetupToken
+  >;
+const mockBuildPasswordSetupEmailParams =
+  buildPasswordSetupEmailParams as jest.MockedFunction<
+    typeof buildPasswordSetupEmailParams
+  >;
+const mockSendTemplatedEmail =
+  sendTemplatedEmail as jest.MockedFunction<typeof sendTemplatedEmail>;
 
 describe('userController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetClientBookingsThisMonth.mockReset();
     mockGetClientBookingsThisMonth.mockResolvedValue(0);
+    mockGeneratePasswordSetupToken.mockReset();
+    mockBuildPasswordSetupEmailParams.mockReset();
+    mockSendTemplatedEmail.mockReset();
+    mockSendTemplatedEmail.mockResolvedValue(undefined);
   });
 
   // createUser tests
@@ -83,6 +113,121 @@ describe('userController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ message: 'Email already exists' });
+    });
+
+    it('sends password setup email when requested', async () => {
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // clientId check
+        .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // email check
+        .mockResolvedValueOnce({}); // insert
+      mockGeneratePasswordSetupToken.mockResolvedValue('token-123');
+      mockBuildPasswordSetupEmailParams.mockReturnValue({
+        link: 'https://example.com',
+        token: 'token-123',
+      });
+
+      const req: any = {
+        user: { role: 'staff' },
+        body: {
+          firstName: 'A',
+          lastName: 'B',
+          email: 'a@b.com',
+          clientId: 42,
+          role: 'shopper',
+          onlineAccess: true,
+          sendPasswordLink: true,
+        },
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await createUser(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(mockGeneratePasswordSetupToken).toHaveBeenCalledWith('clients', 42);
+      expect(mockBuildPasswordSetupEmailParams).toHaveBeenCalledWith(
+        'clients',
+        'token-123',
+        42,
+      );
+      expect(mockSendTemplatedEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'a@b.com',
+          params: { link: 'https://example.com', token: 'token-123' },
+        }),
+      );
+    });
+
+    it('rejects when client ID already exists', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [{}] });
+
+      const req: any = {
+        user: { role: 'staff' },
+        body: { clientId: 9, role: 'shopper', onlineAccess: false },
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await createUser(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Client ID already exists' });
+      expect(pool.query).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getUserByClientId', () => {
+    it('returns a user profile for staff lookup', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            client_id: 3,
+            first_name: 'Jamie',
+            last_name: 'Doe',
+            email: 'jamie@example.com',
+            phone: '555-0000',
+            address: '123 Main',
+            online_access: true,
+            password: 'hash',
+            consent: true,
+          },
+        ],
+      });
+
+      const req: any = { params: { clientId: '3' } };
+      const res: any = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+
+      await getUserByClientId(req, res, jest.fn());
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('FROM clients WHERE client_id = $1'),
+        ['3'],
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        firstName: 'Jamie',
+        lastName: 'Doe',
+        email: 'jamie@example.com',
+        phone: '555-0000',
+        address: '123 Main',
+        clientId: 3,
+        onlineAccess: true,
+        hasPassword: true,
+        consent: true,
+      });
+    });
+
+    it('returns 404 when the client cannot be found', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
+
+      const req: any = { params: { clientId: '99' } };
+      const res: any = {
+        json: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+      };
+
+      await getUserByClientId(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
     });
   });
 
@@ -249,6 +394,236 @@ describe('userController', () => {
       expect(spy).toHaveBeenCalledWith('Error updating user info:', err);
       expect(next).toHaveBeenCalledWith(err);
     });
+
+    it('activates online access and hashes a new password', async () => {
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // email uniqueness check
+        .mockResolvedValueOnce({
+          rowCount: 1,
+          rows: [
+            {
+              client_id: 7,
+              first_name: 'Sam',
+              last_name: 'Client',
+              email: 'sam@example.com',
+              phone: '123',
+              address: '123 Main',
+              profile_link: 'profile',
+              consent: false,
+            },
+          ],
+        });
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-secret');
+
+      const req: any = {
+        user: { role: 'staff' },
+        params: { clientId: '7' },
+        body: {
+          firstName: 'Sam',
+          lastName: 'Client',
+          email: 'sam@example.com',
+          phone: '123',
+          address: '123 Main',
+          onlineAccess: true,
+          password: 'Reset123!',
+        },
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await updateUserByClientId(req, res, jest.fn());
+
+      expect(bcrypt.hash).toHaveBeenCalledWith('Reset123!', 10);
+      const updateCall = (pool.query as jest.Mock).mock.calls[1];
+      expect(updateCall[0]).toContain('online_access = true');
+      expect(updateCall[1]).toEqual([
+        'Sam',
+        'Client',
+        'sam@example.com',
+        '123',
+        '123 Main',
+        'hashed-secret',
+        '7',
+      ]);
+      expect(res.json).toHaveBeenCalledWith({
+        clientId: 7,
+        firstName: 'Sam',
+        lastName: 'Client',
+        email: 'sam@example.com',
+        phone: '123',
+        address: '123 Main',
+        profileLink: 'profile',
+        consent: false,
+      });
+    });
+
+    it('returns 400 when email is already taken while enabling access', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [{}] });
+
+      const req: any = {
+        user: { role: 'staff' },
+        params: { clientId: '7' },
+        body: {
+          firstName: 'Sam',
+          lastName: 'Client',
+          email: 'taken@example.com',
+          phone: '123',
+          address: '123 Main',
+          onlineAccess: true,
+        },
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await updateUserByClientId(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Email already exists' });
+      expect(pool.query).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns 404 when enabling access for a missing user', async () => {
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+        .mockResolvedValueOnce({ rowCount: 0, rows: [] });
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-secret');
+
+      const req: any = {
+        user: { role: 'staff' },
+        params: { clientId: '7' },
+        body: {
+          firstName: 'Sam',
+          lastName: 'Client',
+          email: 'sam@example.com',
+          phone: '123',
+          address: '123 Main',
+          onlineAccess: true,
+          password: 'Reset123!',
+        },
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await updateUserByClientId(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
+    });
+
+    it('updates contact information without enabling online access', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            client_id: 8,
+            first_name: 'Taylor',
+            last_name: 'Client',
+            email: 'taylor@example.com',
+            phone: '456',
+            address: '789 Pine',
+            profile_link: 'profile',
+            consent: true,
+          },
+        ],
+      });
+
+      const req: any = {
+        user: { role: 'staff' },
+        params: { clientId: '8' },
+        body: {
+          firstName: 'Taylor',
+          lastName: 'Client',
+          email: 'taylor@example.com',
+          phone: '456',
+          address: '789 Pine',
+          onlineAccess: false,
+        },
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await updateUserByClientId(req, res, jest.fn());
+
+      const queryText = (pool.query as jest.Mock).mock.calls[0][0];
+      expect(queryText).not.toContain('online_access = true');
+      expect(res.json).toHaveBeenCalledWith({
+        clientId: 8,
+        firstName: 'Taylor',
+        lastName: 'Client',
+        email: 'taylor@example.com',
+        phone: '456',
+        address: '789 Pine',
+        profileLink: 'profile',
+        consent: true,
+      });
+    });
+
+    it('returns 404 when updating a non-existent client without online access', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
+
+      const req: any = {
+        user: { role: 'staff' },
+        params: { clientId: '8' },
+        body: {
+          firstName: 'Taylor',
+          lastName: 'Client',
+          email: 'taylor@example.com',
+          phone: '456',
+          address: '789 Pine',
+          onlineAccess: false,
+        },
+      };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await updateUserByClientId(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
+    });
+  });
+
+  describe('deleteUserByClientId', () => {
+    it('deletes a client successfully', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1 });
+
+      const req: any = { user: { role: 'staff' }, params: { clientId: '3' } };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await deleteUserByClientId(req, res, jest.fn());
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('DELETE FROM clients WHERE client_id = $1'),
+        ['3'],
+      );
+      expect(res.json).toHaveBeenCalledWith({ message: 'User deleted' });
+    });
+
+    it('returns 404 when the user is not found', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0 });
+
+      const req: any = { user: { role: 'staff' }, params: { clientId: '3' } };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await deleteUserByClientId(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
+    });
+
+    it('returns 409 when delete conflicts with related records', async () => {
+      const conflictError = new Error('conflict') as Error & { code: string };
+      conflictError.code = '23503';
+      (pool.query as jest.Mock).mockRejectedValueOnce(conflictError);
+      const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
+
+      const req: any = { user: { role: 'staff' }, params: { clientId: '3' } };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await deleteUserByClientId(req, res, jest.fn());
+
+      expect(warnSpy).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Cannot delete user with existing records',
+      });
+      warnSpy.mockRestore();
+    });
   });
 
   describe('getUserProfile', () => {
@@ -291,6 +666,93 @@ describe('userController', () => {
         bookingsThisMonth: 2,
         consent: true,
       });
+    });
+
+    it('returns staff profile with access roles', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 5,
+            first_name: 'Staff',
+            last_name: 'Member',
+            email: 'staff@example.com',
+            access: ['admin'],
+            consent: false,
+          },
+        ],
+      });
+
+      const req: any = { user: { id: 5, type: 'staff' } };
+      const res: any = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+
+      await getUserProfile(req, res, jest.fn());
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('FROM staff WHERE id = $1'),
+        [5],
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        id: 5,
+        firstName: 'Staff',
+        lastName: 'Member',
+        email: 'staff@example.com',
+        phone: null,
+        address: null,
+        role: 'staff',
+        roles: ['admin'],
+        consent: false,
+      });
+    });
+
+    it('returns agency profile with contact info', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 2,
+            name: 'Agency Name',
+            email: 'agency@example.com',
+            contact_info: '555-2222',
+            consent: true,
+          },
+        ],
+      });
+
+      const req: any = { user: { id: 2, type: 'agency' } };
+      const res: any = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+
+      await getUserProfile(req, res, jest.fn());
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('FROM agencies WHERE id = $1'),
+        [2],
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        id: 2,
+        firstName: 'Agency Name',
+        lastName: '',
+        email: 'agency@example.com',
+        phone: '555-2222',
+        address: null,
+        role: 'agency',
+        consent: true,
+      });
+    });
+
+    it('returns 404 for missing staff record', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
+
+      const req: any = { user: { id: 99, type: 'staff' } };
+      const res: any = {
+        json: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+      };
+
+      await getUserProfile(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
     });
   });
 
@@ -338,6 +800,99 @@ describe('userController', () => {
         consent: true,
       });
     });
+
+    it('updates staff email only and returns roles', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 4,
+            first_name: 'Staff',
+            last_name: 'User',
+            email: 'updated@example.com',
+            access: ['aggregations'],
+            consent: true,
+          },
+        ],
+      });
+
+      const req: any = {
+        user: { id: 4, type: 'staff' },
+        body: { email: 'updated@example.com' },
+      };
+      const res: any = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+
+      await updateMyProfile(req, res, jest.fn());
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE staff SET email = COALESCE($1, email)'),
+        ['updated@example.com', 4],
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        id: 4,
+        firstName: 'Staff',
+        lastName: 'User',
+        email: 'updated@example.com',
+        phone: null,
+        address: null,
+        role: 'staff',
+        roles: ['aggregations'],
+        consent: true,
+      });
+    });
+
+    it('updates agency contact info', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 6,
+            name: 'Agency',
+            email: 'agency@example.com',
+            contact_info: '555-7890',
+            consent: false,
+          },
+        ],
+      });
+
+      const req: any = {
+        user: { id: 6, type: 'agency' },
+        body: { phone: '555-7890' },
+      };
+      const res: any = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+
+      await updateMyProfile(req, res, jest.fn());
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE agencies'),
+        [undefined, '555-7890', 6],
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        id: 6,
+        firstName: 'Agency',
+        lastName: '',
+        email: 'agency@example.com',
+        phone: '555-7890',
+        address: null,
+        role: 'agency',
+        consent: false,
+      });
+    });
+
+    it('returns 404 when staff profile is missing', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
+
+      const req: any = {
+        user: { id: 4, type: 'staff' },
+        body: { email: 'updated@example.com' },
+      };
+      const res: any = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+
+      await updateMyProfile(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
+    });
   });
 
   // listUsers/searchUsers tests
@@ -384,6 +939,23 @@ describe('userController', () => {
           hasPassword: false,
         },
       ]);
+    });
+
+    it('uses the default pagination limit even when limit and offset are provided', async () => {
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
+
+      const req: any = {
+        query: { search: 'Taylor', limit: '10', offset: '5' },
+      };
+      const res: any = { json: jest.fn() };
+
+      await searchUsers(req, res, jest.fn());
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining('LIMIT 5'),
+        ['%Taylor%'],
+      );
+      expect(res.json).toHaveBeenCalledWith([]);
     });
   });
 });
