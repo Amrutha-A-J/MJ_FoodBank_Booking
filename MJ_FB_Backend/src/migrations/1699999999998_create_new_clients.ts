@@ -13,7 +13,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
     new_client_id: {
       type: 'integer',
       references: 'new_clients',
-      onDelete: 'set null',
+      onDelete: 'SET NULL',
     },
   }, { ifNotExists: true });
 }
