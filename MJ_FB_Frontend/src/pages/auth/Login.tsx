@@ -1,10 +1,10 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { login, staffExists } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
-import { Link, TextField, Box, Stack, CircularProgress } from '@mui/material';
+import { Link as MuiLink, TextField, Box, Stack, CircularProgress } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
@@ -165,9 +165,14 @@ export default function Login({
                 >
                   Login
                 </LoadingButton>
-                <Link href="/privacy" underline="hover" textAlign="center">
+                <MuiLink
+                  component={RouterLink}
+                  to="/privacy"
+                  underline="hover"
+                  textAlign="center"
+                >
                   Privacy Policy
-                </Link>
+                </MuiLink>
               </Stack>
             }
             centered={false}
@@ -199,9 +204,14 @@ export default function Login({
               error={passwordError}
               helperText={passwordError ? 'Password is required' : ''}
             />
-            <Link component="button" type="button" onClick={() => setResetOpen(true)} underline="hover">
+            <MuiLink
+              component="button"
+              type="button"
+              onClick={() => setResetOpen(true)}
+              underline="hover"
+            >
               Forgot password?
-            </Link>
+            </MuiLink>
           </FormCard>
         </Box>
       ) : (
