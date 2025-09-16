@@ -22,13 +22,13 @@ import {
   Chip,
   CircularProgress,
   Divider,
-  Grid,
   List,
   ListItem,
   ListItemText,
   Stack,
   Typography,
 } from '@mui/material';
+import Grid from '@mui/material/GridLegacy';
 import getApiErrorMessage from '../../../utils/getApiErrorMessage';
 import { formatLocaleDate } from '../../../utils/date';
 import type { DeliveryOrder, DeliveryOrderStatus } from '../../../types';
