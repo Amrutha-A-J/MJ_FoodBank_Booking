@@ -9,8 +9,10 @@ import {
   CircularProgress,
   Container,
   Divider,
+  FormControl,
   FormControlLabel,
   FormGroup,
+  FormHelperText,
   Grid,
   Radio,
   RadioGroup,
@@ -27,6 +29,7 @@ import {
 } from '../../api/client';
 import type { DeliveryCategory, DeliveryItem } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
+import { getUserProfile } from '../../api/users';
 
 type SelectionState = Record<number, boolean>;
 
@@ -40,6 +43,9 @@ type FormErrors = {
   address?: string;
   phone?: string;
   email?: string;
+  addressConfirm?: string;
+  phoneConfirm?: string;
+  emailConfirm?: string;
 };
 
 const PHONE_REGEX = /^\+?[0-9 ()-]{7,}$/;
@@ -65,12 +71,45 @@ export default function BookDelivery() {
   const [email, setEmail] = useState('');
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
+  const [addressConfirmed, setAddressConfirmed] = useState(false);
+  const [phoneConfirmed, setPhoneConfirmed] = useState(false);
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(false);
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [editingEmail, setEditingEmail] = useState(false);
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
     message: '',
     severity: 'success',
   });
   const { id: clientId } = useAuth();
+
+  useEffect(() => {
+    let active = true;
+    async function loadProfile() {
+      try {
+        const profile = await getUserProfile();
+        if (!active) return;
+        setAddress(profile.address ?? '');
+        setPhone(profile.phone ?? '');
+        setEmail(profile.email ?? '');
+        setAddressConfirmed(false);
+        setPhoneConfirmed(false);
+        setEmailConfirmed(false);
+      } catch (err) {
+        if (!active) return;
+        const message = getApiErrorMessage(
+          err,
+          "We couldn't load your contact information. Please review it before submitting.",
+        );
+        setSnackbar({ open: true, message, severity: 'error' });
+      }
+    }
+    void loadProfile();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -189,6 +228,15 @@ export default function BookDelivery() {
     } else if (!EMAIL_REGEX.test(trimmedEmail)) {
       nextErrors.email = 'Enter a valid email address';
     }
+    if (!addressConfirmed) {
+      nextErrors.addressConfirm = 'Please confirm your address';
+    }
+    if (!phoneConfirmed) {
+      nextErrors.phoneConfirm = 'Please confirm your phone number';
+    }
+    if (!emailConfirmed) {
+      nextErrors.emailConfirm = 'Please confirm your email';
+    }
     setFormErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -206,11 +254,14 @@ export default function BookDelivery() {
       return;
     }
 
+    const trimmedAddress = address.trim();
+    const trimmedPhone = phone.trim();
+    const trimmedEmail = email.trim();
     const payload = {
       clientId,
-      address: address.trim(),
-      phone: phone.trim(),
-      email: email.trim(),
+      address: trimmedAddress,
+      phone: trimmedPhone,
+      email: trimmedEmail,
       selections: Object.entries(selectedItems)
         .filter(([, selected]) => selected)
         .map(([itemId]) => ({
@@ -232,11 +283,17 @@ export default function BookDelivery() {
         message: 'Delivery request submitted',
         severity: 'success',
       });
-      setAddress('');
-      setPhone('');
-      setEmail('');
+      setAddress(trimmedAddress);
+      setPhone(trimmedPhone);
+      setEmail(trimmedEmail);
       setSelectedItems({});
       setFormErrors({});
+      setAddressConfirmed(false);
+      setPhoneConfirmed(false);
+      setEmailConfirmed(false);
+      setEditingAddress(false);
+      setEditingPhone(false);
+      setEditingEmail(false);
     } catch (err) {
       const message = getApiErrorMessage(
         err,
@@ -359,34 +416,191 @@ export default function BookDelivery() {
 
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid size={{ xs: 12 }}>
-              <TextField
-                fullWidth
-                label="Delivery address"
-                value={address}
-                onChange={event => setAddress(event.target.value)}
-                error={Boolean(formErrors.address)}
-                helperText={formErrors.address}
-              />
+              <Stack spacing={1}>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1}
+                  alignItems={{ sm: 'flex-end' }}
+                >
+                  <TextField
+                    fullWidth
+                    label="Delivery address"
+                    value={address}
+                    onChange={event => {
+                      setAddress(event.target.value);
+                      setAddressConfirmed(false);
+                      setFormErrors(prev => ({
+                        ...prev,
+                        address: undefined,
+                        addressConfirm: undefined,
+                      }));
+                    }}
+                    error={Boolean(formErrors.address)}
+                    helperText={formErrors.address}
+                    InputProps={{ readOnly: !editingAddress }}
+                    sx={{ flex: 1 }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    onClick={() => {
+                      setEditingAddress(prev => {
+                        const next = !prev;
+                        if (next) {
+                          setAddressConfirmed(false);
+                        }
+                        return next;
+                      });
+                    }}
+                  >
+                    {editingAddress ? 'Done editing' : 'Edit address'}
+                  </Button>
+                </Stack>
+                <FormControl error={Boolean(formErrors.addressConfirm)}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={addressConfirmed}
+                        onChange={event => {
+                          setAddressConfirmed(event.target.checked);
+                          setFormErrors(prev => ({
+                            ...prev,
+                            addressConfirm: undefined,
+                          }));
+                        }}
+                      />
+                    }
+                    label="Address is correct"
+                  />
+                  {formErrors.addressConfirm && (
+                    <FormHelperText>{formErrors.addressConfirm}</FormHelperText>
+                  )}
+                </FormControl>
+              </Stack>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                label="Phone number"
-                value={phone}
-                onChange={event => setPhone(event.target.value)}
-                error={Boolean(formErrors.phone)}
-                helperText={formErrors.phone}
-              />
+              <Stack spacing={1}>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1}
+                  alignItems={{ sm: 'flex-end' }}
+                >
+                  <TextField
+                    fullWidth
+                    label="Phone number"
+                    value={phone}
+                    onChange={event => {
+                      setPhone(event.target.value);
+                      setPhoneConfirmed(false);
+                      setFormErrors(prev => ({
+                        ...prev,
+                        phone: undefined,
+                        phoneConfirm: undefined,
+                      }));
+                    }}
+                    error={Boolean(formErrors.phone)}
+                    helperText={formErrors.phone}
+                    InputProps={{ readOnly: !editingPhone }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    onClick={() => {
+                      setEditingPhone(prev => {
+                        const next = !prev;
+                        if (next) {
+                          setPhoneConfirmed(false);
+                        }
+                        return next;
+                      });
+                    }}
+                  >
+                    {editingPhone ? 'Done editing' : 'Edit phone'}
+                  </Button>
+                </Stack>
+                <FormControl error={Boolean(formErrors.phoneConfirm)}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={phoneConfirmed}
+                        onChange={event => {
+                          setPhoneConfirmed(event.target.checked);
+                          setFormErrors(prev => ({
+                            ...prev,
+                            phoneConfirm: undefined,
+                          }));
+                        }}
+                      />
+                    }
+                    label="Phone number is correct"
+                  />
+                  {formErrors.phoneConfirm && (
+                    <FormHelperText>{formErrors.phoneConfirm}</FormHelperText>
+                  )}
+                </FormControl>
+              </Stack>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                label="Email"
-                value={email}
-                onChange={event => setEmail(event.target.value)}
-                error={Boolean(formErrors.email)}
-                helperText={formErrors.email}
-              />
+              <Stack spacing={1}>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1}
+                  alignItems={{ sm: 'flex-end' }}
+                >
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    value={email}
+                    onChange={event => {
+                      setEmail(event.target.value);
+                      setEmailConfirmed(false);
+                      setFormErrors(prev => ({
+                        ...prev,
+                        email: undefined,
+                        emailConfirm: undefined,
+                      }));
+                    }}
+                    error={Boolean(formErrors.email)}
+                    helperText={formErrors.email}
+                    InputProps={{ readOnly: !editingEmail }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    onClick={() => {
+                      setEditingEmail(prev => {
+                        const next = !prev;
+                        if (next) {
+                          setEmailConfirmed(false);
+                        }
+                        return next;
+                      });
+                    }}
+                  >
+                    {editingEmail ? 'Done editing' : 'Edit email'}
+                  </Button>
+                </Stack>
+                <FormControl error={Boolean(formErrors.emailConfirm)}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={emailConfirmed}
+                        onChange={event => {
+                          setEmailConfirmed(event.target.checked);
+                          setFormErrors(prev => ({
+                            ...prev,
+                            emailConfirm: undefined,
+                          }));
+                        }}
+                      />
+                    }
+                    label="Email is correct"
+                  />
+                  {formErrors.emailConfirm && (
+                    <FormHelperText>{formErrors.emailConfirm}</FormHelperText>
+                  )}
+                </FormControl>
+              </Stack>
             </Grid>
           </Grid>
 
@@ -395,7 +609,9 @@ export default function BookDelivery() {
               type="submit"
               variant="contained"
               size="medium"
-              disabled={submitting}
+              disabled={
+                submitting || !addressConfirmed || !phoneConfirmed || !emailConfirmed
+              }
             >
               {submitting ? 'Submitting…' : 'Submit Delivery Request'}
             </Button>
