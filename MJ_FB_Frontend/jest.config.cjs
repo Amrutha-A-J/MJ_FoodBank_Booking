@@ -7,6 +7,7 @@ module.exports = {
     '<rootDir>/src/__tests__/**/*.test.tsx',
     '<rootDir>/src/api/__tests__/**/*.test.ts',
     '<rootDir>/src/hooks/**/*.test.tsx',
+    '<rootDir>/tests/**/*.test.tsx',
   ],
   setupFiles: ['<rootDir>/loadEnv.ts'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
