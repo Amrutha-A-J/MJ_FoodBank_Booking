@@ -466,6 +466,111 @@ export const getDeliveryOrderHistory = asyncHandler(async (req: Request, res: Re
   res.json(response);
 });
 
+export const listOutstandingDeliveryOrders = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const ordersResult = await pool.query<DeliveryOrderRow>(
+      `SELECT id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"
+         FROM delivery_orders
+        WHERE status <> 'completed'
+          AND status <> 'cancelled'
+     ORDER BY created_at ASC`,
+    );
+
+    const orders = ordersResult.rows;
+    const orderIds = orders.map(order => order.id);
+    const itemsByOrder = new Map<number, DeliveryOrderItemDetail[]>();
+
+    if (orderIds.length > 0) {
+      const itemsResult = await pool.query<DeliveryOrderItemRow>(
+        `SELECT oi.order_id AS "orderId",
+                oi.item_id AS "itemId",
+                oi.qty AS "quantity",
+                i.name AS "itemName",
+                i.category_id AS "categoryId",
+                c.name AS "categoryName"
+           FROM delivery_order_items oi
+           JOIN delivery_items i ON i.id = oi.item_id
+           JOIN delivery_categories c ON c.id = i.category_id
+          WHERE oi.order_id = ANY($1::int[])
+       ORDER BY c.name, i.name`,
+        [orderIds],
+      );
+
+      for (const row of itemsResult.rows) {
+        if (!itemsByOrder.has(row.orderId)) {
+          itemsByOrder.set(row.orderId, []);
+        }
+        itemsByOrder.get(row.orderId)!.push({
+          itemId: row.itemId,
+          quantity: row.quantity,
+          itemName: row.itemName,
+          categoryId: row.categoryId,
+          categoryName: row.categoryName,
+        });
+      }
+
+      for (const [orderId, items] of itemsByOrder.entries()) {
+        itemsByOrder.set(orderId, sortItems(items));
+      }
+    }
+
+    const response = orders.map(order => ({
+      id: order.id,
+      clientId: order.clientId,
+      address: order.address,
+      phone: order.phone,
+      email: order.email,
+      status: order.status,
+      scheduledFor: toNullableIsoString(order.scheduledFor),
+      notes: order.notes,
+      createdAt: toIsoString(order.createdAt),
+      items: itemsByOrder.get(order.id) ?? [],
+    }));
+
+    res.json(response);
+  },
+);
+
+export const completeDeliveryOrder = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const orderId = parseIdParam(req.params.id);
+  if (!orderId) {
+    return res.status(400).json({ message: 'Invalid order id' });
+  }
+
+  const updatedResult = await pool.query<DeliveryOrderRow>(
+    `UPDATE delivery_orders
+        SET status = 'completed'
+      WHERE id = $1
+      RETURNING id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"`,
+    [orderId],
+  );
+
+  const order = updatedResult.rows[0];
+  if (!order) {
+    return res.status(404).json({ message: 'Delivery order not found' });
+  }
+
+  res.json({
+    id: order.id,
+    clientId: order.clientId,
+    address: order.address,
+    phone: order.phone,
+    email: order.email,
+    status: order.status,
+    scheduledFor: toNullableIsoString(order.scheduledFor),
+    notes: order.notes,
+    createdAt: toIsoString(order.createdAt),
+  });
+});
+
 const cancellableStatuses: ReadonlySet<DeliveryOrderStatus> = new Set<DeliveryOrderStatus>(
   deliveryOrderStatusSchema.options.filter(
     status => status !== 'completed' && status !== 'cancelled',
