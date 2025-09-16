@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import DeliveryHistory from '../DeliveryHistory';
 import { theme } from '../../../theme';
+import type { DeliveryOrder } from '../../../types';
 import {
   apiFetch,
   handleResponse,
@@ -87,6 +88,36 @@ describe('DeliveryHistory', () => {
 
     expect(await screen.findByText(/no deliveries yet/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /book a delivery/i })).toBeInTheDocument();
+  });
+
+  it('shows a fallback label when a delivery status is missing', async () => {
+    (apiFetch as jest.Mock).mockResolvedValueOnce({});
+    (handleResponse as jest.Mock).mockResolvedValueOnce([
+      {
+        id: 101,
+        status: undefined,
+        createdAt: '2024-06-01T12:00:00Z',
+        scheduledFor: null,
+        address: '456 Oak Ave',
+        phone: '306-555-0199',
+        email: null,
+        notes: null,
+        items: [
+          {
+            itemId: 11,
+            name: 'Milk',
+            quantity: 1,
+            categoryId: 5,
+            categoryName: null,
+          },
+        ],
+      } as unknown as DeliveryOrder,
+    ]);
+
+    renderComponent();
+
+    expect(await screen.findByText('Order #101')).toBeInTheDocument();
+    expect(screen.getByText('Status Unknown')).toBeInTheDocument();
   });
 
   it('displays an error message when loading orders fails', async () => {
