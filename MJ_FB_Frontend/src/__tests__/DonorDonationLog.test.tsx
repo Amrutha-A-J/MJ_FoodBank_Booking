@@ -22,21 +22,14 @@ jest.mock('../api/monetaryDonors', () => ({
 
 describe('Donor Donation Log', () => {
   const fixedTime = new Date('2024-01-01T12:00:00Z');
-
-  async function flushPromises() {
-    await act(async () => {
-      jest.advanceTimersByTime(0);
-      await Promise.resolve();
-    });
-  }
+  let dateNowSpy: jest.SpiedFunction<typeof Date.now>;
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(fixedTime);
+    dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(fixedTime.getTime());
   });
 
   afterEach(() => {
-    jest.useRealTimers();
     jest.clearAllMocks();
+    dateNowSpy.mockRestore();
   });
 
   it('loads donations for the current month', async () => {
@@ -54,13 +47,9 @@ describe('Donor Donation Log', () => {
       </MemoryRouter>,
     );
 
-    await flushPromises();
-
     expect(await screen.findByText('john@example.com')).toBeInTheDocument();
-    expect(screen.getByText('$50.00')).toBeInTheDocument();
+    expect(await screen.findByText('$50.00')).toBeInTheDocument();
     expect(screen.queryByText('$75.00')).not.toBeInTheDocument();
-
-    await flushPromises();
   });
 
   it('edits and deletes a donation', async () => {
@@ -79,10 +68,8 @@ describe('Donor Donation Log', () => {
       </MemoryRouter>,
     );
 
-    await flushPromises();
-
     await screen.findByText('john@example.com');
-    await screen.findByText('$50.00');
+    expect(await screen.findByText('$50.00')).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Edit donation'));
     const amountField = screen.getByLabelText('Amount');
@@ -102,7 +89,6 @@ describe('Donor Donation Log', () => {
 
     await waitFor(() => expect(deleteMonetaryDonation).toHaveBeenCalledWith(1));
 
-    await flushPromises();
   });
 
   it('filters donations by search', async () => {
@@ -122,10 +108,8 @@ describe('Donor Donation Log', () => {
       </MemoryRouter>,
     );
 
-    await flushPromises();
-
     expect(await screen.findByText('john@example.com')).toBeInTheDocument();
-    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
+    expect(await screen.findByText('jane@example.com')).toBeInTheDocument();
 
     const searchField = screen.getByLabelText('Search');
 
@@ -154,7 +138,6 @@ describe('Donor Donation Log', () => {
     await screen.findByText('john@example.com');
     await screen.findByText('jane@example.com');
 
-    await flushPromises();
   });
 
   it('handles donors without emails in display and search', async () => {
@@ -174,10 +157,8 @@ describe('Donor Donation Log', () => {
       </MemoryRouter>,
     );
 
-    await flushPromises();
-
-    await screen.findByText('jane@example.com');
-    expect(screen.getByText('No')).toBeInTheDocument();
+    expect(await screen.findByText('jane@example.com')).toBeInTheDocument();
+    expect(await screen.findByText('No')).toBeInTheDocument();
 
     const searchField = screen.getByLabelText('Search');
     fireEvent.change(searchField, { target: { value: 'No' } });
@@ -190,7 +171,6 @@ describe('Donor Donation Log', () => {
     await screen.findByText('jane@example.com');
     await waitFor(() => expect(screen.queryByText('No')).not.toBeInTheDocument());
 
-    await flushPromises();
   });
 
   it('imports donations and reloads list', async () => {
@@ -212,8 +192,6 @@ describe('Donor Donation Log', () => {
       </MemoryRouter>,
     );
 
-    await flushPromises();
-
     await screen.findByText('john@example.com');
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     const file = { name: 'donations.csv' } as File;
@@ -226,7 +204,6 @@ describe('Donor Donation Log', () => {
     await waitFor(() => expect(getMonetaryDonations).toHaveBeenCalledTimes(2));
     await screen.findByText('Donations imported');
 
-    await flushPromises();
   });
 });
 
