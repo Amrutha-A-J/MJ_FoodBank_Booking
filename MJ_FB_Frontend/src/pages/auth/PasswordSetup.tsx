@@ -23,11 +23,10 @@ export default function PasswordSetup() {
   const [tokenInvalid, setTokenInvalid] = useState(false);
   const navigate = useNavigate();
 
-  const loginPathMap: Record<string, string> = {
+  const loginPathMap: Record<PasswordSetupInfo['userType'], string> = {
     client: '/login',
     volunteer: '/login/volunteer',
     staff: '/login/staff',
-    agency: '/login/agency',
   };
 
   useEffect(() => {
