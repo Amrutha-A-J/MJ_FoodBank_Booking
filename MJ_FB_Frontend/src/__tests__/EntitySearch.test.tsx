@@ -1,7 +1,15 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import EntitySearch from '../components/EntitySearch';
 
 describe('EntitySearch', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('clears query after selection when clearOnSelect is true', async () => {
     const searchFn = jest
       .fn()
@@ -18,6 +26,9 @@ describe('EntitySearch', () => {
 
     const input = screen.getByLabelText(/search/i);
     fireEvent.change(input, { target: { value: 'Cli' } });
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
 
     await waitFor(() => expect(searchFn).toHaveBeenCalled());
 
@@ -40,11 +51,17 @@ describe('EntitySearch', () => {
 
     const input = screen.getByLabelText(/search/i);
     fireEvent.change(input, { target: { value: 'abc' } });
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
 
     await waitFor(() => expect(searchFn).toHaveBeenCalled());
     await screen.findByText('No search results.');
 
     fireEvent.change(input, { target: { value: '   ' } });
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
 
     await waitFor(() =>
       expect(screen.queryByText('No search results.')).not.toBeInTheDocument(),
@@ -66,6 +83,9 @@ describe('EntitySearch', () => {
 
     const input = screen.getByLabelText(/search/i);
     fireEvent.change(input, { target: { value: 'Cli' } });
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
 
     await waitFor(() => expect(searchFn).toHaveBeenCalled());
 
