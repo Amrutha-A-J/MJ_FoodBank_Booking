@@ -23,7 +23,15 @@ export default function VolunteerBottomNav() {
 
   return (
     <Paper
-      sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, pb: 'env(safe-area-inset-bottom)' }}
+      sx={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        pb: 'env(safe-area-inset-bottom)',
+        borderTop: 1,
+        borderColor: 'divider',
+      }}
       elevation={3}
     >
       <BottomNavigation

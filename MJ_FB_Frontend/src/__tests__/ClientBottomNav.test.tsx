@@ -80,4 +80,14 @@ describe('ClientBottomNav', () => {
     const nav = container.querySelector('.MuiBottomNavigation-root');
     expect(nav).toHaveStyle('height: 72px');
   });
+
+  it('shows a top border for contrast', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/']}>
+        <ClientBottomNav />
+      </MemoryRouter>,
+    );
+    const paper = container.querySelector('.MuiPaper-root');
+    expect(paper).toHaveStyle('border-top-width: 1px');
+  });
 });

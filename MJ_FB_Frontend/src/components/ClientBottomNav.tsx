@@ -36,6 +36,8 @@ export default function ClientBottomNav() {
         right: 0,
         zIndex: theme.zIndex.appBar + 1,
         pb: 'env(safe-area-inset-bottom)',
+        borderTop: 1,
+        borderColor: 'divider',
       }}
       elevation={3}
     >
