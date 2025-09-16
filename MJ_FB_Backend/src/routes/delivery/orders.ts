@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   createDeliveryOrder,
+  cancelDeliveryOrder,
   getDeliveryOrderHistory,
 } from '../../controllers/deliveryOrderController';
 import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware';
@@ -20,5 +21,6 @@ router.post(
 
 router.get('/', authorizeRoles('delivery', 'staff'), getDeliveryOrderHistory);
 router.get('/history', authorizeRoles('delivery', 'staff'), getDeliveryOrderHistory);
+router.post('/:id/cancel', authorizeRoles('delivery', 'staff'), cancelDeliveryOrder);
 
 export default router;

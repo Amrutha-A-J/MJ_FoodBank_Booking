@@ -15,6 +15,14 @@ export const deliveryOrderSelectionSchema = z.object({
 
 const nonEmptyString = (field: string) => z.string().trim().min(1, `${field} is required`);
 
+export const deliveryOrderStatusSchema = z.enum([
+  'pending',
+  'approved',
+  'scheduled',
+  'completed',
+  'cancelled',
+]);
+
 export const createDeliveryOrderSchema = z.object({
   clientId: z.coerce
     .number()
@@ -24,6 +32,18 @@ export const createDeliveryOrderSchema = z.object({
   address: nonEmptyString('Address'),
   phone: nonEmptyString('Phone'),
   email: z.string().trim().email('A valid email address is required'),
+  status: deliveryOrderStatusSchema.optional(),
+  scheduledFor: z
+    .string()
+    .datetime({ message: 'scheduledFor must be a valid ISO date-time' })
+    .optional()
+    .nullable(),
+  notes: z
+    .string()
+    .trim()
+    .max(1000, 'Notes must be 1000 characters or less')
+    .optional()
+    .nullable(),
   selections: z.array(deliveryOrderSelectionSchema).default([]),
 });
 

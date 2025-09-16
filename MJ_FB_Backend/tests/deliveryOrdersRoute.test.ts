@@ -31,6 +31,9 @@ describe('delivery orders routes', () => {
             address: '123 Main St',
             phone: '555-0000',
             email: 'client@example.com',
+            status: 'pending',
+            scheduledFor: null,
+            notes: null,
             createdAt: '2024-07-10T15:00:00Z',
           },
         ],
@@ -60,6 +63,9 @@ describe('delivery orders routes', () => {
         address: '123 Main St',
         phone: '555-0000',
         email: 'client@example.com',
+        status: 'pending',
+        scheduledFor: null,
+        notes: null,
         createdAt: '2024-07-10T15:00:00.000Z',
         items: [
           {
