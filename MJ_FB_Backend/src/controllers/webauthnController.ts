@@ -3,7 +3,6 @@ import { randomBytes } from 'crypto';
 import pool from '../db';
 import { getCredential, saveCredential, getCredentialById } from '../models/webauthn';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
-import { getAgencyByEmail } from '../models/agency';
 import UnauthorizedError from '../utils/UnauthorizedError';
 
 export async function generateChallenge(req: Request, res: Response) {
@@ -129,17 +128,6 @@ async function loginByIdentifier(identifier: string, res: Response) {
         id: staff.id,
         consent: staff.consent,
       };
-    }
-
-    const agency = await getAgencyByEmail(identifier);
-    if (agency) {
-      const payload: AuthPayload = {
-        id: agency.id,
-        role: 'agency',
-        type: 'agency',
-      };
-      await issueAuthTokens(res, payload, `agency:${agency.id}`);
-      return { role: 'agency', name: agency.name, id: agency.id, access: [], consent: agency.consent };
     }
 
     throw new UnauthorizedError('Invalid credentials');

@@ -114,27 +114,6 @@ async function authenticate(req: Request): Promise<AuthResult> {
       };
     }
 
-    if (type === 'agency') {
-      const agRes = await pool.query(
-        'SELECT id, name, email FROM agencies WHERE id = $1',
-        [id],
-      );
-      if ((agRes.rowCount ?? 0) === 0) {
-        return { status: 'invalid' };
-      }
-      const user: RequestUser = {
-        id: agRes.rows[0].id.toString(),
-        type: 'agency',
-        role: 'agency',
-        email: agRes.rows[0].email,
-        name: agRes.rows[0].name,
-      };
-      return {
-        status: 'ok',
-        user,
-      };
-    }
-
     return { status: 'invalid' };
   } catch (error) {
     if (error instanceof TokenExpiredError) {

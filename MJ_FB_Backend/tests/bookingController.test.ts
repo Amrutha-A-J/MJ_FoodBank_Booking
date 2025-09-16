@@ -36,11 +36,6 @@ describe('createBookingForUser', () => {
         lockClientRow: jest.fn().mockResolvedValue(undefined),
         SlotCapacityError: class extends Error {},
       }));
-      jest.doMock('../src/models/agency', () => ({
-        __esModule: true,
-        isAgencyClient: jest.fn().mockResolvedValue(true),
-        getAgencyClientSet: jest.fn(),
-      }));
       jest.doMock('../src/utils/dbUtils', () => ({
         __esModule: true,
         hasTable: jest.fn().mockResolvedValue(true),
@@ -212,21 +207,6 @@ describe('createBookingForUser', () => {
     expect(insertBooking).toHaveBeenCalled();
   });
 
-  it('rejects agency bookings outside allowed months', async () => {
-    (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(false);
-    const req = {
-      user: { role: 'agency', id: 77 },
-      body: { userId: 1, slotId: 2, date: tomorrow },
-    } as unknown as Request;
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
-    const next = jest.fn() as NextFunction;
-
-    await createBookingForUser(req, res, next);
-
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Please choose a valid date' });
-    expect(insertBooking).not.toHaveBeenCalled();
-  });
 });
 
 describe('createBooking', () => {

@@ -9,10 +9,6 @@ jest.mock('../../src/utils/authUtils', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../../src/models/agency', () => ({
-  getAgencyByEmail: jest.fn(),
-}));
-
 import { generateChallenge, registerCredential, verifyCredential } from '../../src/controllers/webauthnController';
 import { getCredential, saveCredential, getCredentialById } from '../../src/models/webauthn';
 import UnauthorizedError from '../../src/utils/UnauthorizedError';

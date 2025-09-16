@@ -5,7 +5,7 @@ import logger from './logger';
 
 export type PasswordTokenRow = {
   id: number;
-  user_type: 'clients' | 'volunteers' | 'staff' | 'agencies';
+  user_type: 'clients' | 'volunteers' | 'staff';
   user_id: number;
   token_hash: string;
   expires_at: Date;
@@ -59,13 +59,11 @@ export function buildPasswordSetupEmailParams(
     clients: '/login',
     volunteers: '/login/volunteer',
     staff: '/login/staff',
-    agencies: '/login/agency',
   };
   const roleMap: Record<PasswordTokenRow['user_type'], string> = {
     clients: 'client',
     volunteers: 'volunteer',
     staff: 'staff',
-    agencies: 'agency',
   };
   const link = `${config.frontendOrigins[0]}/set-password?token=${token}`;
   const params: Record<string, unknown> = {

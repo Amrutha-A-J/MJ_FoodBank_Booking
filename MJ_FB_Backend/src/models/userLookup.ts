@@ -4,7 +4,7 @@ import { Queryable } from './bookingRepository';
 export interface UserLookupResult {
   id: number;
   email: string;
-  userType: 'staff' | 'volunteers' | 'agencies' | 'clients';
+  userType: 'staff' | 'volunteers' | 'clients';
 }
 
 export async function findUserByEmail(

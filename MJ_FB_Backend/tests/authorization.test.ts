@@ -69,20 +69,6 @@ describe('Authorization middleware', () => {
     expect(res.status).toBe(403);
   });
 
-  it('allows agency to access slots', async () => {
-    (jwt.verify as jest.Mock).mockReturnValue({ id: 5, role: 'agency', type: 'agency' });
-    (pool.query as jest.Mock).mockResolvedValue({
-      rowCount: 1,
-      rows: [{ id: 5, name: 'Agency', email: 'a@b.com' }],
-    });
-
-    const res = await request(app)
-      .get('/slots')
-      .set('Authorization', 'Bearer token')
-      .query({ date: '2024-06-18' });
-    expect(res.status).toBe(200);
-  });
-
   it('allows volunteer to access slots', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 3, role: 'volunteer', type: 'volunteer' });
     (pool.query as jest.Mock).mockResolvedValue({

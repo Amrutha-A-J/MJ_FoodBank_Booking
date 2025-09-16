@@ -23,9 +23,9 @@ const router = express.Router();
 
 // Wrapper to handle bookings created by staff or regular users (supports optional note)
 const handleCreateBooking = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user && (req.user.role === 'staff' || req.user.role === 'agency')) {
+  if (req.user?.role === 'staff') {
     // Allow staff to create a booking for themselves or another user
-    if (req.user.role === 'staff' && !req.body.userId) {
+    if (!req.body.userId) {
       req.body.userId = req.user.id;
     }
     return createBookingForUser(req, res, next);
@@ -33,25 +33,25 @@ const handleCreateBooking = (req: Request, res: Response, next: NextFunction) =>
   return createBooking(req, res, next);
 };
 
-// Shopper, staff, or agency create booking
+// Shopper or staff create booking
 router.post(
   '/',
   authMiddleware,
-  authorizeRoles('shopper', 'staff', 'agency'),
+  authorizeRoles('shopper', 'staff'),
   handleCreateBooking
 );
 
-// Staff or agency list bookings
+// Staff list bookings
 router.get(
   '/',
   authMiddleware,
-  authorizeRoles('staff', 'agency'),
+  authorizeRoles('staff'),
   listBookings
 );
 
 
 // Booking history for user or staff lookup
-// Optional query params: status, past=true, userId (staff/agency), includeVisits=true, includeStaffNotes=true (agency only)
+// Optional query params: status, past=true, userId (staff), includeVisits=true
 router.get('/history', authMiddleware, getBookingHistory);
 
 // Cancel booking (staff or user)
@@ -91,7 +91,7 @@ router.post(
 router.post(
   '/staff',
   authMiddleware,
-  authorizeRoles('staff', 'agency'),
+  authorizeRoles('staff'),
   createBookingForUser
 );
 
@@ -99,7 +99,7 @@ router.post(
 router.post(
   '/new-client',
   authMiddleware,
-  authorizeRoles('staff', 'agency'),
+  authorizeRoles('staff'),
   createBookingForNewClient
 );
 

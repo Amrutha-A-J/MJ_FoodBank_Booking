@@ -73,24 +73,4 @@ describe('GET /holidays', () => {
     expect(res.body).toEqual([{ date: '2024-12-24', reason: 'Christmas' }]);
   });
 
-  it('allows agencies to fetch holidays', async () => {
-    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'agency', type: 'agency' });
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rowCount: 1,
-      rows: [
-        {
-          id: 1,
-          name: 'Test Agency',
-          email: 'agency@example.com',
-        },
-      ],
-    });
-
-    const res = await request(app)
-      .get('/holidays')
-      .set('Authorization', 'Bearer token');
-
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual([{ date: '2024-12-24', reason: 'Christmas' }]);
-  });
 });

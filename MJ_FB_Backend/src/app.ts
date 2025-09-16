@@ -39,7 +39,6 @@ import outgoingReceiversRoutes from './routes/warehouse/outgoingReceivers';
 import outgoingDonationsRoutes from './routes/warehouse/outgoingDonations';
 import warehouseOverallRoutes from './routes/warehouse/warehouseOverall';
 import eventsRoutes from './routes/events';
-import agenciesRoutes from './routes/agencies';
 import badgesRoutes from './routes/badges';
 import statsRoutes from './routes/stats';
 import timesheetsRoutes from './routes/timesheets';
@@ -92,7 +91,6 @@ api.use(maintenanceGuard);
 
 // Mount feature routers (all relative to /api/v1)
 api.use('/users', usersRoutes);
-api.use('/agencies', agenciesRoutes);
 api.use('/slots', slotsRoutes);
 api.use('/bookings', bookingsRoutes);
 api.use('/new-clients', newClientsRoutes);
