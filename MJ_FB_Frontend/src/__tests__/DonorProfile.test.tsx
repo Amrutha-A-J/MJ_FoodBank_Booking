@@ -1,5 +1,5 @@
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
 import DonorProfile from '../pages/donor-management/DonorProfile';
@@ -97,14 +97,17 @@ describe('DonorProfile', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /^save$/i }));
 
-    expect(updateMonetaryDonor).toHaveBeenCalledWith(1, {
-      firstName: 'Jane',
-      lastName: 'Smith',
-      email: 'jane@example.com',
+    await waitFor(() => {
+      expect(updateMonetaryDonor).toHaveBeenCalledWith(1, {
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'jane@example.com',
+      });
+      expect(getMonetaryDonor).toHaveBeenCalledTimes(2);
+      expect(screen.getByText('Donor updated')).toBeInTheDocument();
+      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+      expect(screen.getByText('jane@example.com')).toBeInTheDocument();
     });
-    expect(await screen.findByText('Donor updated')).toBeInTheDocument();
-    expect(await screen.findByText('Jane Smith')).toBeInTheDocument();
-    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
   });
 });
 
