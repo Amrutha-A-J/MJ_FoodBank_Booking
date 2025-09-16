@@ -95,6 +95,38 @@ describe('staffController routes', () => {
     __setMockAuthUser({ id: 1, role: 'staff', access: ['admin'] });
   });
 
+  it('reports when no staff records exist', async () => {
+    (mockDb.query as jest.Mock).mockResolvedValueOnce({
+      rows: [{ count: '0' }],
+      rowCount: 1,
+    });
+
+    const res = await request(app).get('/staff/exists');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ exists: false });
+    expect(mockDb.query).toHaveBeenCalledTimes(1);
+    expect((mockDb.query as jest.Mock).mock.calls[0][0]).toBe(
+      'SELECT COUNT(*) FROM staff',
+    );
+  });
+
+  it('reports when staff records exist', async () => {
+    (mockDb.query as jest.Mock).mockResolvedValueOnce({
+      rows: [{ count: '1' }],
+      rowCount: 1,
+    });
+
+    const res = await request(app).get('/staff/exists');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ exists: true });
+    expect(mockDb.query).toHaveBeenCalledTimes(1);
+    expect((mockDb.query as jest.Mock).mock.calls[0][0]).toBe(
+      'SELECT COUNT(*) FROM staff',
+    );
+  });
+
   it('returns 400 for invalid pagination when listing staff', async () => {
     const res = await request(app)
       .get('/admin-staff')
@@ -146,6 +178,36 @@ describe('staffController routes', () => {
     expect(seedTimesheetsMock).not.toHaveBeenCalled();
   });
 
+  it('creates the first staff member with default admin access', async () => {
+    (mockDb.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ count: '0' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+      .mockResolvedValueOnce({ rows: [{ id: 42 }], rowCount: 1 });
+
+    const res = await request(app)
+      .post('/staff')
+      .send({
+        firstName: 'Sam',
+        lastName: 'Helper',
+        email: 'sam@example.com',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ message: 'Staff created' });
+    expect(mockDb.query).toHaveBeenCalledTimes(3);
+
+    const insertParams = (mockDb.query as jest.Mock).mock.calls[2][1];
+    expect(insertParams).toEqual([
+      'Sam',
+      'Helper',
+      'staff',
+      'sam@example.com',
+      ['admin'],
+    ]);
+    expect(sendTemplatedEmail).toHaveBeenCalledTimes(1);
+    expect(seedTimesheetsMock).toHaveBeenCalledWith(42);
+  });
+
   it('returns 404 when deleting a missing staff record', async () => {
     (mockDb.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0 });
 
@@ -176,5 +238,37 @@ describe('staffController routes', () => {
     expect(mockDb.query).toHaveBeenCalledTimes(1);
     expect(sendTemplatedEmail).not.toHaveBeenCalled();
     expect(seedTimesheetsMock).not.toHaveBeenCalled();
+  });
+
+  it('returns empty results when no search term is provided', async () => {
+    const res = await request(app).get('/staff/search');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+    expect(mockDb.query).not.toHaveBeenCalled();
+  });
+
+  it('searches staff by name or email', async () => {
+    (mockDb.query as jest.Mock).mockResolvedValueOnce({
+      rows: [
+        {
+          id: 7,
+          first_name: 'Ann',
+          last_name: 'Staff',
+        },
+      ],
+      rowCount: 1,
+    });
+
+    const res = await request(app)
+      .get('/staff/search')
+      .query({ query: 'Ann' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([{ id: 7, name: 'Ann Staff' }]);
+    expect(mockDb.query).toHaveBeenCalledTimes(1);
+    const [sql, params] = (mockDb.query as jest.Mock).mock.calls[0];
+    expect(sql).toContain('ILIKE $1');
+    expect(params).toEqual(['%Ann%']);
   });
 });
