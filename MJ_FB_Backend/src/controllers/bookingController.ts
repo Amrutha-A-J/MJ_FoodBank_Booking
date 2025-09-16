@@ -38,7 +38,6 @@ import {
   insertWalkinUser,
 } from '../models/bookingRepository';
 import { insertNewClient } from '../models/newClient';
-import { isAgencyClient, getAgencyClientSet } from '../models/agency';
 import { refreshClientVisitCount, getClientBookingsThisMonth } from './clientVisitController';
 import { hasTable } from '../utils/dbUtils';
 import { getCartTare } from '../utils/configCache';
@@ -94,9 +93,6 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 
   try {
     const userId = Number(req.user?.userId ?? req.user?.id);
-    if (!isDateWithinCurrentOrNextMonth(date)) {
-      return res.status(400).json({ message: 'Please choose a valid date' });
-    }
 
     const client = await pool.connect();
     let token: string;
@@ -336,21 +332,6 @@ export async function listBookings(req: Request, res: Response, next: NextFuncti
           .filter((n) => !Number.isNaN(n))
       : undefined;
 
-    if (requester.role === 'agency') {
-      if (!clientIds || clientIds.length === 0) {
-        return res
-          .status(400)
-          .json({ message: 'clientIds query parameter required' });
-      }
-      const uniqueIds = [...new Set(clientIds)];
-      const allowed = await getAgencyClientSet(Number(requester.id), uniqueIds);
-      if (allowed.size !== uniqueIds.length) {
-        return res
-          .status(403)
-          .json({ message: 'Client not associated with agency' });
-      }
-    }
-
     const rows = await repoFetchBookings(status, date, clientIds);
     res.json(rows);
   } catch (error) {
@@ -374,16 +355,7 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
 
     const requesterId = Number(requester.userId ?? requester.id);
     const bookingUserId = booking.user_id ? Number(booking.user_id) : undefined;
-    if (requester.role === 'agency') {
-      if (bookingUserId !== undefined) {
-        const associated = await isAgencyClient(requesterId, bookingUserId);
-        if (!associated) {
-          return res.status(403).json({
-            message: 'Client not associated with agency',
-          });
-        }
-      }
-    } else if (requester.role !== 'staff' && bookingUserId !== requesterId) {
+    if (requester.role !== 'staff' && bookingUserId !== requesterId) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
@@ -936,12 +908,12 @@ export async function createBookingForUser(
   res: Response,
   next: NextFunction,
 ) {
-  if (!req.user || (req.user.role !== 'staff' && req.user.role !== 'agency'))
+  if (!req.user || req.user.role !== 'staff')
     return res.status(403).json({ message: 'Forbidden' });
 
   const { userId, slotId, date, note, type } = req.body;
   const emailType = type || 'Shopping Appointment';
-  const staffBookingFlag = req.user.role === 'agency' ? true : !!req.body.isStaffBooking;
+  const staffBookingFlag = !!req.body.isStaffBooking;
   if (slotId === undefined || slotId === null) {
     return res
       .status(400)
@@ -963,17 +935,6 @@ export async function createBookingForUser(
   }
 
   try {
-    if (req.user.role === 'agency') {
-      const allowed = await isAgencyClient(Number(req.user.id), userId);
-      if (!allowed) {
-        return res
-          .status(403)
-          .json({ message: 'Client not linked to your agency' });
-      }
-    }
-    if (req.user?.role !== 'staff' && !isDateWithinCurrentOrNextMonth(date)) {
-      return res.status(400).json({ message: 'Please choose a valid date' });
-    }
 
     const client = await pool.connect();
     const status = 'approved';
@@ -1226,43 +1187,6 @@ export async function getBookingHistory(
         return res.status(400).json({ message: 'Invalid user' });
       }
       userIds = [parsed];
-    } else if (requester.role === 'agency') {
-      const clientIdsParam = req.query.clientIds as string | undefined;
-      if (clientIdsParam) {
-        userIds = clientIdsParam
-          .split(',')
-          .map(id => Number(id.trim()))
-          .filter(n => !Number.isNaN(n));
-        if (userIds.length === 0) {
-          return res.status(400).json({ message: 'Invalid clientIds' });
-        }
-        const checks = await Promise.all(
-          userIds.map(id => isAgencyClient(Number(requester.id), id)),
-        );
-        if (checks.some(allowed => !allowed)) {
-          return res
-            .status(403)
-            .json({ message: 'Client not associated with agency' });
-        }
-      } else {
-        const paramId = req.query.userId as string;
-        if (!paramId) {
-          return res
-            .status(400)
-            .json({ message: 'userId query parameter required' });
-        }
-        const parsed = Number(paramId);
-        if (Number.isNaN(parsed)) {
-          return res.status(400).json({ message: 'Invalid user' });
-        }
-        const allowed = await isAgencyClient(Number(requester.id), parsed);
-        if (!allowed) {
-          return res
-            .status(403)
-            .json({ message: 'Client not associated with agency' });
-        }
-        userIds = [parsed];
-      }
     } else {
       const parsed = Number(requester.userId ?? requester.id);
       if (Number.isNaN(parsed)) {
@@ -1278,12 +1202,7 @@ export async function getBookingHistory(
     const status = (req.query.status as string)?.toLowerCase();
     const past = req.query.past === 'true';
     const includeVisits = req.query.includeVisits === 'true';
-    const includeStaffNotesParam = req.query.includeStaffNotes === 'true';
-    const includeStaffNotes =
-      requester.role === 'staff' || includeStaffNotesParam;
-    const canViewStaffNotes =
-      includeStaffNotes &&
-      (requester.role === 'staff' || requester.role === 'agency');
+    const canViewStaffNotes = requester.role === 'staff';
     const limitParam = req.query.limit as string | undefined;
     const offsetParam = req.query.offset as string | undefined;
     const limit = limitParam ? Number(limitParam) : undefined;

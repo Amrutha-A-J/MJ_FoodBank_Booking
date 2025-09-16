@@ -23,9 +23,9 @@ export type AuthPayload = {
   role: string;
   /**
    * The category of user these tokens are for. Volunteers use the same
-   * refresh-token flow as users, staff and agencies so include them here.
+   * refresh-token flow as staff and clients so include them here.
    */
-  type: 'user' | 'staff' | 'agency' | 'volunteer';
+  type: 'user' | 'staff' | 'volunteer';
   access?: string[];
   /** Optional fields used for volunteer/user hybrids */
   userId?: number;

@@ -3,7 +3,6 @@ import { Request, Response, NextFunction } from 'express';
 describe('getBookingHistory validation edge cases', () => {
   let getBookingHistory: any;
   let fetchBookingHistoryMock: jest.Mock;
-  let isAgencyClientMock: jest.Mock;
 
   beforeEach(() => {
     jest.resetModules();
@@ -12,13 +11,6 @@ describe('getBookingHistory validation edge cases', () => {
       jest.doMock('../../src/models/bookingRepository', () => ({
         __esModule: true,
         fetchBookingHistory: fetchBookingHistoryMock,
-      }));
-
-      isAgencyClientMock = jest.fn();
-      jest.doMock('../../src/models/agency', () => ({
-        __esModule: true,
-        isAgencyClient: isAgencyClientMock,
-        getAgencyClientSet: jest.fn(),
       }));
 
       getBookingHistory = require('../../src/controllers/bookingController').getBookingHistory;
@@ -49,24 +41,6 @@ describe('getBookingHistory validation edge cases', () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ message: 'userId query parameter required' });
-    expect(fetchBookingHistoryMock).not.toHaveBeenCalled();
-  });
-
-  it('rejects agency requests with unassociated clientIds', async () => {
-    isAgencyClientMock.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
-
-    const req = {
-      user: { role: 'agency', id: '55' },
-      query: { clientIds: '1,2' },
-    } as unknown as Request;
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
-    const next = jest.fn() as NextFunction;
-
-    await getBookingHistory(req, res, next);
-
-    expect(isAgencyClientMock).toHaveBeenCalledTimes(2);
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Client not associated with agency' });
     expect(fetchBookingHistoryMock).not.toHaveBeenCalled();
   });
 
@@ -175,12 +149,6 @@ describe('createBooking error handling', () => {
         fetchBookingByToken: jest.fn(),
         fetchBookingHistory: jest.fn(),
         insertWalkinUser: jest.fn(),
-      }));
-
-      jest.doMock('../../src/models/agency', () => ({
-        __esModule: true,
-        isAgencyClient: jest.fn(),
-        getAgencyClientSet: jest.fn(),
       }));
 
       jest.doMock('../../src/controllers/clientVisitController', () => ({

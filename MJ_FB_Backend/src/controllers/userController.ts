@@ -5,7 +5,6 @@ import type { UserPreferences } from '../models/userPreferences';
 import bcrypt from 'bcrypt';
 import logger from '../utils/logger';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
-import { getAgencyByEmail } from '../models/agency';
 import { sendTemplatedEmail } from '../utils/emailUtils';
 import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../utils/passwordSetupUtils';
 import config from '../config';
@@ -112,37 +111,6 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
           access: staff.access || [],
           id: staff.id,
           consent: staff.consent,
-        });
-      }
-
-      const agency = await getAgencyByEmail(email);
-      if (agency) {
-        if (!agency.password) {
-          return res
-            .status(410)
-            .json({ message: 'Password setup link expired' });
-        }
-        const match = await bcrypt.compare(password, agency.password);
-        if (!match) {
-          return res.status(401).json({ message: 'Invalid credentials' });
-        }
-        if (maintenanceMode) {
-          return res
-            .status(503)
-            .json({ message: 'Service unavailable due to maintenance' });
-        }
-        const payload: AuthPayload = {
-          id: agency.id,
-          role: 'agency',
-          type: 'agency',
-        };
-        await issueAuthTokens(res, payload, `agency:${agency.id}`);
-        return res.json({
-          role: 'agency',
-          name: agency.name,
-          id: agency.id,
-          access: [],
-          consent: agency.consent,
         });
       }
 
@@ -482,27 +450,6 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
       });
     }
 
-    if (user.type === 'agency') {
-      const result = await pool.query(
-        `SELECT id, name, email, contact_info, consent FROM agencies WHERE id = $1`,
-        [user.id],
-      );
-      if ((result.rowCount ?? 0) === 0) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      const row = result.rows[0];
-      return res.json({
-        id: row.id,
-        firstName: row.name,
-        lastName: '',
-        email: row.email,
-        phone: row.contact_info,
-        address: null,
-        role: 'agency',
-        consent: row.consent,
-      });
-    }
-
     const result = await pool.query(
       `SELECT client_id, first_name, last_name, email, phone, address, role, consent
        FROM clients WHERE client_id = $1`,
@@ -592,31 +539,6 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
         address: null,
         role: 'volunteer',
         trainedAreas: trainedRes.rows.map(r => r.name),
-        consent: row.consent,
-      });
-    }
-
-    if (user.type === 'agency') {
-      const result = await pool.query(
-        `UPDATE agencies
-         SET email = COALESCE($1, email),
-             contact_info = COALESCE($2, contact_info)
-         WHERE id = $3
-         RETURNING id, name, email, contact_info, consent`,
-        [email, phone, user.id],
-      );
-      if ((result.rowCount ?? 0) === 0) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      const row = result.rows[0];
-      return res.json({
-        id: row.id,
-        firstName: row.name,
-        lastName: '',
-        email: row.email,
-        phone: row.contact_info,
-        address: null,
-        role: 'agency',
         consent: row.consent,
       });
     }

@@ -45,14 +45,13 @@ describe('pantryAggregationController', () => {
     (mockPool.query as jest.Mock).mockReset();
   });
 
-  it('forwards weekly filters including date range, agencies, and item types', async () => {
+  it('forwards weekly filters including date range and item types', async () => {
     const req = {
       query: {
         year: '2024',
         month: '5',
         startDate: '2024-05-01',
         endDate: '2024-05-31',
-        agencyIds: '1,2',
         itemTypes: 'produce,dairy',
       },
     } as any;
@@ -64,7 +63,6 @@ describe('pantryAggregationController', () => {
       expect(incomingReq.query).toMatchObject({
         startDate: '2024-05-01',
         endDate: '2024-05-31',
-        agencyIds: '1,2',
         itemTypes: 'produce,dairy',
       });
       incomingRes.json([{ week: 1, orders: 10 }]);
@@ -76,11 +74,10 @@ describe('pantryAggregationController', () => {
     expect(res.json).toHaveBeenCalledWith([{ week: 1, orders: 10 }]);
   });
 
-  it('passes agency filters to monthly aggregations', async () => {
+  it('passes date filters to monthly aggregations', async () => {
     const req = {
       query: {
         year: '2024',
-        agencyIds: '3,5',
         startDate: '2024-01-01',
         endDate: '2024-12-31',
       },
@@ -90,7 +87,6 @@ describe('pantryAggregationController', () => {
 
     (listPantryMonthly as jest.Mock).mockImplementation(async (incomingReq, incomingRes) => {
       expect(incomingReq.query).toMatchObject({
-        agencyIds: '3,5',
         startDate: '2024-01-01',
         endDate: '2024-12-31',
       });
@@ -108,7 +104,6 @@ describe('pantryAggregationController', () => {
       query: {
         year: '2024',
         itemTypes: 'meat,produce',
-        agencyIds: '7',
       },
     } as any;
     const res = { json: jest.fn() } as any;
@@ -117,7 +112,6 @@ describe('pantryAggregationController', () => {
     (listPantryYearly as jest.Mock).mockImplementation(async (incomingReq, incomingRes) => {
       expect(incomingReq.query).toMatchObject({
         itemTypes: 'meat,produce',
-        agencyIds: '7',
       });
       incomingRes.json([{ year: 2024, orders: 120 }]);
     });
@@ -137,7 +131,6 @@ describe('pantryAggregationController', () => {
         week: '2',
         startDate: '2024-06-03',
         endDate: '2024-06-07',
-        agencyIds: '2',
         itemTypes: 'dairy',
       },
     } as any;
@@ -152,7 +145,6 @@ describe('pantryAggregationController', () => {
         week: '2',
         startDate: '2024-06-03',
         endDate: '2024-06-07',
-        agencyIds: '2',
         itemTypes: 'dairy',
       });
       incomingRes.setHeader('Content-Type', 'application/octet-stream').send(Buffer.from('data'));

@@ -705,41 +705,6 @@ describe('userController', () => {
       });
     });
 
-    it('returns agency profile with contact info', async () => {
-      (pool.query as jest.Mock).mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [
-          {
-            id: 2,
-            name: 'Agency Name',
-            email: 'agency@example.com',
-            contact_info: '555-2222',
-            consent: true,
-          },
-        ],
-      });
-
-      const req: any = { user: { id: 2, type: 'agency' } };
-      const res: any = { json: jest.fn(), status: jest.fn().mockReturnThis() };
-
-      await getUserProfile(req, res, jest.fn());
-
-      expect(pool.query).toHaveBeenCalledWith(
-        expect.stringContaining('FROM agencies WHERE id = $1'),
-        [2],
-      );
-      expect(res.json).toHaveBeenCalledWith({
-        id: 2,
-        firstName: 'Agency Name',
-        lastName: '',
-        email: 'agency@example.com',
-        phone: '555-2222',
-        address: null,
-        role: 'agency',
-        consent: true,
-      });
-    });
-
     it('returns 404 for missing staff record', async () => {
       (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
 
@@ -838,44 +803,6 @@ describe('userController', () => {
         role: 'staff',
         roles: ['aggregations'],
         consent: true,
-      });
-    });
-
-    it('updates agency contact info', async () => {
-      (pool.query as jest.Mock).mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [
-          {
-            id: 6,
-            name: 'Agency',
-            email: 'agency@example.com',
-            contact_info: '555-7890',
-            consent: false,
-          },
-        ],
-      });
-
-      const req: any = {
-        user: { id: 6, type: 'agency' },
-        body: { phone: '555-7890' },
-      };
-      const res: any = { json: jest.fn(), status: jest.fn().mockReturnThis() };
-
-      await updateMyProfile(req, res, jest.fn());
-
-      expect(pool.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE agencies'),
-        [undefined, '555-7890', 6],
-      );
-      expect(res.json).toHaveBeenCalledWith({
-        id: 6,
-        firstName: 'Agency',
-        lastName: '',
-        email: 'agency@example.com',
-        phone: '555-7890',
-        address: null,
-        role: 'agency',
-        consent: false,
       });
     });
 

@@ -10,7 +10,7 @@ const router = express.Router();
 router.get(
   '/',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer', 'user', 'agency'),
+  authorizeRoles('staff', 'volunteer', 'user'),
   async (_, res) => {
     const holidays = await getHolidays();
     res.json(holidays);

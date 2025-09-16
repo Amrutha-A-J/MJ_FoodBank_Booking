@@ -37,7 +37,6 @@ const resolvedCookieOptions: CookieOptions =
 export const TABLE_MAP = {
   staff: { table: 'staff', idColumn: 'id' },
   volunteer: { table: 'volunteers', idColumn: 'id' },
-  agency: { table: 'agencies', idColumn: 'id' },
   client: { table: 'clients', idColumn: 'client_id' },
 } as const;
 
@@ -51,7 +50,7 @@ export async function requestPasswordReset(
     clientId?: number;
   };
   try {
-    let user: { id: number; email: string; table: 'staff' | 'volunteers' | 'clients' | 'agencies' } | null = null;
+    let user: { id: number; email: string; table: 'staff' | 'volunteers' | 'clients' } | null = null;
 
     if (email) {
       const result = await findUserByEmail(email);
@@ -121,7 +120,7 @@ export async function resendPasswordSetup(
       setTimeout(() => resendLimit.delete(key!), RESEND_WINDOW_MS),
     );
 
-    let user: { id: number; email: string; table: 'staff' | 'volunteers' | 'clients' | 'agencies' } | null = null;
+    let user: { id: number; email: string; table: 'staff' | 'volunteers' | 'clients' } | null = null;
     if (email) {
       const result = await findUserByEmail(email);
       if (result) {
@@ -222,19 +221,6 @@ export async function getPasswordSetupInfo(
         info = { userType: 'volunteer', email: result.rows[0].email };
         break;
       }
-      case 'agencies': {
-        const result = await pool.query(
-          'SELECT email FROM agencies WHERE id=$1',
-          [row.user_id],
-        );
-        if ((result.rowCount ?? 0) === 0) {
-          return res
-            .status(400)
-            .json({ message: 'Invalid or expired token' });
-        }
-        info = { userType: 'agency', email: result.rows[0].email };
-        break;
-      }
       default:
         return res
           .status(400)
@@ -275,13 +261,12 @@ export async function setPassword(
       [hash, row.user_id],
     );
     await markPasswordTokenUsed(row.id);
-    const loginPathMap: Record<string, string> = {
+    const loginPathMap: Record<'staff' | 'volunteers' | 'clients', string> = {
       staff: '/login/staff',
       volunteers: '/login/volunteer',
-      agencies: '/login/agency',
       clients: '/login/user',
     };
-    res.json({ loginPath: loginPathMap[row.user_type] });
+    res.json({ loginPath: loginPathMap[row.user_type as 'staff' | 'volunteers' | 'clients'] });
   } catch (err) {
     next(err);
   }
