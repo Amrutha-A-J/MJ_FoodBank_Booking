@@ -255,7 +255,7 @@ describe('deliveryOrderController', () => {
           address: '456 Elm St',
           phone: '555-2222',
           email: 'shopper@example.com',
-          itemList: 'Bakery: Whole Wheat Bread x2',
+          itemList: '<strong>Bakery</strong> - Whole Wheat Bread x2<br>',
           createdAt: submittedAt.toISOString(),
         },
       });
@@ -386,7 +386,7 @@ describe('deliveryOrderController', () => {
           address: '789 Pine Ave',
           phone: '555-3333',
           email: 'client@example.com',
-          itemList: 'Produce: Fresh Produce Box x1',
+          itemList: '<strong>Produce</strong> - Fresh Produce Box x1<br>',
           createdAt: submittedAt.toISOString(),
         },
       });
