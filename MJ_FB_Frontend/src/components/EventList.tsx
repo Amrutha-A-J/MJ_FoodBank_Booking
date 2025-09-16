@@ -37,7 +37,15 @@ export default function EventList({ events, limit, onDelete, onChange, onEdit }:
         <ListItem key={ev.id} sx={{ pl: 0 }}>
           <ListItemText
             disableTypography
-            primary={<Typography>{`${formatDateRange(ev.startDate, ev.endDate)} - ${ev.title}`}</Typography>}
+            primary={
+              <Typography component="span" variant="body1">
+                {formatDateRange(ev.startDate, ev.endDate)}
+                {' - '}
+                <Box component="span" fontWeight="bold">
+                  {ev.title}
+                </Box>
+              </Typography>
+            }
             secondary={
               <>
                 {ev.details && (
