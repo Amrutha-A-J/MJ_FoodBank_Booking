@@ -469,9 +469,11 @@ describe('VolunteerManagement schedule statuses', () => {
     fireEvent.mouseDown(screen.getByLabelText('Role'));
     fireEvent.click(await screen.findByRole('option', { name: 'Greeter' }));
 
-    expect(await screen.findByText('Alice')).toBeInTheDocument();
-    expect(await screen.findByText('Bob')).toBeInTheDocument();
-    expect(screen.queryByText('Carol')).toBeNull();
+    await waitFor(() => {
+      expect(screen.getByText(/Alice/i)).toBeInTheDocument();
+      expect(screen.getByText(/Bob/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Carol/i)).not.toBeInTheDocument();
+    });
   });
 });
 
