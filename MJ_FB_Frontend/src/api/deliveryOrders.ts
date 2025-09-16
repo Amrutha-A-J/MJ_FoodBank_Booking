@@ -1,5 +1,5 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
-import type { DeliveryOutstandingOrder } from '../types';
+import type { DeliveryOrder, DeliveryOutstandingOrder } from '../types';
 
 export async function getOutstandingDeliveryOrders(): Promise<DeliveryOutstandingOrder[]> {
   const res = await apiFetch(`${API_BASE}/delivery/orders/outstanding`);
@@ -11,4 +11,14 @@ export async function markDeliveryOrderCompleted(orderId: number): Promise<void>
     method: 'POST',
   });
   await handleResponse(res);
+}
+
+export async function getDeliveryOrdersForClient(
+  clientId: number,
+): Promise<DeliveryOrder[]> {
+  const params = new URLSearchParams({
+    clientId: String(clientId),
+  });
+  const res = await apiFetch(`${API_BASE}/delivery/orders?${params.toString()}`);
+  return handleResponse<DeliveryOrder[]>(res);
 }
