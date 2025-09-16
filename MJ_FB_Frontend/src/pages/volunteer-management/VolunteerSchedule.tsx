@@ -132,7 +132,9 @@ export default function VolunteerSchedule() {
       const categoryIds = new Set(groups.map((g) => g.category_id.toString()));
       setSelectedCategoryId((prev) => (prev && categoryIds.has(prev) ? prev : ""));
 
-      const allowedIds = new Set(filteredRoles.map((r) => r.id));
+      const allowedIds = new Set(
+        filteredRoles.flatMap((r) => [r.id, r.role_id]),
+      );
       const filteredBookings = bookingData.filter(
         (b: VolunteerBooking) =>
           b.date === dateStr &&
@@ -353,6 +355,17 @@ export default function VolunteerSchedule() {
     (isHoliday || isWeekend) &&
     (!selectedCategory || !allowedOnClosed.includes(selectedCategory));
 
+  function bookingMatchesSlot(booking: VolunteerBooking, slot: VolunteerRole) {
+    if (booking.role_id === slot.id) {
+      return true;
+    }
+    return (
+      booking.role_id === slot.role_id &&
+      booking.start_time === slot.start_time &&
+      booking.end_time === slot.end_time
+    );
+  }
+
   const roleTables = selectedGroup
     ? selectedGroup.roles.map((r) => {
         let slots = r.slots;
@@ -366,7 +379,9 @@ export default function VolunteerSchedule() {
         slots = slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
         const maxSlots = Math.max(0, ...slots.map((s) => s.max_volunteers));
         const rows = slots.map((slot) => {
-          const myBooking = bookings.find((b) => b.role_id === slot.id);
+          const myBooking = bookings.find((b) =>
+            bookingMatchesSlot(b, slot),
+          );
           const othersBooked = Math.max(0, slot.booked - (myBooking ? 1 : 0));
           const cells: {
             content: ReactNode;

@@ -434,8 +434,8 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     force = false,
   ) {
     if (!assignSlot || !selectedRole) return;
-    const slotBookings = bookingsForDate.filter(
-      b => b.role_id === assignSlot.id,
+    const slotBookings = bookingsForDate.filter(b =>
+      bookingMatchesSlot(b, assignSlot),
     );
     if (slotBookings.some(b => b.volunteer_id === vol.id)) {
       setAssignMsg('Volunteer already booked for this shift');
@@ -626,10 +626,34 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       b.status.toLowerCase() !== 'cancelled'
     );
   });
+
+  function bookingMatchesSlot(
+    booking: VolunteerBookingDetail,
+    slot: RoleOption,
+  ) {
+    if (booking.role_id === slot.id) {
+      return true;
+    }
+    const slotStart = slot.start_time ?? slot.startTime;
+    const slotEnd = slot.end_time ?? slot.endTime;
+    if (!slotStart || !slotEnd) {
+      return false;
+    }
+    const bookingStart = booking.start_time ?? booking.startTime;
+    const bookingEnd = booking.end_time ?? booking.endTime;
+    if (!bookingStart || !bookingEnd) {
+      return false;
+    }
+    return (
+      booking.role_id === slot.role_id &&
+      bookingStart === slotStart &&
+      bookingEnd === slotEnd
+    );
+  }
   const rows = selectedRole
     ? roleInfos.map(role => {
-        const slotBookings = bookingsForDate.filter(
-          b => b.role_id === role.id
+        const slotBookings = bookingsForDate.filter(b =>
+          bookingMatchesSlot(b, role),
         );
         return {
           time: `${formatTime(role.start_time || '')} - ${formatTime(role.end_time || '')}`,
@@ -813,8 +837,8 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 .map(r => {
                   const roleInfos = roles.filter(ro => ro.name === r.name);
                   const rows = roleInfos.map(role => {
-                    const slotBookings = bookingsForDate.filter(
-                      b => b.role_id === role.id,
+                    const slotBookings = bookingsForDate.filter(b =>
+                      bookingMatchesSlot(b, role),
                     );
                     return {
                       time: `${formatTime(role.start_time || '')} - ${formatTime(
