@@ -497,7 +497,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
     }
 
     const result = await pool.query(
-      `SELECT client_id, first_name, last_name, email, phone, role, consent
+      `SELECT client_id, first_name, last_name, email, phone, address, role, consent
        FROM clients WHERE client_id = $1`,
       [user.id],
     );
@@ -511,6 +511,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
       lastName: row.last_name,
       email: row.email,
       phone: row.phone,
+      address: row.address,
       clientId: row.client_id,
       role: row.role,
       bookingsThisMonth,
