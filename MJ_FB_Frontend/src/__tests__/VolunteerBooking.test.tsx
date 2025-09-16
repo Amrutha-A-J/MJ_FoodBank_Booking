@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from '../utils/date';
+import dayjs, { REGINA_TIMEZONE } from '../utils/date';
 import VolunteerBooking from '../pages/volunteer-management/VolunteerBooking';
 import {
   getVolunteerRolesForVolunteer,
@@ -30,7 +30,7 @@ jest.mock('../hooks/useAuth', () => ({
 }));
 
 describe('VolunteerBooking', () => {
-  const fixedNow = new Date('2025-09-16T08:00:00Z');
+  const fixedNow = dayjs.tz('2025-09-15 00:00', REGINA_TIMEZONE).toDate();
   let dateSpy: jest.SpyInstance<number, []> | undefined;
 
   beforeEach(() => {
@@ -48,7 +48,7 @@ describe('VolunteerBooking', () => {
 
   it('requests a slot and shows confirmation', async () => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2025-09-16T00:00:00Z'));
+    jest.setSystemTime(fixedNow);
 
     try {
       (getHolidays as jest.Mock).mockResolvedValue([]);
