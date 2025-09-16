@@ -23,7 +23,7 @@ export default function EventList({ events, limit, onDelete, onChange, onEdit }:
   function formatDateRange(start: string, end: string) {
     const startText = formatLocaleDate(start);
     const endText = formatLocaleDate(end);
-    return startText === endText ? startText : `${startText} - ${endText}`;
+    return startText === endText ? startText : `${startText} to ${endText}`;
   }
 
   async function changePriority(ev: Event, delta: number) {
