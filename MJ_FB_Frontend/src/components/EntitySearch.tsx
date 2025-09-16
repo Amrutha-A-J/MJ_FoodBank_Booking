@@ -48,9 +48,18 @@ export default function EntitySearch<T extends SearchResultBase>({
       return;
     }
     let active = true;
-    const fn = searchFn || (type === 'user' ? searchUsers : searchVolunteers);
+
+    const defaultSearch: (query: string) => Promise<T[]> =
+      type === 'user'
+        ? async (query: string) =>
+            (await searchUsers(query)) as unknown as T[]
+        : async (query: string) =>
+            (await searchVolunteers(query)) as unknown as T[];
+
+    const runSearch = searchFn ?? defaultSearch;
+
     setHasSearched(true);
-    fn(debouncedQuery)
+    runSearch(debouncedQuery)
       .then(data => {
         if (active) setResults(data);
       })
