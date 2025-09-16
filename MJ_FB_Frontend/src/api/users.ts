@@ -79,7 +79,7 @@ export async function setPassword(
 }
 
 export interface PasswordSetupInfo {
-  userType: string;
+  userType: 'client' | 'volunteer' | 'staff';
   clientId?: number;
   email?: string;
 }

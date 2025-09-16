@@ -21,8 +21,8 @@ describe('Dashboard link', () => {
     expect(screen.getByRole('link', { name: /Dashboard/i })).toBeInTheDocument();
   });
 
-  it('appears for agencies', () => {
-    renderNavbar([{ label: 'Agency', links: [{ label: 'Dashboard', to: '/' }] }]);
+  it('appears for staff groups', () => {
+    renderNavbar([{ label: 'Staff', links: [{ label: 'Dashboard', to: '/' }] }]);
     expect(screen.getByRole('link', { name: /Dashboard/i })).toBeInTheDocument();
   });
 });

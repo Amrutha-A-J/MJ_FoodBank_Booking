@@ -140,7 +140,7 @@ export default function UserHistory({
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [deliveryError, setDeliveryError] = useState<string | null>(null);
   const { role } = useAuth();
-  const showNotes = role === 'staff' || role === 'agency';
+  const showNotes = role === 'staff';
 
   useEffect(() => {
     if (initialUser) return;

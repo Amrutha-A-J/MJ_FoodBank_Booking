@@ -69,11 +69,10 @@ export default function Profile({ role }: { role: Role }) {
     }
   }, [role]);
 
-  const initials = profile
-    ? profile.role === "agency"
-      ? (profile.firstName ?? "").slice(0, 2).toUpperCase()
-      : `${profile.firstName?.[0] ?? ""}${profile.lastName?.[0] ?? ""}`.toUpperCase()
-    : "";
+  const firstInitial = profile?.firstName?.[0] ?? "";
+  const secondInitial =
+    profile?.lastName?.[0] ?? profile?.firstName?.[1] ?? "";
+  const initials = `${firstInitial}${secondInitial}`.toUpperCase();
   const phoneRegex = /^\+?[0-9\s-]{7,15}$/;
 
   async function handleReset() {
@@ -97,7 +96,7 @@ export default function Profile({ role }: { role: Role }) {
   async function handleEdit() {
     if (!profile) return;
     if (editing) {
-      if (profile.role !== "agency" && phone && phoneError) {
+      if (phone && phoneError) {
         setToast({
           open: true,
           message: "Invalid phone number",
@@ -217,30 +216,26 @@ export default function Profile({ role }: { role: Role }) {
                   InputLabelProps={{ shrink: true }}
                 />
                 <TextField
-                  label={profile.role === "agency" ? "Contact info" : "Phone"}
-                  type={profile.role === "agency" ? "text" : "tel"}
+                  label="Phone"
+                  type="tel"
                   value={phone}
                   onChange={(e) => {
                     const val = e.target.value;
                     setPhone(val);
-                    if (profile.role !== "agency") {
-                      if (val && !phoneRegex.test(val)) {
-                        setPhoneError(
-                          "Phone number must contain only numbers, spaces, or dashes",
-                        );
-                      } else {
-                        setPhoneError("");
-                      }
+                    if (val && !phoneRegex.test(val)) {
+                      setPhoneError(
+                        "Phone number must contain only numbers, spaces, or dashes",
+                      );
+                    } else {
+                      setPhoneError("");
                     }
                   }}
                   disabled={!editing}
                   InputLabelProps={{ shrink: true }}
-                  error={profile.role === "agency" ? false : !!phoneError}
+                  error={!!phoneError}
                   helperText={
-                    profile.role === "agency"
-                      ? undefined
-                      : phoneError ||
-                        "Include country code (e.g., +1 306 555-1234)"
+                    phoneError ||
+                    "Include country code (e.g., +1 306 555-1234)"
                   }
                 />
                 {profile.bookingsThisMonth !== undefined && (

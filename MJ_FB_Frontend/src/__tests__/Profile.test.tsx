@@ -26,7 +26,6 @@ describe('Profile password reset', () => {
 
   it.each([
     ['staff', { firstName: 'S', lastName: 'Taff', email: 's@example.com', phone: null, role: 'staff' } as UserProfile, { email: 's@example.com' }],
-    ['agency', { firstName: 'A', lastName: 'Gency', email: 'a@example.com', phone: null, role: 'agency' } as UserProfile, { email: 'a@example.com' }],
     ['shopper', { firstName: 'C', lastName: 'Lient', email: null, phone: null, role: 'shopper', clientId: 42 } as UserProfile, { clientId: '42' }],
     ['delivery', { firstName: 'D', lastName: 'Livery', email: null, phone: null, role: 'delivery', clientId: 84 } as UserProfile, { clientId: '84' }],
     ])('sends reset link for %s', async (role, profile, payload) => {
@@ -39,7 +38,7 @@ describe('Profile password reset', () => {
         </MemoryRouter>
       );
       await waitFor(() => expect(getUserProfile).toHaveBeenCalled());
-      if (role !== 'staff' && role !== 'agency') {
+      if (role !== 'staff') {
         await waitFor(() => expect(getUserPreferences).toHaveBeenCalled());
       }
       const btn = await screen.findByRole('button', { name: /Reset Password/i });

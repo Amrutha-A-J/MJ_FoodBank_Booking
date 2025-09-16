@@ -63,11 +63,6 @@ jest.mock('../hooks/useAuth', () => {
     return ctx;
   };
 
-  const AgencyGuard = ({ children }) => {
-    const { role } = useAuth();
-    return role === 'agency' ? <>{children}</> : <Navigate to="/" replace />;
-  };
-
   const DonorManagementGuard = ({ children }) => {
     const { access } = useAuth();
     const allowed = access.includes('donor_management') || access.includes('admin');
@@ -78,7 +73,6 @@ jest.mock('../hooks/useAuth', () => {
     __esModule: true,
     AuthProvider,
     useAuth,
-    AgencyGuard,
     DonorManagementGuard,
   };
 });
