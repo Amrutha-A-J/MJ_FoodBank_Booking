@@ -6,6 +6,7 @@ import {
   updateLeaveRequestStatus,
   countApprovedPersonalDaysThisQuarter,
   LeaveType,
+  findLeaveRequestOverlaps,
 } from "../models/leaveRequest";
 import { ensureTimesheetDay } from "../models/timesheet";
 import { insertEvent } from "../models/event";
@@ -18,18 +19,34 @@ export async function createLeaveRequest(
 ): Promise<void> {
   try {
     const { startDate, endDate, type, reason } = req.body;
+    const staffId = Number(req.user!.id);
     if (type === LeaveType.Personal) {
-      const count = await countApprovedPersonalDaysThisQuarter(
-        Number(req.user!.id),
-      );
+      const count = await countApprovedPersonalDaysThisQuarter(staffId);
       if (count >= 1) {
         return void res
           .status(400)
           .json({ message: "Only one personal day per quarter is allowed" });
       }
     }
+    const overlaps = await findLeaveRequestOverlaps(
+      staffId,
+      startDate,
+      endDate,
+    );
+    if (overlaps.length > 0) {
+      return void res.status(400).json({
+        message: "Leave request overlaps an existing request",
+        overlap: overlaps.map(overlap => ({
+          id: overlap.id,
+          start_date: overlap.start_date,
+          end_date: overlap.end_date,
+          status: overlap.status,
+          type: overlap.type,
+        })),
+      });
+    }
     const record = await insertLeaveRequest(
-      Number(req.user!.id),
+      staffId,
       startDate,
       endDate,
       type,
@@ -82,6 +99,9 @@ export async function approveLeaveRequest(
       return void res.status(400).json({ message: "Invalid ID" });
     }
     const record = await updateLeaveRequestStatus(id, "approved");
+    if (!record) {
+      return void res.status(404).json({ message: "Leave request not found" });
+    }
     if (record.type !== LeaveType.Personal) {
       const start = new Date(record.start_date);
       const end = new Date(record.end_date);
@@ -122,6 +142,9 @@ export async function rejectLeaveRequest(
       return void res.status(400).json({ message: "Invalid ID" });
     }
     const record = await updateLeaveRequestStatus(id, "rejected");
+    if (!record) {
+      return void res.status(404).json({ message: "Leave request not found" });
+    }
     res.json(record);
   } catch (err) {
     next(err);
