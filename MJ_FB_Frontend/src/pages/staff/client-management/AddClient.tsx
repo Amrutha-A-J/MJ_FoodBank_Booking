@@ -35,7 +35,7 @@ export default function AddClient() {
 
   useEffect(() => {
     const id = searchParams.get('clientId');
-    if (id) setClientId(id);
+    setClientId(id ?? '');
   }, [searchParams]);
 
   async function submitUser() {
