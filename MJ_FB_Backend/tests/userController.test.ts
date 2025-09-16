@@ -150,9 +150,13 @@ describe('userController', () => {
       const token = jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {
         algorithm: 'HS256',
       });
+      const future = new Date(Date.now() + 60_000).toISOString();
       (pool.query as jest.Mock)
-        .mockResolvedValueOnce({ rowCount: 1, rows: [{ token_id: 'old' }] })
-        .mockResolvedValueOnce({});
+        .mockResolvedValueOnce({
+          rowCount: 1,
+          rows: [{ subject: 'staff:1', expires_at: future }],
+        })
+        .mockResolvedValueOnce({ rowCount: 1 });
 
       const req: any = { headers: { cookie: `refreshToken=${token}` } };
       const res: any = {

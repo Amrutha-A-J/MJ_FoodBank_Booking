@@ -2,6 +2,7 @@ import issueAuthTokens, { cookieOptions } from '../src/utils/authUtils';
 import pool from '../src/db';
 import jwt from 'jsonwebtoken';
 import { Response } from 'express';
+import { randomUUID } from 'crypto';
 
 jest.mock('../src/db', () => ({ __esModule: true, default: { query: jest.fn() } }));
 jest.mock('jsonwebtoken', () => ({ sign: jest.fn() }));
@@ -10,6 +11,8 @@ jest.mock('crypto', () => ({ randomUUID: jest.fn(() => 'uuid-1') }));
 describe('issueAuthTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (randomUUID as unknown as jest.Mock).mockReset();
+    (randomUUID as unknown as jest.Mock).mockReturnValue('uuid-1');
   });
 
   it('persists refresh token id and sets cookies', async () => {
@@ -29,7 +32,7 @@ describe('issueAuthTokens', () => {
 
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO refresh_tokens'),
-      ['uuid-1', 'user:1'],
+      ['uuid-1', 'user:1', expect.any(Date)],
     );
 
     const refreshExpiry = 7 * 24 * 60 * 60 * 1000;
@@ -51,5 +54,36 @@ describe('issueAuthTokens', () => {
         expires: expect.any(Date),
       },
     );
+  });
+
+  it('stores each refresh token separately for simultaneous logins', async () => {
+    (jwt.sign as jest.Mock)
+      .mockReturnValueOnce('access-token-1')
+      .mockReturnValueOnce('refresh-token-1')
+      .mockReturnValueOnce('access-token-2')
+      .mockReturnValueOnce('refresh-token-2');
+
+    (randomUUID as unknown as jest.Mock)
+      .mockReturnValueOnce('uuid-1')
+      .mockReturnValueOnce('uuid-2');
+
+    const firstRes = { cookie: jest.fn() } as unknown as Response;
+    await issueAuthTokens(firstRes, { id: 1, role: 'user', type: 'user' }, 'user:1');
+
+    const secondRes = { cookie: jest.fn() } as unknown as Response;
+    await issueAuthTokens(secondRes, { id: 1, role: 'user', type: 'user' }, 'user:1');
+
+    expect(pool.query).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining('INSERT INTO refresh_tokens'),
+      ['uuid-1', 'user:1', expect.any(Date)],
+    );
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('INSERT INTO refresh_tokens'),
+      ['uuid-2', 'user:1', expect.any(Date)],
+    );
+    expect((pool.query as jest.Mock).mock.calls[0][0]).not.toMatch(/ON CONFLICT/i);
+    expect((pool.query as jest.Mock).mock.calls[1][0]).not.toMatch(/ON CONFLICT/i);
   });
 });
