@@ -248,6 +248,7 @@ export interface UserProfile {
   lastName: string;
   email: string | null;
   phone: string | null;
+  address?: string | null;
   role: Role;
   clientId?: number;
   bookingsThisMonth?: number;

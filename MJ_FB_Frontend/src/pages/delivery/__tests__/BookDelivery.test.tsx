@@ -3,8 +3,10 @@ import { MemoryRouter } from 'react-router-dom';
 import BookDelivery from '../BookDelivery';
 import type { DeliveryCategory } from '../../../types';
 import { apiFetch, handleResponse } from '../../../api/client';
+import { getUserProfile } from '../../../api/users';
 
 const mockUseAuth = jest.fn();
+const mockGetUserProfile = getUserProfile as jest.Mock;
 
 jest.mock('../../../hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
@@ -17,6 +19,10 @@ jest.mock('../../../api/client', () => ({
   getApiErrorMessage: jest.fn((error: unknown) =>
     error instanceof Error ? error.message : 'Request failed',
   ),
+}));
+
+jest.mock('../../../api/users', () => ({
+  getUserProfile: jest.fn(),
 }));
 
 const mockCategories: DeliveryCategory[] = [
@@ -32,16 +38,37 @@ const mockCategories: DeliveryCategory[] = [
   },
 ];
 
+const mockProfile = {
+  firstName: 'Test',
+  lastName: 'User',
+  email: 'prefill@example.com',
+  phone: '306-555-0199',
+  address: '321 Default Ave',
+  role: 'delivery' as const,
+  clientId: 321,
+};
+
+function renderPage() {
+  render(
+    <MemoryRouter>
+      <BookDelivery />
+    </MemoryRouter>,
+  );
+}
+
 describe('BookDelivery', () => {
   beforeEach(() => {
     (apiFetch as jest.Mock).mockClear();
-    (handleResponse as jest.Mock).mockClear();
+    (handleResponse as jest.Mock).mockReset();
+    (handleResponse as jest.Mock).mockResolvedValue(mockCategories);
+    mockGetUserProfile.mockReset();
     (apiFetch as jest.Mock).mockResolvedValue(
       new Response(null, { status: 200, headers: { 'Content-Type': 'application/json' } }),
     );
+    mockGetUserProfile.mockResolvedValue(mockProfile);
     mockUseAuth.mockReset();
     mockUseAuth.mockReturnValue({
-      id: 321,
+      id: mockProfile.clientId,
       isAuthenticated: true,
       role: 'delivery',
       name: 'Test User',
@@ -55,13 +82,7 @@ describe('BookDelivery', () => {
   });
 
   test('disables unchecked items when category limit reached', async () => {
-    (handleResponse as jest.Mock).mockResolvedValueOnce(mockCategories);
-
-    render(
-      <MemoryRouter>
-        <BookDelivery />
-      </MemoryRouter>,
-    );
+    renderPage();
 
     const cereal = await screen.findByRole('checkbox', { name: /cereal/i });
     const pasta = screen.getByRole('checkbox', { name: /pasta/i });
@@ -74,29 +95,105 @@ describe('BookDelivery', () => {
     expect(rice).not.toBeDisabled();
   });
 
-  test('submits selections with contact information', async () => {
+  test('prefills contact fields from the user profile', async () => {
+    renderPage();
+
+    expect(await screen.findByDisplayValue(mockProfile.address)).toBeInTheDocument();
+    const phoneField = screen.getByLabelText(/^phone number$/i) as HTMLInputElement;
+    expect(phoneField).toHaveValue(mockProfile.phone);
+    const emailField = screen.getByLabelText(/^email$/i) as HTMLInputElement;
+    expect(emailField).toHaveValue(mockProfile.email);
+    const addressField = screen.getByLabelText(/delivery address/i) as HTMLInputElement;
+    expect(addressField).toHaveAttribute('readonly');
+    expect(screen.getByLabelText(/address is correct/i)).not.toBeChecked();
+    expect(screen.getByLabelText(/phone number is correct/i)).not.toBeChecked();
+    expect(screen.getByLabelText(/email is correct/i)).not.toBeChecked();
+  });
+
+  test('requires confirming contact information before enabling submission', async () => {
+    renderPage();
+
+    const submitButton = await screen.findByRole('button', {
+      name: /submit delivery request/i,
+    });
+    const addressConfirm = screen.getByLabelText(/address is correct/i);
+    const phoneConfirm = screen.getByLabelText(/phone number is correct/i);
+    const emailConfirm = screen.getByLabelText(/email is correct/i);
+
+    expect(submitButton).toBeDisabled();
+
+    fireEvent.click(addressConfirm);
+    expect(submitButton).toBeDisabled();
+
+    fireEvent.click(phoneConfirm);
+    expect(submitButton).toBeDisabled();
+
+    fireEvent.click(emailConfirm);
+    expect(submitButton).not.toBeDisabled();
+
+    fireEvent.click(phoneConfirm);
+    expect(submitButton).toBeDisabled();
+  });
+
+  test('allows editing contact fields and resets confirmation', async () => {
+    renderPage();
+
+    const submitButton = await screen.findByRole('button', {
+      name: /submit delivery request/i,
+    });
+    const addressConfirm = screen.getByLabelText(/address is correct/i);
+    const phoneConfirm = screen.getByLabelText(/phone number is correct/i);
+    const emailConfirm = screen.getByLabelText(/email is correct/i);
+
+    fireEvent.click(addressConfirm);
+    fireEvent.click(phoneConfirm);
+    fireEvent.click(emailConfirm);
+    expect(submitButton).not.toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: /edit address/i }));
+    const addressField = screen.getByLabelText(/delivery address/i) as HTMLInputElement;
+    expect(addressField).not.toHaveAttribute('readonly');
+    expect(addressConfirm).not.toBeChecked();
+    expect(submitButton).toBeDisabled();
+
+    fireEvent.change(addressField, { target: { value: '456 New Street' } });
+    expect(addressConfirm).not.toBeChecked();
+
+    fireEvent.click(screen.getByRole('button', { name: /done editing/i }));
+    expect(addressField).toHaveAttribute('readonly');
+  });
+
+  test('submits updated contact information in delivery payload', async () => {
     (handleResponse as jest.Mock)
       .mockResolvedValueOnce(mockCategories)
       .mockResolvedValueOnce({});
 
-    render(
-      <MemoryRouter>
-        <BookDelivery />
-      </MemoryRouter>,
-    );
+    renderPage();
 
     const cereal = await screen.findByRole('checkbox', { name: /cereal/i });
     fireEvent.click(cereal);
 
+    fireEvent.click(screen.getByRole('button', { name: /edit address/i }));
     fireEvent.change(screen.getByLabelText(/delivery address/i), {
-      target: { value: '123 Main Street' },
+      target: { value: ' 456 New Street ' },
     });
-    fireEvent.change(screen.getByLabelText(/phone number/i), {
-      target: { value: '306-555-0100' },
+    fireEvent.click(screen.getByRole('button', { name: /done editing/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /edit phone/i }));
+    fireEvent.change(screen.getByLabelText(/^phone number$/i), {
+      target: { value: ' 306-555-2222 ' },
     });
+    fireEvent.click(screen.getByRole('button', { name: /done editing/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /edit email/i }));
     fireEvent.change(screen.getByLabelText(/^email$/i), {
-      target: { value: 'test@example.com' },
+      target: { value: ' new@example.com ' },
     });
+    fireEvent.click(screen.getByRole('button', { name: /done editing/i }));
+
+    fireEvent.click(screen.getByLabelText(/address is correct/i));
+    fireEvent.click(screen.getByLabelText(/phone number is correct/i));
+    fireEvent.click(screen.getByLabelText(/email is correct/i));
 
     fireEvent.click(screen.getByRole('button', { name: /submit delivery request/i }));
 
@@ -107,10 +204,10 @@ describe('BookDelivery', () => {
     expect(postCall[1]).toMatchObject({ method: 'POST' });
     const body = JSON.parse(postCall[1].body);
     expect(body).toEqual({
-      clientId: 321,
-      address: '123 Main Street',
-      phone: '306-555-0100',
-      email: 'test@example.com',
+      clientId: mockProfile.clientId,
+      address: '456 New Street',
+      phone: '306-555-2222',
+      email: 'new@example.com',
       selections: [{ itemId: 10, quantity: 1 }],
     });
 
@@ -118,10 +215,6 @@ describe('BookDelivery', () => {
   });
 
   test('shows an error when the client id is unavailable', async () => {
-    (handleResponse as jest.Mock)
-      .mockResolvedValueOnce(mockCategories)
-      .mockResolvedValueOnce({});
-
     mockUseAuth.mockReturnValue({
       id: null,
       isAuthenticated: true,
@@ -135,21 +228,12 @@ describe('BookDelivery', () => {
       ready: true,
     });
 
-    render(
-      <MemoryRouter>
-        <BookDelivery />
-      </MemoryRouter>,
-    );
+    renderPage();
 
-    fireEvent.change(await screen.findByLabelText(/delivery address/i), {
-      target: { value: '123 Main Street' },
-    });
-    fireEvent.change(screen.getByLabelText(/phone number/i), {
-      target: { value: '306-555-0100' },
-    });
-    fireEvent.change(screen.getByLabelText(/^email$/i), {
-      target: { value: 'test@example.com' },
-    });
+    await screen.findByDisplayValue(mockProfile.address);
+    fireEvent.click(screen.getByLabelText(/address is correct/i));
+    fireEvent.click(screen.getByLabelText(/phone number is correct/i));
+    fireEvent.click(screen.getByLabelText(/email is correct/i));
 
     fireEvent.click(screen.getByRole('button', { name: /submit delivery request/i }));
 
