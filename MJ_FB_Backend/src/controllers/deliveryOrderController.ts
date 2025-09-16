@@ -132,6 +132,7 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     `SELECT COUNT(*)::int AS count
        FROM delivery_orders
       WHERE client_id = $1
+        AND status <> 'cancelled'
         AND date_trunc(
               'month',
               (created_at AT TIME ZONE 'UTC') AT TIME ZONE 'America/Regina'
