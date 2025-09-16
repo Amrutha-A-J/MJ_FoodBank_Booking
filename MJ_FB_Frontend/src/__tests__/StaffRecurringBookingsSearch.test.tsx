@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import StaffRecurringBookings from '../pages/volunteer-management/StaffRecurringBookings';
 import {
   searchVolunteers,
@@ -22,6 +22,7 @@ jest.mock('../api/volunteers', () => ({
 
 describe('StaffRecurringBookings volunteer search', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     (searchVolunteers as jest.Mock).mockResolvedValue([
       { id: 7, name: 'Test Vol', trainedAreas: [], hasShopper: false, hasPassword: false, clientId: null },
     ]);
@@ -30,10 +31,15 @@ describe('StaffRecurringBookings volunteer search', () => {
     (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([]);
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   test('searches for volunteers and selects one', async () => {
     render(<StaffRecurringBookings />);
     const input = screen.getByLabelText(/search/i);
     fireEvent.change(input, { target: { value: 'Test' } });
+    act(() => jest.advanceTimersByTime(300));
 
     await waitFor(() => expect(searchVolunteers).toHaveBeenCalledWith('Test'));
 
