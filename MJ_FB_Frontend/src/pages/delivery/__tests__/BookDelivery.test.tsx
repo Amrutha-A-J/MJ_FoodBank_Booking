@@ -287,4 +287,13 @@ describe('BookDelivery', () => {
     ).toBeInTheDocument();
     expect(apiFetch).toHaveBeenCalledTimes(1);
   });
+
+  test('displays client bottom navigation', async () => {
+    renderPage();
+
+    await screen.findByRole('button', { name: /submit delivery request/i });
+
+    expect(screen.getByLabelText('delivery')).toBeInTheDocument();
+    expect(screen.getByLabelText('profile')).toBeInTheDocument();
+  });
 });
