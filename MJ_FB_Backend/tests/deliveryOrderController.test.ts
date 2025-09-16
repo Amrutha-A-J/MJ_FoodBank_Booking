@@ -1,17 +1,30 @@
 import mockDb from './utils/mockDb';
 import { createDeliveryOrder } from '../src/controllers/deliveryOrderController';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import { getDeliverySettings } from '../src/utils/deliverySettings';
 
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
 }));
 
+jest.mock('../src/utils/deliverySettings', () => ({
+  getDeliverySettings: jest.fn(),
+}));
+
 const flushPromises = () => new Promise(process.nextTick);
+
+const mockGetDeliverySettings = getDeliverySettings as jest.MockedFunction<
+  typeof getDeliverySettings
+>;
 
 describe('deliveryOrderController', () => {
   beforeEach(() => {
     (mockDb.query as jest.Mock).mockReset();
     (sendTemplatedEmail as jest.Mock).mockReset();
+    mockGetDeliverySettings.mockReset();
+    mockGetDeliverySettings.mockResolvedValue({
+      requestEmail: 'ops@example.com',
+    });
   });
 
   describe('createDeliveryOrder', () => {
@@ -220,7 +233,7 @@ describe('deliveryOrderController', () => {
       });
 
       expect(sendTemplatedEmail).toHaveBeenCalledWith({
-        to: 'amrutha.laxman@mjfoodbank.org',
+        to: 'ops@example.com',
         templateId: 16,
         params: {
           orderId: 77,

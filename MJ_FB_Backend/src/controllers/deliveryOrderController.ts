@@ -3,6 +3,7 @@ import pool from '../db';
 import asyncHandler from '../middleware/asyncHandler';
 import parseIdParam from '../utils/parseIdParam';
 import { sendTemplatedEmail } from '../utils/emailUtils';
+import { getDeliverySettings } from '../utils/deliverySettings';
 import logger from '../utils/logger';
 import {
   createDeliveryOrderSchema,
@@ -220,8 +221,9 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
       : 'No items selected';
 
   try {
+    const { requestEmail } = await getDeliverySettings();
     await sendTemplatedEmail({
-      to: 'amrutha.laxman@mjfoodbank.org',
+      to: requestEmail,
       templateId: 16,
       params: {
         orderId: order.id,
