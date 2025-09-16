@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { renderWithProviders } from '../../../../testUtils/renderWithProviders';
@@ -6,28 +6,65 @@ import LeaveManagement from '../LeaveManagement';
 
 const mockMutate = jest.fn();
 
+let restoreFormData: typeof FormData;
+let restoreWindowFormData: typeof FormData;
+
+beforeAll(() => {
+  jest.useFakeTimers({
+    doNotFake: [
+      'setTimeout',
+      'clearTimeout',
+      'setInterval',
+      'clearInterval',
+      'setImmediate',
+      'clearImmediate',
+    ],
+  });
+});
+
 beforeEach(() => {
-  class TestFormData {
-    private data = new Map<string, string>();
-    constructor(form?: HTMLFormElement) {
-      if (form) {
-        Array.from(form.elements).forEach(el => {
-          const input = el as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-          if (input.name) {
-            this.data.set(input.name, input.value);
-          }
-        });
-      }
+  jest.setSystemTime(new Date('2024-01-02T12:00:00Z'));
+  mockMutate.mockImplementation((_variables, options) => {
+    act(() => {
+      options?.onSuccess?.();
+    });
+    return undefined;
+  });
+
+  restoreFormData = global.FormData;
+  restoreWindowFormData = window.FormData;
+
+  function createFormData(form?: HTMLFormElement) {
+    const entries: Record<string, FormDataEntryValue> = {};
+    if (form) {
+      Array.from(form.elements).forEach(element => {
+        const input =
+          element as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+        if (input.name) {
+          entries[input.name] = input.value;
+        }
+      });
     }
-    append(name: string, value: string) {
-      this.data.set(name, value);
-    }
-    get(name: string) {
-      return this.data.get(name) ?? null;
-    }
+    return {
+      append: (name: string, value: FormDataEntryValue) => {
+        entries[name] = value;
+      },
+      get: (name: string) => entries[name] ?? null,
+    } as unknown as FormData;
   }
-  (global as any).FormData = TestFormData as any;
-  (window as any).FormData = TestFormData as any;
+
+  (global as any).FormData = createFormData as unknown as typeof FormData;
+  (window as any).FormData = createFormData as unknown as typeof FormData;
+});
+
+afterEach(() => {
+  mockMutate.mockReset();
+  (global as any).FormData = restoreFormData;
+  (window as any).FormData = restoreWindowFormData;
+});
+
+afterAll(() => {
+  jest.useRealTimers();
 });
 
 jest.mock('../../../api/timesheets', () => ({
@@ -60,16 +97,30 @@ describe('LeaveManagement', () => {
     await user.click(
       screen.getByRole('button', { name: /request vacation/i }),
     );
-    await user.type(screen.getByLabelText(/start date/i), '2024-01-01');
-    await user.type(screen.getByLabelText(/end date/i), '2024-01-02');
-    await user.click(screen.getByRole('button', { name: /submit/i }));
-    expect(mockMutate).toHaveBeenCalledWith(
-      {
-        type: 'paid',
-        startDate: '2024-01-01',
-        endDate: '2024-01-02',
-      },
-      expect.any(Object),
-    );
+
+    const startDateField = (await screen.findByLabelText(
+      /start date/i,
+    )) as HTMLInputElement;
+    const endDateField = (await screen.findByLabelText(
+      /end date/i,
+    )) as HTMLInputElement;
+    const submitButton = await screen.findByRole('button', { name: /submit/i });
+
+    await user.type(startDateField, '2024-01-01');
+    await user.type(endDateField, '2024-01-02');
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockMutate).toHaveBeenCalledWith(
+        {
+          type: 'paid',
+          startDate: '2024-01-01',
+          endDate: '2024-01-02',
+        },
+        expect.objectContaining({ onSuccess: expect.any(Function) }),
+      );
+    });
+
+    expect(mockMutate).toHaveBeenCalledTimes(1);
   });
 });
