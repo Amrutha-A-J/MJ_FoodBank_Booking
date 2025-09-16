@@ -39,10 +39,10 @@ Cancellation, no-show, volunteer notification, and agency client update emails h
     ```
     Bakery
     - Whole Wheat Bread x2
-    - White Bread x1
+    - White Bread
 
     Produce
-    - Carrot Bundle x1
+    - Carrot Bundle
     ```
   - `createdAt` (ISO 8601 string) – submission timestamp for the request.
 

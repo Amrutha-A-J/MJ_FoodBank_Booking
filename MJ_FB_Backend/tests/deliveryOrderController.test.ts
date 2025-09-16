@@ -403,7 +403,7 @@ describe('deliveryOrderController', () => {
           address: '789 Pine Ave',
           phone: '555-3333',
           email: 'client@example.com',
-          itemList: '<strong>Produce</strong> - Fresh Produce Box x1<br>',
+          itemList: '<strong>Produce</strong> - Fresh Produce Box<br>',
           createdAt: submittedAt.toISOString(),
         },
       });
