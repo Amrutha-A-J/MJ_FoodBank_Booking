@@ -18,6 +18,7 @@ router.post(
   createDeliveryOrder,
 );
 
+router.get('/', authorizeRoles('delivery', 'staff'), getDeliveryOrderHistory);
 router.get('/history', authorizeRoles('delivery', 'staff'), getDeliveryOrderHistory);
 
 export default router;
