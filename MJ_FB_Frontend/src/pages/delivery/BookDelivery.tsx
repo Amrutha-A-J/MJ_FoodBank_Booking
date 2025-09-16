@@ -8,6 +8,11 @@ import {
   Checkbox,
   CircularProgress,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   FormControl,
   FormControlLabel,
@@ -31,6 +36,7 @@ import {
 import type { DeliveryCategory, DeliveryItem } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { getUserProfile } from '../../api/users';
+import { useNavigate } from 'react-router-dom';
 
 type SelectionState = Record<number, boolean>;
 
@@ -83,6 +89,8 @@ export default function BookDelivery() {
   });
   const { id: clientId } = useAuth();
   const [contactEditForced, setContactEditForced] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   const allConfirmed = addressConfirmed && phoneConfirmed && emailConfirmed;
 
@@ -220,6 +228,15 @@ export default function BookDelivery() {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
+  const handleSuccessDialogClose = () => {
+    setSuccessDialogOpen(false);
+  };
+
+  const handleViewHistory = () => {
+    setSuccessDialogOpen(false);
+    navigate('/delivery/history');
+  };
+
   const validate = (): boolean => {
     const nextErrors: FormErrors = {};
     const trimmedAddress = address.trim();
@@ -289,11 +306,8 @@ export default function BookDelivery() {
         body: JSON.stringify(payload),
       });
       await handleResponse(res);
-      setSnackbar({
-        open: true,
-        message: 'Delivery request submitted',
-        severity: 'success',
-      });
+      setSuccessDialogOpen(true);
+      setSnackbar({ open: false, message: '', severity: 'success' });
       setAddress(trimmedAddress);
       setPhone(trimmedPhone);
       setEmail(trimmedEmail);
@@ -317,6 +331,37 @@ export default function BookDelivery() {
 
   return (
     <>
+      <Dialog
+        open={successDialogOpen}
+        onClose={handleSuccessDialogClose}
+        aria-labelledby="delivery-request-submitted-title"
+      >
+        <DialogTitle id="delivery-request-submitted-title">
+          Delivery request submitted
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            We received your request and will contact you with delivery details
+            soon. You can review past submissions in your delivery history.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={handleSuccessDialogClose}
+            variant="text"
+            size="medium"
+          >
+            Close
+          </Button>
+          <Button
+            onClick={handleViewHistory}
+            variant="contained"
+            size="medium"
+          >
+            View Delivery History
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Container
         component="form"
         onSubmit={handleSubmit}
