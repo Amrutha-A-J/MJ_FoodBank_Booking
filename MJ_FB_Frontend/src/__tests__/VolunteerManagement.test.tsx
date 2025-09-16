@@ -400,7 +400,9 @@ describe('VolunteerManagement search captions', () => {
 
 describe('VolunteerManagement schedule statuses', () => {
   beforeEach(() => {
-    jest.useFakeTimers().setSystemTime(new Date('2024-01-01'));
+    jest
+      .useFakeTimers()
+      .setSystemTime(new Date('2024-01-01T06:00:00Z'));
     (getVolunteerRoles as jest.Mock).mockResolvedValue([
       {
         id: 1,
