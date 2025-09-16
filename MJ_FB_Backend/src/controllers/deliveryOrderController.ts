@@ -202,7 +202,7 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
       params.push(selection.itemId, selection.quantity);
     }
     await pool.query(
-      `INSERT INTO delivery_order_items (order_id, item_id, quantity) VALUES ${values}`,
+      `INSERT INTO delivery_order_items (order_id, item_id, qty) VALUES ${values}`,
       params,
     );
   }
@@ -289,7 +289,7 @@ export const getDeliveryOrderHistory = asyncHandler(async (req: Request, res: Re
     const itemsResult = await pool.query<DeliveryOrderItemRow>(
       `SELECT oi.order_id AS "orderId",
               oi.item_id AS "itemId",
-              oi.quantity,
+              oi.qty AS "quantity",
               i.name AS "itemName",
               i.category_id AS "categoryId",
               c.name AS "categoryName"
