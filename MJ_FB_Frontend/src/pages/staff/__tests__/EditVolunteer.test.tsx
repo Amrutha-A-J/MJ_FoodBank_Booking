@@ -41,102 +41,90 @@ jest.mock('../../../components/EntitySearch', () => (props: any) => (
   <button onClick={() => props.onSelect(mockVolunteer)}>Select Volunteer</button>
 ));
 
+const renderEditVolunteer = () =>
+  render(
+    <MemoryRouter>
+      <EditVolunteer />
+    </MemoryRouter>,
+  );
+
 beforeEach(() => {
+  (getVolunteerRoles as jest.Mock).mockReset();
+  (createVolunteerShopperProfile as jest.Mock).mockReset();
+  (removeVolunteerShopperProfile as jest.Mock).mockReset();
+  (getVolunteerById as jest.Mock).mockReset();
+  (updateVolunteer as jest.Mock).mockReset();
+  (getVolunteerBookingHistory as jest.Mock).mockReset();
+
+  (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
   (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([]);
+
+  mockVolunteer.id = 1;
+  mockVolunteer.name = 'John Doe';
+  mockVolunteer.firstName = 'John';
+  mockVolunteer.lastName = 'Doe';
+  mockVolunteer.email = undefined;
+  mockVolunteer.phone = undefined;
+  mockVolunteer.trainedAreas = [];
+  mockVolunteer.hasShopper = false;
+  mockVolunteer.hasPassword = false;
+  mockVolunteer.clientId = null;
 });
 
 describe('EditVolunteer volunteer info display', () => {
-  beforeEach(() => {
-    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
-    mockVolunteer.hasPassword = false;
+  beforeEach(async () => {
+    renderEditVolunteer();
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
   });
 
   it('shows helper text when no volunteer is selected', async () => {
-    render(
-      <MemoryRouter>
-        <EditVolunteer />
-      </MemoryRouter>,
-    );
-
-    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
-
     expect(
-      screen.getByText('Search and select a volunteer'),
+      await screen.findByText('Search and select a volunteer'),
     ).toBeInTheDocument();
   });
 
   it('displays volunteer name and online badge when selected', async () => {
-    mockVolunteer.name = 'John Doe';
     mockVolunteer.hasPassword = true;
 
-    render(
-      <MemoryRouter>
-        <EditVolunteer />
-      </MemoryRouter>,
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Select Volunteer' }),
     );
-
-    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
-
-    fireEvent.click(screen.getByText('Select Volunteer'));
 
     expect(await screen.findByTestId('volunteer-name')).toHaveTextContent(
       'John Doe',
     );
-    expect(screen.getByTestId('online-badge')).toBeInTheDocument();
+    expect(await screen.findByTestId('online-badge')).toBeInTheDocument();
   });
 
   it('shows helper text when no roles are assigned', async () => {
-    render(
-      <MemoryRouter>
-        <EditVolunteer />
-      </MemoryRouter>,
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Select Volunteer' }),
     );
-
-    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
-
-    fireEvent.click(screen.getByText('Select Volunteer'));
-    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
-    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Roles' }));
     expect(await screen.findByText('No roles assigned yet')).toBeInTheDocument();
   });
 });
 
 describe('EditVolunteer shopper profile', () => {
-  beforeEach(() => {
-    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
-    (createVolunteerShopperProfile as jest.Mock).mockReset();
-    (removeVolunteerShopperProfile as jest.Mock).mockReset();
-    (getVolunteerById as jest.Mock).mockReset();
-    mockVolunteer.hasPassword = false;
+  beforeEach(async () => {
+    renderEditVolunteer();
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
   });
 
   it('creates shopper profile', async () => {
-    mockVolunteer.id = 1;
-    mockVolunteer.name = 'John Doe';
-    mockVolunteer.hasShopper = false;
-    mockVolunteer.clientId = null;
-
     (createVolunteerShopperProfile as jest.Mock).mockResolvedValue(undefined);
     (getVolunteerById as jest.Mock).mockResolvedValue({
       ...mockVolunteer,
       hasShopper: true,
       clientId: 123,
     });
-
-    render(
-      <MemoryRouter>
-        <EditVolunteer />
-      </MemoryRouter>,
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Select Volunteer' }),
     );
-
-    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
-
-    fireEvent.click(screen.getByText('Select Volunteer'));
-    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
-    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
-    const toggle = screen.getByTestId('shopper-toggle');
+    fireEvent.click(await screen.findByRole('button', { name: 'Roles' }));
+    const toggle = await screen.findByTestId('shopper-toggle');
     fireEvent.click(toggle);
-    const dialog = screen.getByRole('dialog');
+    const dialog = await screen.findByRole('dialog');
     fireEvent.change(
       within(dialog).getByLabelText(/client id/i),
       { target: { value: '123' } },
@@ -149,17 +137,17 @@ describe('EditVolunteer shopper profile', () => {
       within(dialog).getByLabelText(/phone/i),
       { target: { value: '555-1234' } },
     );
-    fireEvent.click(screen.getByRole('button', { name: /create/i }));
+    fireEvent.click(within(dialog).getByRole('button', { name: /create/i }));
 
-    await waitFor(() =>
+    await waitFor(() => {
       expect(createVolunteerShopperProfile).toHaveBeenCalledWith(
         1,
         '123',
         'test@example.com',
         '555-1234',
-      ),
-    );
-    expect(getVolunteerById).toHaveBeenCalledWith(1);
+      );
+      expect(getVolunteerById).toHaveBeenCalledWith(1);
+    });
   });
 
   it('removes shopper profile', async () => {
@@ -175,212 +163,172 @@ describe('EditVolunteer shopper profile', () => {
       clientId: null,
     });
 
-    render(
-      <MemoryRouter>
-        <EditVolunteer />
-      </MemoryRouter>,
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Select Volunteer' }),
     );
-
-    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
-
-    fireEvent.click(screen.getByText('Select Volunteer'));
-    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
-    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
-    const toggle = screen.getByTestId('shopper-toggle');
+    fireEvent.click(await screen.findByRole('button', { name: 'Roles' }));
+    const toggle = await screen.findByTestId('shopper-toggle');
     fireEvent.click(toggle);
-    fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: /confirm/i }));
 
-    await waitFor(() =>
-      expect(removeVolunteerShopperProfile).toHaveBeenCalledWith(2),
-    );
-    expect(getVolunteerById).toHaveBeenCalledWith(2);
+    await waitFor(() => {
+      expect(removeVolunteerShopperProfile).toHaveBeenCalledWith(2);
+      expect(getVolunteerById).toHaveBeenCalledWith(2);
+    });
   });
 });
 
 describe('EditVolunteer role selection', () => {
-  beforeEach(() => {
-    (getVolunteerRoles as jest.Mock).mockReset();
-    (createVolunteerShopperProfile as jest.Mock).mockReset();
-    (removeVolunteerShopperProfile as jest.Mock).mockReset();
-    (getVolunteerById as jest.Mock).mockReset();
-    mockVolunteer.hasPassword = false;
+  const roleA = {
+    id: 1,
+    category_id: 1,
+    name: 'Role A',
+    max_volunteers: 1,
+    category_name: 'Master 1',
+    shifts: [],
+  };
+  const roleB = {
+    id: 2,
+    category_id: 1,
+    name: 'Role B',
+    max_volunteers: 1,
+    category_name: 'Master 1',
+    shifts: [],
+  };
+
+  describe('when roles are available to assign', () => {
+    beforeEach(async () => {
+      (getVolunteerRoles as jest.Mock).mockResolvedValue([roleA, roleB]);
+      mockVolunteer.trainedAreas = [];
+      renderEditVolunteer();
+      await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+    });
+
+    it('adds role via dropdown', async () => {
+      fireEvent.click(
+        await screen.findByRole('button', { name: 'Select Volunteer' }),
+      );
+      fireEvent.click(await screen.findByRole('button', { name: 'Roles' }));
+
+      const rolesSelect = await screen.findByTestId('roles-select');
+      const saveButton = await screen.findByTestId('save-button');
+      expect(saveButton).toBeDisabled();
+      expect(await screen.findByText('No roles assigned yet')).toBeInTheDocument();
+
+      fireEvent.mouseDown(
+        rolesSelect.querySelector('[role="combobox"]') as HTMLElement,
+      );
+      const listbox = await screen.findByRole('listbox');
+      fireEvent.click(within(listbox).getByText('Role A'));
+      fireEvent.keyDown(listbox, { key: 'Escape' });
+
+      expect(await screen.findByTestId('role-chip-role-a')).toBeInTheDocument();
+      await waitFor(() => expect(saveButton).toBeEnabled());
+      await waitFor(() =>
+        expect(screen.queryByText('No roles assigned yet')).not.toBeInTheDocument(),
+      );
+    });
   });
 
-  it('adds role via dropdown', async () => {
-    (getVolunteerRoles as jest.Mock).mockResolvedValue([
-      {
-        id: 1,
-        category_id: 1,
-        name: 'Role A',
-        max_volunteers: 1,
-        category_name: 'Master 1',
-        shifts: [],
-      },
-      {
-        id: 2,
-        category_id: 1,
-        name: 'Role B',
-        max_volunteers: 1,
-        category_name: 'Master 1',
-        shifts: [],
-      },
-    ]);
-    mockVolunteer.trainedAreas = [];
+  describe('when a role is removed', () => {
+    beforeEach(async () => {
+      (getVolunteerRoles as jest.Mock).mockResolvedValue([roleA]);
+      mockVolunteer.trainedAreas = [];
+      renderEditVolunteer();
+      await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+    });
 
-    render(
-      <MemoryRouter>
-        <EditVolunteer />
-      </MemoryRouter>,
-    );
+    it('removes role via chip delete', async () => {
+      fireEvent.click(
+        await screen.findByRole('button', { name: 'Select Volunteer' }),
+      );
+      fireEvent.click(await screen.findByRole('button', { name: 'Roles' }));
 
-    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+      const rolesSelect = await screen.findByTestId('roles-select');
+      fireEvent.mouseDown(
+        rolesSelect.querySelector('[role="combobox"]') as HTMLElement,
+      );
+      const listbox = await screen.findByRole('listbox');
+      fireEvent.click(within(listbox).getByText('Role A'));
+      fireEvent.keyDown(listbox, { key: 'Escape' });
 
-    fireEvent.click(screen.getByText('Select Volunteer'));
-    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
-    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
-    expect(screen.getByTestId('roles-select')).toBeInTheDocument();
-    expect(screen.getByTestId('save-button')).toBeDisabled();
-    expect(screen.getByText('No roles assigned yet')).toBeInTheDocument();
-    fireEvent.mouseDown(
-      screen.getByTestId('roles-select').querySelector('[role="combobox"]')!
-    );
-    const listbox = await screen.findByRole('listbox');
-    fireEvent.click(within(listbox).getByText('Role A'));
-    fireEvent.keyDown(listbox, { key: 'Escape' });
+      const chip = await screen.findByTestId('role-chip-role-a');
+      fireEvent.click(within(chip).getByTestId('CancelIcon'));
 
-    expect(await screen.findByTestId('role-chip-role-a')).toBeInTheDocument();
-    expect(screen.getByTestId('save-button')).toBeEnabled();
-    expect(screen.queryByText('No roles assigned yet')).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(screen.queryByTestId('role-chip-role-a')).not.toBeInTheDocument(),
+      );
+      expect(await screen.findByText('No roles assigned yet')).toBeInTheDocument();
+    });
   });
 
-  it('removes role via chip delete', async () => {
-    (getVolunteerRoles as jest.Mock).mockResolvedValue([
-      {
-        id: 1,
-        category_id: 1,
-        name: 'Role A',
-        max_volunteers: 1,
-        category_name: 'Master 1',
-        shifts: [],
-      },
-    ]);
-    mockVolunteer.trainedAreas = [];
+  describe('when multiple roles are already selected', () => {
+    beforeEach(async () => {
+      (getVolunteerRoles as jest.Mock).mockResolvedValue([roleA, roleB]);
+      mockVolunteer.trainedAreas = [1, 2];
+      renderEditVolunteer();
+      await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+    });
 
-    render(
-      <MemoryRouter>
-        <EditVolunteer />
-      </MemoryRouter>,
-    );
+    it('renders multiple role chips in a grid container', async () => {
+      fireEvent.click(
+        await screen.findByRole('button', { name: 'Select Volunteer' }),
+      );
+      fireEvent.click(await screen.findByRole('button', { name: 'Roles' }));
 
-    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+      const chipA = await screen.findByTestId('role-chip-role-a');
+      const chipB = await screen.findByTestId('role-chip-role-b');
+      expect(chipA).toBeInTheDocument();
+      expect(chipB).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Select Volunteer'));
-    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
-    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
-    fireEvent.mouseDown(
-      screen.getByTestId('roles-select').querySelector('[role="combobox"]')!
-    );
-    const listbox = await screen.findByRole('listbox');
-    fireEvent.click(within(listbox).getByText('Role A'));
-    fireEvent.keyDown(listbox, { key: 'Escape' });
-
-    const chip = await screen.findByTestId('role-chip-role-a');
-    const deleteBtn = within(chip).getByTestId('CancelIcon');
-    fireEvent.click(deleteBtn);
-    expect(screen.queryByTestId('role-chip-role-a')).not.toBeInTheDocument();
-    expect(screen.getByText('No roles assigned yet')).toBeInTheDocument();
-  });
-
-  it('renders multiple role chips in a grid container', async () => {
-    (getVolunteerRoles as jest.Mock).mockResolvedValue([
-      {
-        id: 1,
-        category_id: 1,
-        name: 'Role A',
-        max_volunteers: 1,
-        category_name: 'Master 1',
-        shifts: [],
-      },
-      {
-        id: 2,
-        category_id: 1,
-        name: 'Role B',
-        max_volunteers: 1,
-        category_name: 'Master 1',
-        shifts: [],
-      },
-    ]);
-    mockVolunteer.name = 'John Doe';
-    mockVolunteer.hasShopper = false;
-    mockVolunteer.clientId = null;
-    mockVolunteer.trainedAreas = [1, 2];
-
-    render(
-      <MemoryRouter>
-        <EditVolunteer />
-      </MemoryRouter>,
-    );
-    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
-    fireEvent.click(screen.getByText('Select Volunteer'));
-    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
-    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
-    const chipA = await screen.findByTestId('role-chip-role-a');
-    const chipB = await screen.findByTestId('role-chip-role-b');
-    expect(chipA).toBeInTheDocument();
-    expect(chipB).toBeInTheDocument();
-
-    const grid = chipA.parentElement?.parentElement;
-    expect(grid).toHaveClass('MuiGrid-container');
+      const grid = chipA.parentElement?.parentElement;
+      expect(grid).toHaveClass('MuiGrid-container');
+    });
   });
 });
 
 describe('EditVolunteer profile editing', () => {
-  beforeEach(() => {
-    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
-    (updateVolunteer as jest.Mock).mockReset();
-    (getVolunteerById as jest.Mock).mockReset();
+  beforeEach(async () => {
     (updateVolunteer as jest.Mock).mockResolvedValue(undefined);
     (getVolunteerById as jest.Mock).mockResolvedValue({
       ...mockVolunteer,
       email: 'new@example.com',
     });
-    mockVolunteer.id = 1;
+    renderEditVolunteer();
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
   });
 
   it('saves updated email', async () => {
-    render(
-      <MemoryRouter>
-        <EditVolunteer />
-      </MemoryRouter>,
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Select Volunteer' }),
     );
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit Profile' }));
 
-    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
-
-    fireEvent.click(screen.getByText('Select Volunteer'));
-    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
-    fireEvent.click(screen.getByText('Edit Profile'));
-
-    const emailInput = screen.getByLabelText(/email/i);
+    const emailInput = await screen.findByLabelText(/email/i);
     fireEvent.change(emailInput, { target: { value: 'new@example.com' } });
 
-    fireEvent.click(screen.getByTestId('save-profile-button'));
+    fireEvent.click(await screen.findByTestId('save-profile-button'));
 
-    await waitFor(() =>
+    await waitFor(() => {
       expect(updateVolunteer).toHaveBeenCalledWith(1, {
         firstName: 'John',
         lastName: 'Doe',
         email: 'new@example.com',
         phone: undefined,
-      }),
+      });
+      expect(getVolunteerById).toHaveBeenCalledWith(1);
+    });
+    await waitFor(() =>
+      expect(screen.getByLabelText(/email/i)).toHaveValue('new@example.com'),
     );
-    expect(getVolunteerById).toHaveBeenCalledWith(1);
-    expect(screen.getByLabelText(/email/i)).toHaveValue('new@example.com');
   });
 });
 
 describe('EditVolunteer booking history', () => {
-  beforeEach(() => {
-    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+  beforeEach(async () => {
+    renderEditVolunteer();
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
   });
 
   it('loads history when a volunteer is selected', async () => {
@@ -395,19 +343,13 @@ describe('EditVolunteer booking history', () => {
       },
     ]);
 
-    render(
-      <MemoryRouter>
-        <EditVolunteer />
-      </MemoryRouter>,
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Select Volunteer' }),
     );
-
-    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
-
-    fireEvent.click(screen.getByText('Select Volunteer'));
     await waitFor(() =>
       expect(getVolunteerBookingHistory).toHaveBeenCalledWith(1),
     );
-    fireEvent.click(screen.getByText('History'));
+    fireEvent.click(await screen.findByRole('button', { name: 'History' }));
     expect(await screen.findByText('approved')).toBeInTheDocument();
   });
 });
