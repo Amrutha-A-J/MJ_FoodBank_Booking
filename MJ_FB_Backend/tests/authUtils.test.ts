@@ -8,6 +8,36 @@ jest.mock('../src/db', () => ({ __esModule: true, default: { query: jest.fn() } 
 jest.mock('jsonwebtoken', () => ({ sign: jest.fn() }));
 jest.mock('crypto', () => ({ randomUUID: jest.fn(() => 'uuid-1') }));
 
+describe('cookieOptions', () => {
+  it('enables secure cookies with a domain in production', async () => {
+    const configModulePath = '../src/config';
+    const originalNodeEnv = process.env.NODE_ENV;
+
+    try {
+      await jest.isolateModulesAsync(async () => {
+        process.env.NODE_ENV = 'production';
+
+        jest.doMock(configModulePath, () => ({
+          __esModule: true,
+          default: { cookieDomain: 'auth.moosejawfoodbank.test' },
+        }));
+
+        const { cookieOptions: productionCookieOptions } = await import('../src/utils/authUtils');
+
+        expect(productionCookieOptions.sameSite).toBe('none');
+        expect(productionCookieOptions.secure).toBe(true);
+        expect(productionCookieOptions).toEqual(
+          expect.objectContaining({ domain: 'auth.moosejawfoodbank.test' }),
+        );
+      });
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv;
+      jest.dontMock(configModulePath);
+      jest.resetModules();
+    }
+  });
+});
+
 describe('issueAuthTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
