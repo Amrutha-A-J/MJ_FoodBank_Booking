@@ -261,6 +261,7 @@ export default function App() {
         { label: 'Dashboard', to: '/' },
         { label: 'Book Delivery', to: '/delivery/book' },
         { label: 'Delivery History', to: '/delivery/history' },
+        { label: 'News & Events', to: '/events' },
       ],
     });
   } else if (role === 'shopper') {
