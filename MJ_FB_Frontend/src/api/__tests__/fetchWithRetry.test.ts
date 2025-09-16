@@ -1,6 +1,5 @@
 import { fetchWithRetry } from '../fetchWithRetry';
 import { mockFetch, restoreFetch } from '../../../testUtils/mockFetch';
-import { act } from 'react';
 
 let fetchMock: jest.Mock;
 
@@ -10,9 +9,23 @@ describe('fetchWithRetry', () => {
     fetchMock = mockFetch();
   });
 
+  const flushNextTimer = async () => {
+    await Promise.resolve();
+    jest.runOnlyPendingTimers();
+    expect(jest.getTimerCount()).toBe(0);
+    await Promise.resolve();
+  };
+
   afterEach(() => {
+    const remainingTimers = jest.getTimerCount();
+    if (remainingTimers !== 0) {
+      jest.runOnlyPendingTimers();
+      jest.clearAllTimers();
+    }
+    expect(remainingTimers).toBe(0);
     jest.useRealTimers();
     restoreFetch();
+    jest.restoreAllMocks();
     jest.resetAllMocks();
   });
 
@@ -37,17 +50,11 @@ describe('fetchWithRetry', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(timeoutSpy).not.toHaveBeenCalled();
 
-    await Promise.resolve();
+    await flushNextTimer();
     expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
-    await act(async () => {
-      jest.runOnlyPendingTimers();
-    });
     expect(fetchMock).toHaveBeenCalledTimes(2);
 
-    expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 200);
-    await act(async () => {
-      jest.runOnlyPendingTimers();
-    });
+    await flushNextTimer();
     const res = await promise;
     expect(res.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(3);
@@ -56,13 +63,20 @@ describe('fetchWithRetry', () => {
     expect(delays).toEqual([100, 200]);
   });
 
-  it('does not retry on 5xx response', async () => {
+  it('retries on 5xx response', async () => {
     const timeoutSpy = jest.spyOn(global, 'setTimeout');
-    fetchMock.mockResolvedValue(new Response(null, { status: 500 }));
-    const res = await fetchWithRetry('/test', {}, 2, 100);
-    expect(res.status).toBe(500);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(timeoutSpy).not.toHaveBeenCalled();
+    fetchMock.mockResolvedValue(new Response(null, { status: 503 }));
+
+    const promise = fetchWithRetry('/test', {}, 1, 100);
+
+    await flushNextTimer();
+
+    await expect(promise).rejects.toThrow(
+      'Failed to fetch /test (last status 503) after 2 attempts',
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const delays = timeoutSpy.mock.calls.map(([, ms]) => ms);
+    expect(delays).toEqual([100]);
   });
 
   it('throws after exhausting retries', async () => {
@@ -73,9 +87,7 @@ describe('fetchWithRetry', () => {
     await Promise.resolve();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
-    await act(async () => {
-      jest.runOnlyPendingTimers();
-    });
+    await flushNextTimer();
 
     await expect(promise).rejects.toThrow(
       'Failed to fetch /test (last status 0) after 2 attempts',
@@ -98,9 +110,7 @@ describe('fetchWithRetry', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     await Promise.resolve();
     expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
-    await act(async () => {
-      jest.runOnlyPendingTimers();
-    });
+    await flushNextTimer();
     const res = await promise;
     expect(res.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(2);
