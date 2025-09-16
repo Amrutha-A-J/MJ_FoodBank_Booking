@@ -7,6 +7,7 @@ import logger from '../utils/logger';
 import {
   createDeliveryOrderSchema,
   type DeliveryOrderSelectionInput,
+  deliveryOrderStatusSchema,
 } from '../schemas/delivery/orderSchemas';
 
 interface ItemInfoRow {
@@ -23,6 +24,9 @@ interface DeliveryOrderRow {
   address: string;
   phone: string;
   email: string | null;
+  status: string;
+  scheduledFor: Date | string | null;
+  notes: string | null;
   createdAt: Date | string;
 }
 
@@ -83,6 +87,16 @@ function toIsoString(value: Date | string | null | undefined): string {
     return parsed.toISOString();
   }
   return new Date().toISOString();
+}
+
+function toNullableIsoString(value: Date | string | null | undefined): string | null {
+  if (!value) return null;
+  if (value instanceof Date) return value.toISOString();
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toISOString();
+  }
+  return null;
 }
 
 export const createDeliveryOrder = asyncHandler(async (req: Request, res: Response) => {
@@ -184,11 +198,16 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     );
   }
 
+  const requestedStatus = parsed.data.status;
+  const status = requestedStatus && isStaff ? requestedStatus : 'pending';
+  const scheduledFor = parsed.data.scheduledFor ?? null;
+  const notes = parsed.data.notes?.trim() ? parsed.data.notes.trim() : null;
+
   const orderResult = await pool.query<DeliveryOrderRow>(
-    `INSERT INTO delivery_orders (client_id, address, phone, email)
-         VALUES ($1, $2, $3, $4)
-      RETURNING id, client_id AS "clientId", address, phone, email, created_at AS "createdAt"`,
-    [clientId, address, phone, email],
+    `INSERT INTO delivery_orders (client_id, address, phone, email, status, scheduled_for, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"`,
+    [clientId, address, phone, email, status, scheduledFor, notes],
   );
 
   const order = orderResult.rows[0];
@@ -239,6 +258,9 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     address: order.address,
     phone: order.phone,
     email: order.email,
+    status: order.status,
+    scheduledFor: toNullableIsoString(order.scheduledFor),
+    notes: order.notes,
     createdAt,
     items: itemDetails,
   });
@@ -273,7 +295,7 @@ export const getDeliveryOrderHistory = asyncHandler(async (req: Request, res: Re
   }
 
   const ordersResult = await pool.query<DeliveryOrderRow>(
-    `SELECT id, client_id AS "clientId", address, phone, email, created_at AS "createdAt"
+    `SELECT id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"
        FROM delivery_orders
       WHERE client_id = $1
       ORDER BY created_at DESC`,
@@ -325,9 +347,76 @@ export const getDeliveryOrderHistory = asyncHandler(async (req: Request, res: Re
     address: order.address,
     phone: order.phone,
     email: order.email,
+    status: order.status,
+    scheduledFor: toNullableIsoString(order.scheduledFor),
+    notes: order.notes,
     createdAt: toIsoString(order.createdAt),
     items: itemsByOrder.get(order.id) ?? [],
   }));
 
   res.json(response);
+});
+
+const cancellableStatuses = new Set(
+  deliveryOrderStatusSchema.options.filter(status => status !== 'completed' && status !== 'cancelled'),
+);
+
+export const cancelDeliveryOrder = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const orderId = parseIdParam(req.params.id);
+  if (!orderId) {
+    return res.status(400).json({ message: 'Invalid order id' });
+  }
+
+  const orderResult = await pool.query<DeliveryOrderRow>(
+    `SELECT id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"
+       FROM delivery_orders
+      WHERE id = $1`,
+    [orderId],
+  );
+
+  const order = orderResult.rows[0];
+  if (!order) {
+    return res.status(404).json({ message: 'Delivery order not found' });
+  }
+
+  const isClient = req.user.role === 'delivery';
+  const isStaff = req.user.role === 'staff' || req.user.role === 'admin';
+  if (isClient) {
+    const requesterId = parseIdParam(req.user.id);
+    if (!requesterId || requesterId !== order.clientId) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+  } else if (!isStaff) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  if (!cancellableStatuses.has(order.status)) {
+    return res.status(400).json({ message: 'This delivery request cannot be cancelled' });
+  }
+
+  const updatedResult = await pool.query<DeliveryOrderRow>(
+    `UPDATE delivery_orders
+        SET status = 'cancelled'
+      WHERE id = $1
+      RETURNING id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"`,
+    [orderId],
+  );
+
+  const updated = updatedResult.rows[0];
+
+  res.json({
+    id: updated.id,
+    clientId: updated.clientId,
+    address: updated.address,
+    phone: updated.phone,
+    email: updated.email,
+    status: updated.status,
+    scheduledFor: toNullableIsoString(updated.scheduledFor),
+    notes: updated.notes,
+    createdAt: toIsoString(updated.createdAt),
+  });
 });

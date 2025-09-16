@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import type { ChipProps } from '@mui/material/Chip';
 import { Link as RouterLink } from 'react-router-dom';
+import { LoadingButton } from '@mui/lab';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
   API_BASE,
@@ -41,6 +42,8 @@ const STATUS_COLOR_MAP: Partial<
   completed: 'success',
   cancelled: 'default',
 };
+
+const CANCELLABLE_STATUSES: DeliveryOrder['status'][] = ['pending', 'approved', 'scheduled'];
 
 const dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
@@ -68,6 +71,10 @@ function getStatusColor(status: DeliveryOrder['status']): ChipProps['color'] {
   return STATUS_COLOR_MAP[status] ?? 'default';
 }
 
+function isCancellable(status: DeliveryOrder['status']): boolean {
+  return CANCELLABLE_STATUSES.includes(status);
+}
+
 export default function DeliveryHistory() {
   const [orders, setOrders] = useState<DeliveryOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,14 +84,19 @@ export default function DeliveryHistory() {
     message: '',
     severity: 'error',
   });
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
+
+  const fetchOrders = useCallback(async () => {
+    const res = await apiFetch(`${API_BASE}/delivery/orders`);
+    return handleResponse<DeliveryOrder[]>(res);
+  }, []);
 
   useEffect(() => {
     let active = true;
     async function loadOrders() {
       setLoading(true);
       try {
-        const res = await apiFetch(`${API_BASE}/delivery/orders`);
-        const data = await handleResponse<DeliveryOrder[]>(res);
+        const data = await fetchOrders();
         if (active) {
           setOrders(data);
           setError('');
@@ -106,11 +118,37 @@ export default function DeliveryHistory() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [fetchOrders]);
 
   const handleSnackbarClose = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
+
+  const handleCancel = useCallback(
+    async (orderId: number) => {
+      setCancellingId(orderId);
+      try {
+        const res = await apiFetch(`${API_BASE}/delivery/orders/${orderId}/cancel`, {
+          method: 'POST',
+        });
+        await handleResponse(res);
+        const data = await fetchOrders();
+        setOrders(data);
+        setError('');
+        setSnackbar({ open: true, message: 'Delivery request cancelled.', severity: 'success' });
+      } catch (err) {
+        const message = getApiErrorMessage(
+          err,
+          "We couldn't cancel your delivery request. Please try again.",
+        );
+        setError(message);
+        setSnackbar({ open: true, message, severity: 'error' });
+      } finally {
+        setCancellingId(null);
+      }
+    },
+    [fetchOrders],
+  );
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -166,10 +204,22 @@ export default function DeliveryHistory() {
                   title={`Order #${order.id}`}
                   subheader={submittedOn ? `Submitted ${submittedOn}` : undefined}
                   action={
-                    <Chip
-                      label={formatStatusLabel(order.status)}
-                      color={getStatusColor(order.status)}
-                    />
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      {isCancellable(order.status) && (
+                        <LoadingButton
+                          variant="outlined"
+                          size="small"
+                          onClick={() => void handleCancel(order.id)}
+                          loading={cancellingId === order.id}
+                        >
+                          Cancel request
+                        </LoadingButton>
+                      )}
+                      <Chip
+                        label={formatStatusLabel(order.status)}
+                        color={getStatusColor(order.status)}
+                      />
+                    </Stack>
                   }
                 />
                 <CardContent>

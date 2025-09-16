@@ -20,6 +20,9 @@ export interface DeliveryOrder {
   address: string;
   phone: string;
   email: string | null;
+  status: string;
+  scheduledFor: string | null;
+  notes: string | null;
   createdAt: string;
 }
 
@@ -98,27 +101,44 @@ export interface CreateDeliveryOrderParams {
   address: string;
   phone: string;
   email?: string | null;
+  status?: string;
+  scheduledFor?: string | Date | null;
+  notes?: string | null;
 }
 
 export interface UpdateDeliveryOrderParams {
   address?: string;
   phone?: string;
   email?: string | null;
+  status?: string;
+  scheduledFor?: string | Date | null;
+  notes?: string | null;
 }
 
 const deliveryOrderSelectFields =
-  'SELECT id, client_id AS "clientId", address, phone, email, created_at AS "createdAt"\n     FROM delivery_orders';
+  'SELECT id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"\n     FROM delivery_orders';
 
 export async function createDeliveryOrder(
   params: CreateDeliveryOrderParams,
   client: Queryable = pool,
 ): Promise<DeliveryOrder> {
-  const { clientId, address, phone, email = null } = params;
+  const {
+    clientId,
+    address,
+    phone,
+    email = null,
+    status = 'pending',
+    scheduledFor = null,
+    notes = null,
+  } = params;
+
+  const normalizedScheduledFor =
+    scheduledFor instanceof Date ? scheduledFor.toISOString() : scheduledFor ?? null;
   const res = await client.query<DeliveryOrder>(
-    `INSERT INTO delivery_orders (client_id, address, phone, email)
-     VALUES ($1, $2, $3, $4)
-     RETURNING id, client_id AS "clientId", address, phone, email, created_at AS "createdAt"`,
-    [clientId, address, phone, email],
+    `INSERT INTO delivery_orders (client_id, address, phone, email, status, scheduled_for, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"`,
+    [clientId, address, phone, email, status, normalizedScheduledFor, notes],
   );
   return res.rows[0];
 }
@@ -143,6 +163,22 @@ export async function updateDeliveryOrder(
     sets.push(`email = $${sets.length + 1}`);
     values.push(updates.email);
   }
+  if (updates.status !== undefined) {
+    sets.push(`status = $${sets.length + 1}`);
+    values.push(updates.status);
+  }
+  if (updates.scheduledFor !== undefined) {
+    sets.push(`scheduled_for = $${sets.length + 1}`);
+    const scheduledForValue =
+      updates.scheduledFor instanceof Date
+        ? updates.scheduledFor.toISOString()
+        : updates.scheduledFor ?? null;
+    values.push(scheduledForValue);
+  }
+  if (updates.notes !== undefined) {
+    sets.push(`notes = $${sets.length + 1}`);
+    values.push(updates.notes);
+  }
 
   if (sets.length === 0) {
     return fetchDeliveryOrder(id, client);
@@ -153,7 +189,7 @@ export async function updateDeliveryOrder(
     `UPDATE delivery_orders
         SET ${sets.join(', ')}
       WHERE id = $${sets.length + 1}
-      RETURNING id, client_id AS "clientId", address, phone, email, created_at AS "createdAt"`,
+      RETURNING id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"`,
     values,
   );
   return res.rows[0] ?? null;
