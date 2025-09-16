@@ -1,6 +1,9 @@
 module.exports = {
   testEnvironment: 'jsdom',
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  coverageProvider: 'v8',
+  coverageDirectory: '<rootDir>/coverage',
+  coverageReporters: ['text', 'lcov', 'clover'],
   testMatch: [
     '<rootDir>/src/pages/admin/__tests__/**/*.test.tsx',
     '<rootDir>/src/pages/**/__tests__/**/*.test.tsx',
