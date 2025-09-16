@@ -3,6 +3,8 @@ import {
   createDeliveryOrder,
   cancelDeliveryOrder,
   getDeliveryOrderHistory,
+  listOutstandingDeliveryOrders,
+  completeDeliveryOrder,
 } from '../../controllers/deliveryOrderController';
 import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware';
 import { validate } from '../../middleware/validate';
@@ -21,6 +23,16 @@ router.post(
 
 router.get('/', authorizeRoles('delivery', 'staff'), getDeliveryOrderHistory);
 router.get('/history', authorizeRoles('delivery', 'staff'), getDeliveryOrderHistory);
+router.get(
+  '/outstanding',
+  authorizeRoles('staff'),
+  listOutstandingDeliveryOrders,
+);
+router.post(
+  '/:id/complete',
+  authorizeRoles('staff'),
+  completeDeliveryOrder,
+);
 router.post('/:id/cancel', authorizeRoles('delivery', 'staff'), cancelDeliveryOrder);
 
 export default router;
