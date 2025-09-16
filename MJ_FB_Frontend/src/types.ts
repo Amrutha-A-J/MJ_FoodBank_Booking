@@ -225,6 +225,8 @@ export interface VolunteerBookingDetail {
   date: string;
   start_time: string;
   end_time: string;
+  startTime?: string;
+  endTime?: string;
   status_color?: string;
   role_name?: string;
   can_book?: boolean;
