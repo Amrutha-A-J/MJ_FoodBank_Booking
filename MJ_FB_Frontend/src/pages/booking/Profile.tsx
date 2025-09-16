@@ -35,6 +35,7 @@ export default function Profile({ role }: { role: Role }) {
   const [submitting, setSubmitting] = useState(false);
   const [editing, setEditing] = useState(false);
   const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -55,6 +56,7 @@ export default function Profile({ role }: { role: Role }) {
       .then((p) => {
         setProfile(p);
         setEmail(p.email ?? "");
+        setAddress(p.address ?? "");
         setPhone(p.phone ?? "");
       })
       .catch((e) => setError(e instanceof Error ? e.message : String(e)));
@@ -105,9 +107,10 @@ export default function Profile({ role }: { role: Role }) {
       }
       setSaving(true);
       try {
-        const updated = await updateMyProfile({ email, phone });
+        const updated = await updateMyProfile({ email, phone, address });
         setProfile(updated);
         setEmail(updated.email ?? "");
+        setAddress(updated.address ?? "");
         setPhone(updated.phone ?? "");
         setToast({
           open: true,
@@ -202,6 +205,14 @@ export default function Profile({ role }: { role: Role }) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={!editing}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                  label="Address"
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
                   disabled={!editing}
                   InputLabelProps={{ shrink: true }}
                 />

@@ -101,6 +101,7 @@ export async function getUserProfile(): Promise<UserProfile> {
 export async function updateMyProfile(data: {
   email?: string;
   phone?: string;
+  address?: string | null;
 }): Promise<UserProfile> {
   const res = await apiFetch(`${API_BASE}/users/me`, {
     method: "PATCH",
