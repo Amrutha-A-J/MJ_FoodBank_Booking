@@ -30,6 +30,22 @@ jest.mock('../hooks/useAuth', () => ({
 }));
 
 describe('VolunteerBooking', () => {
+  const fixedNow = new Date('2025-09-16T08:00:00Z');
+  let dateSpy: jest.SpyInstance<number, []> | undefined;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(fixedNow);
+    dateSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(fixedNow.valueOf());
+  });
+
+  afterEach(() => {
+    dateSpy?.mockRestore();
+    jest.useRealTimers();
+  });
+
   it('requests a slot and shows confirmation', async () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);
     (getUserProfile as jest.Mock).mockResolvedValue({ bookingsThisMonth: 0 });
