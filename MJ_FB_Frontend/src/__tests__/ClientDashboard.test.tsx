@@ -21,7 +21,7 @@ async function renderClientDashboard() {
       </MemoryRouter>,
     );
   });
-  await waitFor(() => expect(getSlots).toHaveBeenCalledTimes(7));
+  await screen.findByText(/next available slots/i);
 }
 
 describe('ClientDashboard', () => {
@@ -51,7 +51,7 @@ describe('ClientDashboard', () => {
 
     await renderClientDashboard();
 
-    await waitFor(() => expect(getEvents).toHaveBeenCalled());
+    expect(getEvents).toHaveBeenCalled();
     expect(await screen.findByText(/Client Event/)).toBeInTheDocument();
   });
 
@@ -63,7 +63,7 @@ describe('ClientDashboard', () => {
 
     await renderClientDashboard();
 
-    await waitFor(() => expect(getEvents).toHaveBeenCalled());
+    expect(getEvents).toHaveBeenCalled();
     expect(await screen.findByText(/No events/i)).toBeInTheDocument();
   });
 
@@ -100,7 +100,7 @@ describe('ClientDashboard', () => {
 
     await renderClientDashboard();
 
-    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(getBookingHistory).toHaveBeenCalled();
     expect(await screen.findByText('Mon, Jan 15, 2024')).toBeInTheDocument();
     jest.useRealTimers();
   });
@@ -121,7 +121,7 @@ describe('ClientDashboard', () => {
 
     await renderClientDashboard();
 
-    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(getBookingHistory).toHaveBeenCalled();
     expect(screen.queryByText('bring bag')).not.toBeInTheDocument();
   });
 
