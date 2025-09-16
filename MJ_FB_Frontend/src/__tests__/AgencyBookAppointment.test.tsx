@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { useEffect } from 'react';
 import AgencyBookAppointment from '../pages/agency/AgencyBookAppointment';
 
@@ -10,7 +10,12 @@ const mockBookingUI = jest.fn();
 jest.mock('../pages/BookingUI', () => (props: any) => mockBookingUI(props));
 
 describe('AgencyBookAppointment', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
   afterEach(() => {
+    jest.useRealTimers();
     mockBookingUI.mockReset();
   });
 
@@ -28,6 +33,7 @@ describe('AgencyBookAppointment', () => {
     fireEvent.change(screen.getByLabelText(/Search Clients/i), {
       target: { value: 'Alice' },
     });
+    act(() => jest.advanceTimersByTime(300));
     await screen.findByText('Alice');
     fireEvent.click(screen.getByText('Alice'));
 
@@ -53,6 +59,7 @@ describe('AgencyBookAppointment', () => {
     fireEvent.change(screen.getByLabelText(/Search Clients/i), {
       target: { value: 'Alice' },
     });
+    act(() => jest.advanceTimersByTime(300));
     await screen.findByText('Alice');
     fireEvent.click(screen.getByText('Alice'));
 
