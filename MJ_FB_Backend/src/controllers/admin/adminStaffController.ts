@@ -7,13 +7,23 @@ import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../..
 import { sendTemplatedEmail } from '../../utils/emailUtils';
 import config from '../../config';
 import { parseIdParam } from '../../utils/parseIdParam';
+import { parsePaginationParams } from '../../utils/parsePaginationParams';
 
 type StaffUpdateValues = [string, string, string, string[], string, ...(string | number)[]];
 
-export async function listStaff(_req: Request, res: Response, next: NextFunction) {
+export async function listStaff(req: Request, res: Response, next: NextFunction) {
+  let limit: number;
+  let offset: number;
+  try {
+    ({ limit, offset } = parsePaginationParams(req, 25, 100));
+  } catch (error) {
+    return res.status(400).json({ message: (error as Error).message });
+  }
   try {
     const result = await pool.query(
-      'SELECT id, first_name, last_name, email, access FROM staff ORDER BY first_name, last_name',
+      `SELECT id, first_name, last_name, email, access FROM staff
+       ORDER BY first_name, last_name LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
     const staff = result.rows.map(r => ({
       id: r.id,
