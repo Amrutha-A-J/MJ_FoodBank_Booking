@@ -81,6 +81,7 @@ export default function BookDelivery() {
     severity: 'success',
   });
   const { id: clientId } = useAuth();
+  const [contactEditForced, setContactEditForced] = useState(false);
 
   const allConfirmed = addressConfirmed && phoneConfirmed && emailConfirmed;
 
@@ -90,12 +91,21 @@ export default function BookDelivery() {
       try {
         const profile = await getUserProfile();
         if (!active) return;
-        setAddress(profile.address ?? '');
-        setPhone(profile.phone ?? '');
-        setEmail(profile.email ?? '');
+        const addressValue = profile.address ?? '';
+        const phoneValue = profile.phone ?? '';
+        const emailValue = profile.email ?? '';
+        const needsContactEdit =
+          addressValue.trim() === '' ||
+          phoneValue.trim() === '' ||
+          emailValue.trim() === '';
+        setAddress(addressValue);
+        setPhone(phoneValue);
+        setEmail(emailValue);
         setAddressConfirmed(false);
         setPhoneConfirmed(false);
         setEmailConfirmed(false);
+        setEditingContact(needsContactEdit);
+        setContactEditForced(needsContactEdit);
       } catch (err) {
         if (!active) return;
         const message = getApiErrorMessage(
@@ -292,6 +302,7 @@ export default function BookDelivery() {
       setPhoneConfirmed(false);
       setEmailConfirmed(false);
       setEditingContact(false);
+      setContactEditForced(false);
     } catch (err) {
       const message = getApiErrorMessage(
         err,
@@ -418,20 +429,23 @@ export default function BookDelivery() {
             <Typography variant="h5" component="h2">
               Contact information
             </Typography>
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={() => {
-                setEditingContact(true);
-                setAddressConfirmed(false);
-                setPhoneConfirmed(false);
-                setEmailConfirmed(false);
-              }}
-              sx={{ width: { xs: '100%', sm: 'auto' } }}
-              disabled={editingContact}
-            >
-              Edit contact info
-            </Button>
+            {!(contactEditForced && editingContact) && (
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={() => {
+                  setEditingContact(true);
+                  setContactEditForced(false);
+                  setAddressConfirmed(false);
+                  setPhoneConfirmed(false);
+                  setEmailConfirmed(false);
+                }}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+                disabled={editingContact}
+              >
+                Edit contact info
+              </Button>
+            )}
           </Stack>
 
           <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -571,7 +585,10 @@ export default function BookDelivery() {
               <Button
                 type="button"
                 variant="contained"
-                onClick={() => setEditingContact(false)}
+                onClick={() => {
+                  setEditingContact(false);
+                  setContactEditForced(false);
+                }}
                 sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
                 Save contact info
@@ -593,7 +610,7 @@ export default function BookDelivery() {
                 Confirm your address, phone, and email above to submit.
               </Typography>
             )}
-          </Stack>
+          </Box>
         </>
       )}
     </Container>
