@@ -244,11 +244,11 @@ describe('deliveryOrderController', () => {
             categoryName: 'Bakery',
           },
         ],
-      });
+    });
 
-      expect(sendTemplatedEmail).toHaveBeenCalledWith({
-        to: 'ops@example.com',
-        templateId: 16,
+    expect(sendTemplatedEmail).toHaveBeenCalledWith({
+      to: 'ops@example.com',
+      templateId: 16,
         params: {
           orderId: 77,
           clientId: 456,
@@ -282,6 +282,7 @@ describe('deliveryOrderController', () => {
           ],
           rowCount: 1,
         })
+        .mockResolvedValueOnce({ rowCount: 1, rows: [] })
         .mockResolvedValueOnce({
           rows: [
             {
@@ -335,6 +336,11 @@ describe('deliveryOrderController', () => {
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
         3,
+        expect.stringContaining('UPDATE clients'),
+        ['789 Pine Ave', '555-3333', 'client@example.com', 555],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        4,
         expect.stringContaining('INSERT INTO delivery_orders'),
         [555, '789 Pine Ave', '555-3333', 'client@example.com', 'pending', null, null],
       );
@@ -384,6 +390,81 @@ describe('deliveryOrderController', () => {
           createdAt: submittedAt.toISOString(),
         },
       });
+    });
+
+    it('updates the client profile when contact details change', async () => {
+      const submittedAt = new Date('2024-07-20T18:15:00Z');
+      (mockDb.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ count: '0' }], rowCount: 1 })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              itemId: 52,
+              categoryId: 9,
+              itemName: 'Fresh Produce Box',
+              categoryName: 'Produce',
+              maxItems: 2,
+            },
+          ],
+          rowCount: 1,
+        })
+        .mockResolvedValueOnce({ rowCount: 1, rows: [] })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: 88,
+              clientId: 555,
+              address: '789 Pine Ave',
+              phone: '555-3333',
+              email: 'client@example.com',
+              status: 'pending',
+              scheduledFor: null,
+              notes: null,
+              createdAt: submittedAt,
+            },
+          ],
+          rowCount: 1,
+        })
+        .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+      const req = {
+        user: {
+          role: 'delivery',
+          id: '555',
+          type: 'user',
+          address: '456 Old Ave',
+          phone: '555-0000',
+          email: 'old@example.com',
+        },
+        body: {
+          clientId: 555,
+          address: '789 Pine Ave',
+          phone: '555-3333',
+          email: 'client@example.com',
+          selections: [{ itemId: 52, quantity: 1 }],
+        },
+      } as any;
+
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      await createDeliveryOrder(req, res, jest.fn());
+      await flushPromises();
+
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        3,
+        expect.stringContaining('UPDATE clients'),
+        ['789 Pine Ave', '555-3333', 'client@example.com', 555],
+      );
+      expect(req.user).toMatchObject({
+        address: '789 Pine Ave',
+        phone: '555-3333',
+        email: 'client@example.com',
+      });
+
+      expect(res.status).toHaveBeenCalledWith(201);
     });
 
     it('rejects a third order in the same month', async () => {
