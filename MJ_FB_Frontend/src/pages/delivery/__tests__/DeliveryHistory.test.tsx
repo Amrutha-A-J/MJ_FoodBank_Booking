@@ -1,5 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
 import DeliveryHistory from '../DeliveryHistory';
 
 jest.mock('../../../api/client', () => {
@@ -25,6 +27,15 @@ describe('DeliveryHistory', () => {
   const mockedApiFetch = apiFetch as jest.MockedFunction<typeof apiFetch>;
   const mockedHandleResponse = handleResponse as jest.MockedFunction<typeof handleResponse>;
   const mockedGetApiErrorMessage = getApiErrorMessage as jest.MockedFunction<typeof getApiErrorMessage>;
+
+  const renderComponent = () =>
+    render(
+      <MemoryRouter>
+        <ThemeProvider theme={theme}>
+          <DeliveryHistory />
+        </ThemeProvider>
+      </MemoryRouter>,
+    );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -62,12 +73,26 @@ describe('DeliveryHistory', () => {
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce(cancelledOrders);
 
-    render(<DeliveryHistory />);
+    renderComponent();
 
     expect(await screen.findByText('Order #1')).toBeInTheDocument();
     const cancelButton = screen.getByRole('button', { name: /cancel request/i });
 
     await userEvent.click(cancelButton);
+
+    await waitFor(() => {
+      expect(mockedApiFetch).toHaveBeenNthCalledWith(2, `${API_BASE}/delivery/orders/1/cancel`, {
+        method: 'POST',
+      });
+    });
+
+    await waitFor(() => {
+      expect(mockedApiFetch).toHaveBeenNthCalledWith(3, `${API_BASE}/delivery/orders`);
+    });
+
+    expect(await screen.findByText('Cancelled')).toBeInTheDocument();
+    expect(await screen.findByText('Delivery request cancelled.')).toBeInTheDocument();
+  });
 
   it('shows a fallback label when a delivery status is missing', async () => {
     (apiFetch as jest.Mock).mockResolvedValueOnce({});
@@ -101,20 +126,13 @@ describe('DeliveryHistory', () => {
 
   it('displays an error message when loading orders fails', async () => {
     const error = new Error('Network unavailable');
-    (apiFetch as jest.Mock).mockRejectedValueOnce(error);
-    (getApiErrorMessage as jest.Mock).mockReturnValue('Network unavailable');
+    mockedApiFetch.mockRejectedValueOnce(error);
+    mockedGetApiErrorMessage.mockReturnValue('Network unavailable');
 
-    await waitFor(() => {
-      expect(mockedApiFetch).toHaveBeenNthCalledWith(2, `${API_BASE}/delivery/orders/1/cancel`, {
-        method: 'POST',
-      });
-    });
+    renderComponent();
 
-    await waitFor(() => {
-      expect(mockedApiFetch).toHaveBeenNthCalledWith(3, `${API_BASE}/delivery/orders`);
-    });
-
-    expect(await screen.findByText('Cancelled')).toBeInTheDocument();
-    expect(await screen.findByText('Delivery request cancelled.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Network unavailable', { selector: 'p' }),
+    ).toBeInTheDocument();
   });
 });
