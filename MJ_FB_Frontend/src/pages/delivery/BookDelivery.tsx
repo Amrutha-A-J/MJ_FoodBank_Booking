@@ -74,9 +74,7 @@ export default function BookDelivery() {
   const [addressConfirmed, setAddressConfirmed] = useState(false);
   const [phoneConfirmed, setPhoneConfirmed] = useState(false);
   const [emailConfirmed, setEmailConfirmed] = useState(false);
-  const [editingAddress, setEditingAddress] = useState(false);
-  const [editingPhone, setEditingPhone] = useState(false);
-  const [editingEmail, setEditingEmail] = useState(false);
+  const [editingContact, setEditingContact] = useState(false);
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
     message: '',
@@ -293,9 +291,7 @@ export default function BookDelivery() {
       setAddressConfirmed(false);
       setPhoneConfirmed(false);
       setEmailConfirmed(false);
-      setEditingAddress(false);
-      setEditingPhone(false);
-      setEditingEmail(false);
+      setEditingContact(false);
     } catch (err) {
       const message = getApiErrorMessage(
         err,
@@ -412,52 +408,52 @@ export default function BookDelivery() {
 
           <Divider sx={{ my: 4 }} />
 
-          <Typography variant="h5" component="h2" gutterBottom>
-            Contact information
-          </Typography>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1}
+            alignItems={{ xs: 'stretch', sm: 'center' }}
+            justifyContent="space-between"
+            sx={{ mb: 2 }}
+          >
+            <Typography variant="h5" component="h2">
+              Contact information
+            </Typography>
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={() => {
+                setEditingContact(true);
+                setAddressConfirmed(false);
+                setPhoneConfirmed(false);
+                setEmailConfirmed(false);
+              }}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
+              disabled={editingContact}
+            >
+              Edit contact info
+            </Button>
+          </Stack>
 
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid size={{ xs: 12 }}>
               <Stack spacing={1}>
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  spacing={1}
-                  alignItems={{ sm: 'flex-end' }}
-                >
-                  <TextField
-                    fullWidth
-                    label="Delivery address"
-                    value={address}
-                    onChange={event => {
-                      setAddress(event.target.value);
-                      setAddressConfirmed(false);
-                      setFormErrors(prev => ({
-                        ...prev,
-                        address: undefined,
-                        addressConfirm: undefined,
-                      }));
-                    }}
-                    error={Boolean(formErrors.address)}
-                    helperText={formErrors.address}
-                    InputProps={{ readOnly: !editingAddress }}
-                    sx={{ flex: 1 }}
-                  />
-                  <Button
-                    type="button"
-                    variant="outlined"
-                    onClick={() => {
-                      setEditingAddress(prev => {
-                        const next = !prev;
-                        if (next) {
-                          setAddressConfirmed(false);
-                        }
-                        return next;
-                      });
-                    }}
-                  >
-                    {editingAddress ? 'Done editing' : 'Edit address'}
-                  </Button>
-                </Stack>
+                <TextField
+                  fullWidth
+                  label="Delivery address"
+                  value={address}
+                  onChange={event => {
+                    setAddress(event.target.value);
+                    setAddressConfirmed(false);
+                    setFormErrors(prev => ({
+                      ...prev,
+                      address: undefined,
+                      addressConfirm: undefined,
+                    }));
+                  }}
+                  error={Boolean(formErrors.address)}
+                  helperText={formErrors.address}
+                  InputProps={{ readOnly: !editingContact }}
+                />
                 <FormControl error={Boolean(formErrors.addressConfirm)}>
                   <FormControlLabel
                     control={
@@ -482,44 +478,23 @@ export default function BookDelivery() {
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <Stack spacing={1}>
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  spacing={1}
-                  alignItems={{ sm: 'flex-end' }}
-                >
-                  <TextField
-                    fullWidth
-                    label="Phone number"
-                    value={phone}
-                    onChange={event => {
-                      setPhone(event.target.value);
-                      setPhoneConfirmed(false);
-                      setFormErrors(prev => ({
-                        ...prev,
-                        phone: undefined,
-                        phoneConfirm: undefined,
-                      }));
-                    }}
-                    error={Boolean(formErrors.phone)}
-                    helperText={formErrors.phone}
-                    InputProps={{ readOnly: !editingPhone }}
-                  />
-                  <Button
-                    type="button"
-                    variant="outlined"
-                    onClick={() => {
-                      setEditingPhone(prev => {
-                        const next = !prev;
-                        if (next) {
-                          setPhoneConfirmed(false);
-                        }
-                        return next;
-                      });
-                    }}
-                  >
-                    {editingPhone ? 'Done editing' : 'Edit phone'}
-                  </Button>
-                </Stack>
+                <TextField
+                  fullWidth
+                  label="Phone number"
+                  value={phone}
+                  onChange={event => {
+                    setPhone(event.target.value);
+                    setPhoneConfirmed(false);
+                    setFormErrors(prev => ({
+                      ...prev,
+                      phone: undefined,
+                      phoneConfirm: undefined,
+                    }));
+                  }}
+                  error={Boolean(formErrors.phone)}
+                  helperText={formErrors.phone}
+                  InputProps={{ readOnly: !editingContact }}
+                />
                 <FormControl error={Boolean(formErrors.phoneConfirm)}>
                   <FormControlLabel
                     control={
@@ -544,44 +519,23 @@ export default function BookDelivery() {
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <Stack spacing={1}>
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  spacing={1}
-                  alignItems={{ sm: 'flex-end' }}
-                >
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    value={email}
-                    onChange={event => {
-                      setEmail(event.target.value);
-                      setEmailConfirmed(false);
-                      setFormErrors(prev => ({
-                        ...prev,
-                        email: undefined,
-                        emailConfirm: undefined,
-                      }));
-                    }}
-                    error={Boolean(formErrors.email)}
-                    helperText={formErrors.email}
-                    InputProps={{ readOnly: !editingEmail }}
-                  />
-                  <Button
-                    type="button"
-                    variant="outlined"
-                    onClick={() => {
-                      setEditingEmail(prev => {
-                        const next = !prev;
-                        if (next) {
-                          setEmailConfirmed(false);
-                        }
-                        return next;
-                      });
-                    }}
-                  >
-                    {editingEmail ? 'Done editing' : 'Edit email'}
-                  </Button>
-                </Stack>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  value={email}
+                  onChange={event => {
+                    setEmail(event.target.value);
+                    setEmailConfirmed(false);
+                    setFormErrors(prev => ({
+                      ...prev,
+                      email: undefined,
+                      emailConfirm: undefined,
+                    }));
+                  }}
+                  error={Boolean(formErrors.email)}
+                  helperText={formErrors.email}
+                  InputProps={{ readOnly: !editingContact }}
+                />
                 <FormControl error={Boolean(formErrors.emailConfirm)}>
                   <FormControlLabel
                     control={
@@ -606,7 +560,26 @@ export default function BookDelivery() {
             </Grid>
           </Grid>
 
-          <Stack spacing={1} alignItems="flex-end">
+          {editingContact && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: { xs: 'stretch', sm: 'flex-end' },
+                mb: 3,
+              }}
+            >
+              <Button
+                type="button"
+                variant="contained"
+                onClick={() => setEditingContact(false)}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+              >
+                Save contact info
+              </Button>
+            </Box>
+          )}
+
+          <Box display="flex" justifyContent="flex-end">
             <Button
               type="submit"
               variant="contained"

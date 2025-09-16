@@ -156,18 +156,27 @@ describe('BookDelivery', () => {
     expect(submitButton).not.toBeDisabled();
     expect(screen.queryByText(confirmationReminderText)).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /edit address/i }));
+    fireEvent.click(screen.getByRole('button', { name: /edit contact info/i }));
     const addressField = screen.getByLabelText(/delivery address/i) as HTMLInputElement;
+    const phoneField = screen.getByLabelText(/^phone number$/i) as HTMLInputElement;
+    const emailField = screen.getByLabelText(/^email$/i) as HTMLInputElement;
     expect(addressField).not.toHaveAttribute('readonly');
+    expect(phoneField).not.toHaveAttribute('readonly');
+    expect(emailField).not.toHaveAttribute('readonly');
     expect(addressConfirm).not.toBeChecked();
+    expect(phoneConfirm).not.toBeChecked();
+    expect(emailConfirm).not.toBeChecked();
     expect(submitButton).toBeDisabled();
     expect(screen.getByText(confirmationReminderText)).toBeInTheDocument();
 
     fireEvent.change(addressField, { target: { value: '456 New Street' } });
     expect(addressConfirm).not.toBeChecked();
 
-    fireEvent.click(screen.getByRole('button', { name: /done editing/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save contact info/i }));
     expect(addressField).toHaveAttribute('readonly');
+    expect(phoneField).toHaveAttribute('readonly');
+    expect(emailField).toHaveAttribute('readonly');
+    expect(screen.getByRole('button', { name: /edit contact info/i })).not.toBeDisabled();
   });
 
   test('submits updated contact information in delivery payload', async () => {
@@ -180,23 +189,17 @@ describe('BookDelivery', () => {
     const cereal = await screen.findByRole('checkbox', { name: /cereal/i });
     fireEvent.click(cereal);
 
-    fireEvent.click(screen.getByRole('button', { name: /edit address/i }));
+    fireEvent.click(screen.getByRole('button', { name: /edit contact info/i }));
     fireEvent.change(screen.getByLabelText(/delivery address/i), {
       target: { value: ' 456 New Street ' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /done editing/i }));
-
-    fireEvent.click(screen.getByRole('button', { name: /edit phone/i }));
     fireEvent.change(screen.getByLabelText(/^phone number$/i), {
       target: { value: ' 306-555-2222 ' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /done editing/i }));
-
-    fireEvent.click(screen.getByRole('button', { name: /edit email/i }));
     fireEvent.change(screen.getByLabelText(/^email$/i), {
       target: { value: ' new@example.com ' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /done editing/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save contact info/i }));
 
     fireEvent.click(screen.getByLabelText(/address is correct/i));
     fireEvent.click(screen.getByLabelText(/phone number is correct/i));
