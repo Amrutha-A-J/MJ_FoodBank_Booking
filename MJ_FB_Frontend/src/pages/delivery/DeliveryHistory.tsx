@@ -215,22 +215,10 @@ export default function DeliveryHistory() {
                   title={`Order #${order.id}`}
                   subheader={submittedOn ? `Submitted ${submittedOn}` : undefined}
                   action={
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      {isCancellable(order.status) && (
-                        <LoadingButton
-                          variant="outlined"
-                          size="small"
-                          onClick={() => void handleCancel(order.id)}
-                          loading={cancellingId === order.id}
-                        >
-                          Cancel request
-                        </LoadingButton>
-                      )}
-                      <Chip
-                        label={formatStatusLabel(order.status)}
-                        color={getStatusColor(order.status)}
-                      />
-                    </Stack>
+                    <Chip
+                      label={formatStatusLabel(order.status)}
+                      color={getStatusColor(order.status)}
+                    />
                   }
                 />
                 <CardContent>
@@ -274,6 +262,16 @@ export default function DeliveryHistory() {
                         </ListItem>
                       ))}
                     </List>
+                    {isCancellable(order.status) && (
+                      <LoadingButton
+                        variant="outlined"
+                        onClick={() => void handleCancel(order.id)}
+                        loading={cancellingId === order.id}
+                        fullWidth
+                      >
+                        Cancel request
+                      </LoadingButton>
+                    )}
                   </Stack>
                 </CardContent>
               </Card>
