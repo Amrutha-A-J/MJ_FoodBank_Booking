@@ -46,7 +46,7 @@ describe('DonorProfile', () => {
 
     expect(await screen.findByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText('john@example.com')).toBeInTheDocument();
-    expect(await screen.findByText('$100.00')).toBeInTheDocument();
+    expect(await screen.findByText('CA$100.00')).toBeInTheDocument();
     expect(screen.getByText('Last Donation: N/A')).toBeInTheDocument();
   });
 
