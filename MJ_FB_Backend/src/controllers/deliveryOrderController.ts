@@ -86,6 +86,52 @@ function sortItems(items: DeliveryOrderItemDetail[]): DeliveryOrderItemDetail[] 
   });
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, char => {
+    switch (char) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case "'":
+        return '&#39;';
+      default:
+        return char;
+    }
+  });
+}
+
+function buildItemListHtml(items: DeliveryOrderItemDetail[]): string {
+  if (items.length === 0) {
+    return 'No items selected';
+  }
+
+  const grouped = new Map<
+    number,
+    { categoryName: string; selections: DeliveryOrderItemDetail[] }
+  >();
+
+  for (const item of items) {
+    if (!grouped.has(item.categoryId)) {
+      grouped.set(item.categoryId, { categoryName: item.categoryName, selections: [] });
+    }
+    grouped.get(item.categoryId)!.selections.push(item);
+  }
+
+  return Array.from(grouped.values())
+    .map(({ categoryName, selections }) => {
+      const itemsText = selections
+        .map(selection => `${escapeHtml(selection.itemName)} x${selection.quantity}`)
+        .join(', ');
+      return `<strong>${escapeHtml(categoryName)}</strong> - ${itemsText}<br>`;
+    })
+    .join('');
+}
+
 function toIsoString(value: Date | string | null | undefined): string {
   if (!value) return new Date().toISOString();
   if (value instanceof Date) return value.toISOString();
@@ -290,12 +336,7 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
   }
 
   const createdAt = toIsoString(order.createdAt);
-  const itemList =
-    itemDetails.length > 0
-      ? itemDetails
-          .map(item => `${item.categoryName}: ${item.itemName} x${item.quantity}`)
-          .join('\n')
-      : 'No items selected';
+  const itemList = buildItemListHtml(itemDetails);
 
   try {
     const { requestEmail } = await getDeliverySettings();

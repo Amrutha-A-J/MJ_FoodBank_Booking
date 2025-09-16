@@ -71,7 +71,9 @@ See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/
 | `DELIVERY_REQUEST_TEMPLATE_ID` | Delivery request notifications for staff | `orderId`, `clientId`, `clientName`, `address`, `phone`, `email`, `itemList`, `createdAt` |
 | `DONOR_TEMPLATE_ID_*` | Monetary donor emails for tiered amounts ($1–$100, $101–$500, $501–$1,000, $1,001–$10,000, $10,001–$30,000) | `firstName`, `amount`, `families`, `adults`, `children`, `pounds`, `month`, `year` |
 
-Client and volunteer reschedule emails currently use Brevo template ID **10**.
+Client and volunteer reschedule emails currently use Brevo template ID **10**. Delivery request notifications format the `itemList`
+with category headings so staff can scan grouped selections quickly (for example, `Bakery` followed by the requested loaves on
+their own lines).
 
 Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
 
