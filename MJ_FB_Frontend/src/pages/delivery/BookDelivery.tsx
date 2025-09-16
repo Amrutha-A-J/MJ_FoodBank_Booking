@@ -593,7 +593,7 @@ export default function BookDelivery() {
                 Confirm your address, phone, and email above to submit.
               </Typography>
             )}
-          </Stack>
+          </Box>
         </>
       )}
     </Container>
