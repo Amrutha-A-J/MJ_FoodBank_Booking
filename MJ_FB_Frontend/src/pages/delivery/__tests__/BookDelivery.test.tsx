@@ -5,8 +5,17 @@ import type { DeliveryCategory } from '../../../types';
 import { apiFetch, handleResponse } from '../../../api/client';
 import { getUserProfile } from '../../../api/users';
 
+const mockNavigate = jest.fn();
 const mockUseAuth = jest.fn();
 const mockGetUserProfile = getUserProfile as jest.Mock;
+
+jest.mock('react-router-dom', () => {
+  const actual = jest.requireActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 jest.mock('../../../hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
@@ -81,6 +90,7 @@ describe('BookDelivery', () => {
       cardUrl: '',
       ready: true,
     });
+    mockNavigate.mockReset();
   });
 
   test('disables unchecked items when category limit reached', async () => {
@@ -257,6 +267,12 @@ describe('BookDelivery', () => {
     });
 
     expect(await screen.findByText(/delivery request submitted/i)).toBeInTheDocument();
+
+    const viewHistoryButton = await screen.findByRole('button', {
+      name: /view delivery history/i,
+    });
+    fireEvent.click(viewHistoryButton);
+    expect(mockNavigate).toHaveBeenCalledWith('/delivery/history');
   });
 
   test('shows an error when the client id is unavailable', async () => {
