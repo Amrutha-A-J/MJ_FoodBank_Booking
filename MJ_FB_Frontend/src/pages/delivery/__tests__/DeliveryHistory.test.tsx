@@ -149,4 +149,36 @@ describe('DeliveryHistory', () => {
     expect(await screen.findByLabelText('delivery')).toBeInTheDocument();
     expect(screen.getByLabelText('profile')).toBeInTheDocument();
   });
+
+  it('does not render item details in the delivery history', async () => {
+    const orderWithItems: DeliveryOrder = {
+      id: 205,
+      status: 'completed',
+      createdAt: '2024-07-15T10:00:00Z',
+      scheduledFor: null,
+      address: '101 Maple Road',
+      phone: '555-1234',
+      email: null,
+      notes: null,
+      items: [
+        {
+          itemId: 301,
+          name: 'Peanut Butter',
+          quantity: 1,
+          categoryId: 12,
+          categoryName: 'Pantry Staples',
+        },
+      ],
+    };
+
+    mockedApiFetch.mockResolvedValue({} as Response);
+    mockedHandleResponse.mockResolvedValue([orderWithItems]);
+
+    renderComponent();
+
+    expect(await screen.findByText('Order #205')).toBeInTheDocument();
+    expect(screen.queryByText('Items')).not.toBeInTheDocument();
+    expect(screen.queryByText('Peanut Butter')).not.toBeInTheDocument();
+    expect(screen.queryByText(/quantity/i)).not.toBeInTheDocument();
+  });
 });
