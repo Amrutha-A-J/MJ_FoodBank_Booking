@@ -1,12 +1,31 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ComponentType, type ReactNode } from 'react';
 import type { ReactElement } from 'react';
 import { Paper, Tabs, Tab, Box, type SxProps, type Theme } from '@mui/material';
 
-export interface TabItem {
+interface BaseTabItem {
   label: ReactNode;
   icon?: ReactElement;
-  content: ReactNode;
 }
+
+interface TabItemWithContent extends BaseTabItem {
+  content: ReactNode;
+  renderContent?: never;
+  component?: never;
+}
+
+interface TabItemWithRenderer extends BaseTabItem {
+  content?: never;
+  renderContent: () => ReactNode;
+  component?: never;
+}
+
+interface TabItemWithComponent extends BaseTabItem {
+  content?: never;
+  renderContent?: never;
+  component: ComponentType;
+}
+
+export type TabItem = TabItemWithContent | TabItemWithRenderer | TabItemWithComponent;
 
 interface StyledTabsProps {
   tabs: TabItem[];
@@ -24,45 +43,52 @@ export default function StyledTabs({ tabs, value: valueProp, onChange, sx }: Sty
     if (valueProp === undefined) setInternal(newValue);
   };
 
-  const tabItems = useMemo(
+  const tabHeaders = useMemo(
     () =>
-      tabs.map((tab, index) => ({
-        ...tab,
-        tabId: `tab-${index}`,
-        panelId: `tabpanel-${index}`,
-      })),
+      tabs.map((tab, index) => {
+        const tabId = `tab-${index}`;
+        const panelId = `tabpanel-${index}`;
+        return (
+          <Tab
+            key={tabId}
+            label={tab.label}
+            icon={tab.icon}
+            iconPosition={tab.icon ? 'start' : undefined}
+            id={tabId}
+            aria-controls={panelId}
+          />
+        );
+      }),
     [tabs],
   );
 
-  const tabHeaders = useMemo(
-    () =>
-      tabItems.map((tab) => (
-        <Tab
-          key={tab.tabId}
-          label={tab.label}
-          icon={tab.icon}
-          iconPosition={tab.icon ? 'start' : undefined}
-          id={tab.tabId}
-          aria-controls={tab.panelId}
-        />
-      )),
-    [tabItems],
-  );
+  const renderTabContent = (tab: TabItem): ReactNode => {
+    if ('renderContent' in tab && tab.renderContent) return tab.renderContent();
+    if ('component' in tab && tab.component) {
+      const Component = tab.component;
+      return <Component />;
+    }
+    return tab.content;
+  };
 
   const tabPanels = useMemo(
     () =>
-      tabItems.map((tab, index) => (
-        <div
-          key={tab.panelId}
-          role="tabpanel"
-          hidden={value !== index}
-          id={tab.panelId}
-          aria-labelledby={tab.tabId}
-        >
-          <Box sx={{ pt: 2, display: value === index ? 'block' : 'none' }}>{tab.content}</Box>
-        </div>
-      )),
-    [tabItems, value],
+      tabs.map((tab, index) => {
+        const tabId = `tab-${index}`;
+        const panelId = `tabpanel-${index}`;
+        return (
+          <div
+            key={panelId}
+            role="tabpanel"
+            hidden={value !== index}
+            id={panelId}
+            aria-labelledby={tabId}
+          >
+            <Box sx={{ pt: 2, display: value === index ? 'block' : 'none' }}>{renderTabContent(tab)}</Box>
+          </div>
+        );
+      }),
+    [tabs, value],
   );
 
   return (
