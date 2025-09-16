@@ -10,11 +10,42 @@ import { parseIdParam } from '../../utils/parseIdParam';
 
 type StaffUpdateValues = [string, string, string, string[], string, ...(string | number)[]];
 
-export async function listStaff(_req: Request, res: Response, next: NextFunction) {
+export async function listStaff(req: Request, res: Response, next: NextFunction) {
+  const rawLimit = req.query.limit;
+  const rawOffset = req.query.offset;
+
+  let limit: number | undefined;
+  if (rawLimit !== undefined) {
+    if (typeof rawLimit !== 'string' || !/^\d+$/.test(rawLimit)) {
+      return res.status(400).json({ message: 'Invalid limit' });
+    }
+    limit = Number(rawLimit);
+    if (limit <= 0) {
+      return res.status(400).json({ message: 'Invalid limit' });
+    }
+  }
+
+  let offset: number | undefined;
+  if (rawOffset !== undefined) {
+    if (typeof rawOffset !== 'string' || !/^\d+$/.test(rawOffset)) {
+      return res.status(400).json({ message: 'Invalid offset' });
+    }
+    offset = Number(rawOffset);
+  }
+
   try {
-    const result = await pool.query(
-      'SELECT id, first_name, last_name, email, access FROM staff ORDER BY first_name, last_name',
-    );
+    const values: number[] = [];
+    let query =
+      'SELECT id, first_name, last_name, email, access FROM staff ORDER BY first_name, last_name';
+    if (limit !== undefined) {
+      values.push(limit);
+      query += ` LIMIT $${values.length}`;
+    }
+    if (offset !== undefined) {
+      values.push(offset);
+      query += ` OFFSET $${values.length}`;
+    }
+    const result = await pool.query(query, values);
     const staff = result.rows.map(r => ({
       id: r.id,
       firstName: r.first_name,
