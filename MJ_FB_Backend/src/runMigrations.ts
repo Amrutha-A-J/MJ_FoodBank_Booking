@@ -1,6 +1,9 @@
+import path from 'node:path';
 import pgMigrate from 'node-pg-migrate';
 import config from './config';
 import logger from './utils/logger';
+
+const migrationsDir = path.resolve(__dirname, 'migrations');
 
 export async function runMigrations() {
   try {
@@ -12,7 +15,7 @@ export async function runMigrations() {
         user: config.pgUser,
         password: config.pgPassword,
       },
-      dir: 'src/migrations',
+      dir: migrationsDir,
       direction: 'up',
       migrationsTable: 'pgmigrations',
       logger: {

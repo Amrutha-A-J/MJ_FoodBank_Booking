@@ -10,13 +10,10 @@
     "resolveJsonModule": true
   },
   "include": [
-    "src/**/*",
+    "src/**/*.ts",
     "types/**/*.d.ts"
   ],
   "ts-node": {
     "files": true
-  },
-  "exclude": [
-    "src/migrations"
-  ]
+  }
 }
