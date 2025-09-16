@@ -328,6 +328,8 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `EMAIL_QUEUE_BACKOFF_MS`   | Initial backoff delay in ms for email retries (default 1000)                                                                              |
 | `EMAIL_QUEUE_MAX_AGE_DAYS` | Remove pending email jobs older than this many days (default 30)                                                                          |
 | `EMAIL_QUEUE_WARNING_SIZE` | Log a warning if the email queue exceeds this size (default 100)                                                                          |
+| `DELIVERY_MONTHLY_ORDER_LIMIT` | Maximum delivery orders allowed per client each month (default 2, max 5) |
+                                          |
 | `TELEGRAM_BOT_TOKEN`       | Telegram bot token used for ops alerts (optional) |
 | `TELEGRAM_ALERT_CHAT_ID`   | Telegram chat ID that receives ops alerts (optional) |
 
