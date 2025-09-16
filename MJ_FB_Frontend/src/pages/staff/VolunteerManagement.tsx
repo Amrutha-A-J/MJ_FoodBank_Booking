@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import StyledTabs from '../../components/StyledTabs';
 import Page from '../../components/Page';
@@ -32,12 +32,15 @@ export default function VolunteerManagement() {
     else setTab(0);
   }, [searchParams]);
 
-  const tabs = [
-    { label: 'Search Volunteer', content: <EditVolunteer /> },
-    { label: 'Add', content: <AddVolunteer /> },
-    { label: 'Delete', content: <DeleteVolunteer /> },
-    { label: 'Ranking', content: <VolunteerRanking /> },
-  ];
+  const tabs = useMemo(
+    () => [
+      { label: 'Search Volunteer', content: <EditVolunteer /> },
+      { label: 'Add', content: <AddVolunteer /> },
+      { label: 'Delete', content: <DeleteVolunteer /> },
+      { label: 'Ranking', content: <VolunteerRanking /> },
+    ],
+    [],
+  );
 
   return (
     <Page title="Volunteer Management" header={<VolunteerQuickLinks />}>

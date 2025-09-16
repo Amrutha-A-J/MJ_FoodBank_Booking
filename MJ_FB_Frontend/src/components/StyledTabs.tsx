@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import type { ReactElement } from 'react';
 import { Paper, Tabs, Tab, Box, type SxProps, type Theme } from '@mui/material';
 
@@ -24,6 +24,47 @@ export default function StyledTabs({ tabs, value: valueProp, onChange, sx }: Sty
     if (valueProp === undefined) setInternal(newValue);
   };
 
+  const tabItems = useMemo(
+    () =>
+      tabs.map((tab, index) => ({
+        ...tab,
+        tabId: `tab-${index}`,
+        panelId: `tabpanel-${index}`,
+      })),
+    [tabs],
+  );
+
+  const tabHeaders = useMemo(
+    () =>
+      tabItems.map((tab) => (
+        <Tab
+          key={tab.tabId}
+          label={tab.label}
+          icon={tab.icon}
+          iconPosition={tab.icon ? 'start' : undefined}
+          id={tab.tabId}
+          aria-controls={tab.panelId}
+        />
+      )),
+    [tabItems],
+  );
+
+  const tabPanels = useMemo(
+    () =>
+      tabItems.map((tab, index) => (
+        <div
+          key={tab.panelId}
+          role="tabpanel"
+          hidden={value !== index}
+          id={tab.panelId}
+          aria-labelledby={tab.tabId}
+        >
+          <Box sx={{ pt: 2, display: value === index ? 'block' : 'none' }}>{tab.content}</Box>
+        </div>
+      )),
+    [tabItems, value],
+  );
+
   return (
     <Paper sx={{ p: 2, ...(sx as object) }}>
       <Tabs
@@ -33,28 +74,9 @@ export default function StyledTabs({ tabs, value: valueProp, onChange, sx }: Sty
         scrollButtons="auto"
         aria-label="styled tabs"
       >
-        {tabs.map((t, i) => (
-          <Tab
-            key={i}
-            label={t.label}
-            icon={t.icon}
-            iconPosition={t.icon ? 'start' : undefined}
-            id={`tab-${i}`}
-            aria-controls={`tabpanel-${i}`}
-          />
-        ))}
+        {tabHeaders}
       </Tabs>
-      {tabs.map((t, i) => (
-        <div
-          key={i}
-          role="tabpanel"
-          hidden={value !== i}
-          id={`tabpanel-${i}`}
-          aria-labelledby={`tab-${i}`}
-        >
-          <Box sx={{ pt: 2, display: value === i ? 'block' : 'none' }}>{t.content}</Box>
-        </div>
-      ))}
+      {tabPanels}
     </Paper>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import StyledTabs from '../../components/StyledTabs';
 import Page from '../../components/Page';
 import PantryQuickLinks from '../../components/PantryQuickLinks';
@@ -25,14 +25,17 @@ export default function ClientManagement() {
     const idx = tabNames.indexOf(t);
     setTab(idx === -1 ? 0 : idx);
   }, [searchParams]);
-  const tabs = [
-    { label: 'Search Client', content: <UserHistory /> },
-    { label: 'Add', content: <AddClient /> },
-    { label: 'Update', content: <UpdateClientData /> },
-    { label: 'New Clients', content: <NewClients /> },
-    { label: 'No Shows', content: <NoShowWeek /> },
-    { label: 'Delete', content: <DeleteClient /> },
-  ];
+  const tabs = useMemo(
+    () => [
+      { label: 'Search Client', content: <UserHistory /> },
+      { label: 'Add', content: <AddClient /> },
+      { label: 'Update', content: <UpdateClientData /> },
+      { label: 'New Clients', content: <NewClients /> },
+      { label: 'No Shows', content: <NoShowWeek /> },
+      { label: 'Delete', content: <DeleteClient /> },
+    ],
+    [],
+  );
 
   return (
     <Page title="Client Management" header={<PantryQuickLinks />}>
