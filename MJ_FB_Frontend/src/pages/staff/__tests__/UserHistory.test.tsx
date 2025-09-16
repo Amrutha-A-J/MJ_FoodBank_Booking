@@ -36,9 +36,12 @@ describe('UserHistory search add shortcut', () => {
       </MemoryRouter>,
     );
 
-    fireEvent.change(screen.getByTestId('entity-search-input'), {
-      target: { value: '123' },
-    });
+    fireEvent.change(
+      screen.getByLabelText('Search by name or client ID'),
+      {
+        target: { value: '123' },
+      },
+    );
 
     act(() => {
       jest.advanceTimersByTime(300);
@@ -49,6 +52,6 @@ describe('UserHistory search add shortcut', () => {
     fireEvent.click(await screen.findByRole('button', { name: /confirm/i }));
 
     expect(await screen.findByRole('button', { name: /add client/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/client id/i)).toHaveValue('123');
+    expect(screen.getByLabelText('Client ID')).toHaveValue('123');
   });
 });
