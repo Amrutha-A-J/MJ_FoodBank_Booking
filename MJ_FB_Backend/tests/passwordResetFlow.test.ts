@@ -263,7 +263,7 @@ describe('createUser password flow', () => {
     expect(bcrypt.hash).toHaveBeenCalledWith('Secret123!', 10);
     expect(generatePasswordSetupToken).not.toHaveBeenCalled();
     expect(sendTemplatedEmail).not.toHaveBeenCalled();
-    expect((pool.query as jest.Mock).mock.calls[2][1][6]).toBe('hashed');
+    expect((pool.query as jest.Mock).mock.calls[2][1][7]).toBe('hashed');
   });
 
   it('sends setup email when sendPasswordLink is true', async () => {

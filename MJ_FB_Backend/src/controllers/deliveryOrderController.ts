@@ -220,6 +220,15 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
 
   const order = orderResult.rows[0];
 
+  try {
+    await pool.query('UPDATE clients SET address = $1 WHERE client_id = $2', [
+      address,
+      clientId,
+    ]);
+  } catch (error) {
+    logger.error('Failed to update client address from delivery order', error);
+  }
+
   if (normalizedSelections.length > 0) {
     const values = normalizedSelections
       .map((_selection, index) => `($1, $${index * 2 + 2}, $${index * 2 + 3})`)

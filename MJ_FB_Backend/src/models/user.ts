@@ -6,6 +6,7 @@ export interface User {
   lastName?: string;
   email?: string | null;
   phone?: string | null;
+  address?: string | null;
   clientId: number;
   role: UserRole;
   bookingsThisMonth: number;
