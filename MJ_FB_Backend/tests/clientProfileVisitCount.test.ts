@@ -35,6 +35,7 @@ describe('client profile visit count', () => {
           last_name: 'Doe',
           email: null,
           phone: null,
+          address: '123 Main St',
           role: 'shopper',
         }],
       })
@@ -52,6 +53,7 @@ describe('client profile visit count', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.bookingsThisMonth).toBe(0);
+    expect(res.body.address).toBe('123 Main St');
     expect((pool.query as jest.Mock).mock.calls[2][0]).toMatch(/UPDATE clients c/);
   });
 });

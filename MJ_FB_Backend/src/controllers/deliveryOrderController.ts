@@ -116,6 +116,8 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
   const isClient = req.user.role === 'delivery';
   const isStaff = req.user.role === 'staff' || req.user.role === 'admin';
 
+  let shouldUpdateClientProfile = false;
+
   if (!isClient && !isStaff) {
     return res.status(403).json({ message: 'Forbidden' });
   }
@@ -125,6 +127,13 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     if (!requesterId || requesterId !== clientId) {
       return res.status(403).json({ message: 'Cannot create orders for other clients' });
     }
+
+    const currentAddress = req.user.address ?? '';
+    const currentPhone = req.user.phone ?? '';
+    const currentEmail = req.user.email ?? '';
+
+    shouldUpdateClientProfile =
+      currentAddress !== address || currentPhone !== phone || currentEmail !== email;
   }
 
   // created_at is stored in UTC, so convert to Regina time before truncating to the month
@@ -204,6 +213,21 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
         };
       }),
     );
+  }
+
+  if (isClient && shouldUpdateClientProfile) {
+    await pool.query(
+      `UPDATE clients
+          SET address = $1,
+              phone = $2,
+              email = $3
+        WHERE client_id = $4`,
+      [address, phone, email, clientId],
+    );
+
+    req.user.address = address;
+    req.user.phone = phone;
+    req.user.email = email;
   }
 
   const requestedStatus = parsed.data.status;
