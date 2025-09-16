@@ -6,9 +6,16 @@ import { csrfToken } from '../src/controllers/authController';
 const app = express();
 app.use(express.json());
 app.get('/csrf-token', csrfToken);
+app.get('/protected', csrfMiddleware, (_req, res) => res.json({ ok: true }));
 app.post('/protected', csrfMiddleware, (_req, res) => res.json({ ok: true }));
 
 describe('CSRF middleware', () => {
+  it('skips validation for safe methods like GET', async () => {
+    const res = await request(app).get('/protected');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+  });
+
   it('allows request with valid CSRF token', async () => {
     const tokenRes = await request(app).get('/csrf-token');
     const token = tokenRes.body.csrfToken;
@@ -34,6 +41,16 @@ describe('CSRF middleware', () => {
   it('rejects request without CSRF token', async () => {
     const res = await request(app).post('/protected');
     expect(res.status).toBe(403);
+  });
+
+  it('rejects request with CSRF header but missing cookie', async () => {
+    const tokenRes = await request(app).get('/csrf-token');
+    const token = tokenRes.body.csrfToken;
+    const res = await request(app)
+      .post('/protected')
+      .set('x-csrf-token', token);
+    expect(res.status).toBe(403);
+    expect(res.body.message).toBe('Invalid CSRF token');
   });
 
   it('sets HttpOnly csrf cookie with 1-hour expiry', async () => {
