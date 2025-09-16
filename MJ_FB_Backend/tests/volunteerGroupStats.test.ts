@@ -9,17 +9,25 @@ jest.mock('../src/middleware/authMiddleware', () => ({
   authorizeAccess: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
 }));
 
-const app = express();
-app.use(express.json());
-app.use((req, _res, next) => {
-  (req as any).user = { id: 1, role: 'volunteer' };
-  next();
-});
-app.use('/volunteer-stats', volunteerStatsRouter);
+const createApp = (user?: { id: number; role: string }) => {
+  const app = express();
+  app.use(express.json());
+  if (user) {
+    app.use((req, _res, next) => {
+      (req as any).user = user;
+      next();
+    });
+  }
+  app.use('/volunteer-stats', volunteerStatsRouter);
+  return app;
+};
 
 describe('Volunteer group stats', () => {
+  let app: express.Express;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    app = createApp({ id: 1, role: 'volunteer' });
   });
 
   it('returns aggregated hours and weight', async () => {
@@ -54,5 +62,20 @@ describe('Volunteer group stats', () => {
     expect(query).toContain("vb.status = 'completed'");
     expect(query).toContain('weight_without_cart');
     expect(query).toContain('cart_tare');
+  });
+
+  it('returns zeros when no stats are available', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    const res = await request(app).get('/volunteer-stats/group');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      totalHours: 0,
+      monthHours: 0,
+      monthHoursGoal: 0,
+      totalLbs: 0,
+      weekLbs: 0,
+      monthLbs: 0,
+      monthFamilies: 0,
+    });
   });
 });
