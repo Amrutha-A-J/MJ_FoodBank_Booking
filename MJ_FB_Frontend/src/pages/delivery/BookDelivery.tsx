@@ -21,6 +21,7 @@ import {
   Typography,
 } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import ClientBottomNav from '../../components/ClientBottomNav';
 import {
   API_BASE,
   apiFetch,
@@ -304,12 +305,13 @@ export default function BookDelivery() {
   };
 
   return (
-    <Container
-      component="form"
-      onSubmit={handleSubmit}
-      maxWidth="md"
-      sx={{ py: 4 }}
-    >
+    <>
+      <Container
+        component="form"
+        onSubmit={handleSubmit}
+        maxWidth="md"
+        sx={{ pt: 4, pb: 12 }}
+      >
       <FeedbackSnackbar
         open={snackbar.open}
         onClose={handleSnackbarClose}
@@ -606,6 +608,8 @@ export default function BookDelivery() {
           </Box>
         </>
       )}
-    </Container>
+      </Container>
+      <ClientBottomNav />
+    </>
   );
 }

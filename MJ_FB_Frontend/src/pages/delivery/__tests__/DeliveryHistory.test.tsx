@@ -14,6 +14,10 @@ jest.mock('../../../api/client', () => {
   };
 });
 
+jest.mock('../../../hooks/useAuth', () => ({
+  useAuth: () => ({ role: 'delivery' }),
+}));
+
 import { theme } from '../../../theme';
 import type { DeliveryOrder } from '../../../types';
 import {
@@ -134,5 +138,15 @@ describe('DeliveryHistory', () => {
     expect(
       await screen.findByText('Network unavailable', { selector: 'p' }),
     ).toBeInTheDocument();
+  });
+
+  it('shows bottom navigation for delivery clients', async () => {
+    mockedApiFetch.mockResolvedValue({} as Response);
+    mockedHandleResponse.mockResolvedValue([]);
+
+    renderComponent();
+
+    expect(await screen.findByLabelText('delivery')).toBeInTheDocument();
+    expect(screen.getByLabelText('profile')).toBeInTheDocument();
   });
 });
