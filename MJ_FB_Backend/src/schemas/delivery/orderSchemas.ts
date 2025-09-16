@@ -49,3 +49,4 @@ export const createDeliveryOrderSchema = z.object({
 
 export type DeliveryOrderSelectionInput = z.infer<typeof deliveryOrderSelectionSchema>;
 export type CreateDeliveryOrderInput = z.infer<typeof createDeliveryOrderSchema>;
+export type DeliveryOrderStatus = z.infer<typeof deliveryOrderStatusSchema>;

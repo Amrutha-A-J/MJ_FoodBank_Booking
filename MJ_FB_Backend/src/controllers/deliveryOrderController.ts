@@ -9,6 +9,7 @@ import {
   createDeliveryOrderSchema,
   type DeliveryOrderSelectionInput,
   deliveryOrderStatusSchema,
+  type DeliveryOrderStatus,
 } from '../schemas/delivery/orderSchemas';
 
 interface ItemInfoRow {
@@ -25,7 +26,7 @@ interface DeliveryOrderRow {
   address: string;
   phone: string;
   email: string | null;
-  status: string;
+  status: DeliveryOrderStatus;
   scheduledFor: Date | string | null;
   notes: string | null;
   createdAt: Date | string;
@@ -399,8 +400,10 @@ export const getDeliveryOrderHistory = asyncHandler(async (req: Request, res: Re
   res.json(response);
 });
 
-const cancellableStatuses = new Set(
-  deliveryOrderStatusSchema.options.filter(status => status !== 'completed' && status !== 'cancelled'),
+const cancellableStatuses: ReadonlySet<DeliveryOrderStatus> = new Set<DeliveryOrderStatus>(
+  deliveryOrderStatusSchema.options.filter(
+    status => status !== 'completed' && status !== 'cancelled',
+  ),
 );
 
 export const cancelDeliveryOrder = asyncHandler(async (req: Request, res: Response) => {

@@ -345,12 +345,12 @@ describe('deliveryOrderController', () => {
         [555, '789 Pine Ave', '555-3333', 'client@example.com', 'pending', null, null],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        4,
+        5,
         'UPDATE clients SET address = $1 WHERE client_id = $2',
         ['789 Pine Ave', 555],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        5,
+        6,
         expect.stringContaining('INSERT INTO delivery_order_items'),
         [88, 52, 1],
       );
