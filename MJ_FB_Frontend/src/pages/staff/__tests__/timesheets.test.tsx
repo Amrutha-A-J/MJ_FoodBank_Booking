@@ -75,6 +75,31 @@ const defaultTimesheetsResponse = {
   error: null,
 } as const;
 
+const adminTimesheets = {
+  timesheets: [
+    {
+      id: 1,
+      staff_id: 2,
+      start_date: '2024-01-01',
+      end_date: '2024-01-07',
+      submitted_at: '2024-01-08',
+      approved_at: null,
+      total_hours: 40,
+      expected_hours: 40,
+      balance_hours: 0,
+      ot_hours: 0,
+    },
+  ],
+  isLoading: false,
+  error: null,
+} as const;
+
+const emptyAdminTimesheets = {
+  timesheets: [],
+  isLoading: false,
+  error: null,
+} as const;
+
 const mockUseAllTimesheets = jest.fn();
 const mockSearchStaff = jest.fn();
 const mockAdminSearchStaff = jest.fn();
