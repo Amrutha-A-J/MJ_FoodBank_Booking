@@ -48,6 +48,8 @@ const mockProfile = {
   clientId: 321,
 };
 
+const confirmationReminderText = /confirm your address, phone, and email above to submit/i;
+
 function renderPage() {
   render(
     <MemoryRouter>
@@ -121,6 +123,7 @@ describe('BookDelivery', () => {
     const emailConfirm = screen.getByLabelText(/email is correct/i);
 
     expect(submitButton).toBeDisabled();
+    expect(screen.getByText(confirmationReminderText)).toBeInTheDocument();
 
     fireEvent.click(addressConfirm);
     expect(submitButton).toBeDisabled();
@@ -130,9 +133,11 @@ describe('BookDelivery', () => {
 
     fireEvent.click(emailConfirm);
     expect(submitButton).not.toBeDisabled();
+    expect(screen.queryByText(confirmationReminderText)).not.toBeInTheDocument();
 
     fireEvent.click(phoneConfirm);
     expect(submitButton).toBeDisabled();
+    expect(screen.getByText(confirmationReminderText)).toBeInTheDocument();
   });
 
   test('allows editing contact fields and resets confirmation', async () => {
@@ -149,6 +154,7 @@ describe('BookDelivery', () => {
     fireEvent.click(phoneConfirm);
     fireEvent.click(emailConfirm);
     expect(submitButton).not.toBeDisabled();
+    expect(screen.queryByText(confirmationReminderText)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /edit contact info/i }));
     const addressField = screen.getByLabelText(/delivery address/i) as HTMLInputElement;
@@ -161,6 +167,7 @@ describe('BookDelivery', () => {
     expect(phoneConfirm).not.toBeChecked();
     expect(emailConfirm).not.toBeChecked();
     expect(submitButton).toBeDisabled();
+    expect(screen.getByText(confirmationReminderText)).toBeInTheDocument();
 
     fireEvent.change(addressField, { target: { value: '456 New Street' } });
     expect(addressConfirm).not.toBeChecked();

@@ -82,6 +82,8 @@ export default function BookDelivery() {
   });
   const { id: clientId } = useAuth();
 
+  const allConfirmed = addressConfirmed && phoneConfirmed && emailConfirmed;
+
   useEffect(() => {
     let active = true;
     async function loadProfile() {
@@ -582,13 +584,16 @@ export default function BookDelivery() {
               type="submit"
               variant="contained"
               size="medium"
-              disabled={
-                submitting || !addressConfirmed || !phoneConfirmed || !emailConfirmed
-              }
+              disabled={submitting || !allConfirmed}
             >
               {submitting ? 'Submitting…' : 'Submit Delivery Request'}
             </Button>
-          </Box>
+            {!allConfirmed && (
+              <Typography variant="body2" color="text.secondary">
+                Confirm your address, phone, and email above to submit.
+              </Typography>
+            )}
+          </Stack>
         </>
       )}
     </Container>
