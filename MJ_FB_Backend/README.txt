@@ -88,7 +88,7 @@ Tests load required environment variables from `.env.test`, which Jest reads via
 
 ## Booking Notes
 
-Clients may include a **client note** when booking. Staff can record a **staff note** when marking a visit in the pantry schedule. Staff users automatically receive staff notes from `/bookings/history`; agency users can append `includeStaffNotes=true` to retrieve them. The `notes` query parameter filters history by note text.
+Clients may include a **client note** when booking. Staff can record a **staff note** when marking a visit in the pantry schedule. Staff users automatically receive staff notes from `/bookings/history`; responses for other roles exclude staff notes. The `notes` query parameter filters history by note text.
 
 Booking history joins bookings with `client_visits` and only exposes `staff_note` when the requester is staff or `includeStaffNotes=true`.
 

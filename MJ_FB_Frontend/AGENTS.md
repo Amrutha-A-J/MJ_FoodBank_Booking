@@ -27,10 +27,8 @@
 - After setting a password, users are redirected to `/login`.
 - The password setup page shows a role-specific login reminder and a button linking to the login page.
 - Volunteer role start and end times use a native time picker; `saveRole` expects `HH:MM:SS` strings.
-- Staff can assign clients to agencies from the Harvest Pantry → Agency Management page via the **Add Client to Agency** tab, which includes agency search, client listing, and removal confirmations. Initially, the page shows only agency search; selecting an agency reveals a two-column layout with client search on the left and the agency's client list on the right.
-- Agencies can book appointments for their associated clients from the Agency → Book Appointment page. Client results are fetched from the server as you type to avoid long lists.
-- Agency navigation provides Dashboard, Book Appointment, and Booking History pages, all protected by `AgencyGuard`.
-- Agencies can view pantry slot availability and manage bookings—including creating, cancelling, and rescheduling—for their linked clients.
+- Staff coordinate partner-managed clients from the Harvest Pantry booking tools. The staff-only Add Client tab includes partner search, a client list with removal confirmations, and keeps results hidden until a partner is selected.
+- Partner-assisted appointments are created, cancelled, and rescheduled by staff on behalf of the client; partner logins no longer expose booking or history pages.
 - Volunteer navigation includes a **Recurring Bookings** submenu for managing repeating shifts; keep related documentation up to date.
 - Volunteer management pages include quick links for Search Volunteer, Volunteer Schedule, Daily Bookings, and Ranking.
 - Staff access timesheets and leave requests from the profile menu; admins review them under Admin → Timesheets and Admin → Leave Requests.

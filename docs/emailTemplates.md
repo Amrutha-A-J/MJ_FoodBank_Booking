@@ -5,7 +5,7 @@ parameters supplied to each template.
 
 | Template reference | Purpose | Params | Used in |
 | ------------------- | ------- | ------ | ------- |
-| `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token`, `clientId`, `role`, `loginLink` | `authController.ts`, `agencyController.ts`, `admin/staffController.ts`, `admin/adminStaffController.ts`, `volunteerController.ts`, `userController.ts` |
+| `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token`, `clientId`, `role`, `loginLink` | `authController.ts`, `admin/staffController.ts`, `admin/adminStaffController.ts`, `volunteerController.ts`, `userController.ts` |
 | `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` | `bookingController.ts` |
 | `BOOKING_REMINDER_TEMPLATE_ID` | Next-day booking reminders for clients | `body`, `cancelLink`, `rescheduleLink`, `type` | `bookingReminderJob.ts` |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` | `volunteerBookingController.ts` |
@@ -23,7 +23,7 @@ Calendar emails also attach an ICS file so recipients can download the event dir
 If `ICS_BASE_URL` is configured, the `appleCalendarLink` points to the hosted `.ics`
 file; otherwise it falls back to a base64 `data:` URI.
 
-Cancellation, no-show, volunteer notification, and agency client update emails have been discontinued.
+Cancellation, no-show, and volunteer notification emails have been discontinued.
 
 ## Delivery request notifications
 

@@ -1,5 +1,7 @@
 # Feature Log
 
+> Historical note: Items referencing the former partner portal describe previously shipped features. Partner bookings now go through staff assistance.
+
 - feat: add maintenance mode notices
 - feat: allow manual warehouse overall aggregates
 - feat: allow manual pantry monthly aggregates

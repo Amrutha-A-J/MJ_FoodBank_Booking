@@ -29,7 +29,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
   - Past blocked slots are cleared nightly, with `/api/v1/blocked-slots/cleanup` available for admins to trigger a manual cleanup.
 - Clients and volunteers see blocked slots as fully booked; reasons are visible only to staff.
 - Staff deliveries management queue tracks each delivery request from submission through completion, including status updates (Pending, Approved, Scheduled, Completed, Cancelled), scheduled drop-off times, and completion notes mirrored in the client Delivery History.
-- All users sign in at a consolidated `/login` page using their client ID or email and password. The page offers contact and password reset guidance and notes that staff, volunteers, and agencies also sign in here.
+- All users sign in at a consolidated `/login` page using their client ID or email and password. The page offers contact and password reset guidance and notes that staff and volunteers also sign in here. Community partners now coordinate bookings by contacting staff instead of logging in directly.
 - The login page automatically surfaces passkey prompts via WebAuthn on supported devices.
 - A privacy notice prompts for consent after login; once agreed, it isn't shown again.
 - The privacy policy page includes contact information for account deletion requests and is accessible without logging in; a link is available on the login screen and in the profile menu.
@@ -195,8 +195,8 @@ npm run test:frontend  # frontend tests
 - Appointment booking workflow for clients with automatic approval and rescheduling.
 - Clients may book only in the current month, or for next month during the final week of this month. Staff booking from the pantry schedule is unrestricted by these date limits.
 - Bookings support an optional **client note** field. Clients can add a note during booking, and staff see it in booking dialogs. Client notes are stored and returned via `/bookings` endpoints.
-- Client visit records include an optional **staff note** field. Staff users automatically see these notes via `/bookings/history`, while agency users can retrieve them by adding `includeStaffNotes=true`.
-- Staff or agency users can create bookings for unregistered clients via `/bookings/new-client`; the email field is optional, so bookings can be created without an email address. Staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
+- Client visit records include an optional **staff note** field. Staff users automatically see these notes via `/bookings/history`; other roles never receive staff notes.
+- Staff can create bookings for unregistered clients via `/bookings/new-client`; the email field is optional, so bookings can be created without an email address. Staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
 - Searching for a numeric client ID in Client Management that returns no results shows an **Add Client** shortcut that opens the Add tab with the ID prefilled.
 - Volunteer role management and scheduling restricted to trained areas; volunteers can only book shifts in roles they are trained for.
 - Staff can manage recurring volunteer shift series from the **Recurring Shifts** page under Volunteer Management.
@@ -211,7 +211,7 @@ npm run test:frontend  # frontend tests
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
 - Backend email queue retries failed sends with exponential backoff and persists jobs in an `email_queue` table so retries survive restarts. The maximum retries and initial delay are configurable.
-- Accounts for clients, volunteers, staff, and agencies are created without passwords; a one-time setup link directs them to `/set-password` for initial password creation.
+- Accounts for clients, volunteers, and staff are created without passwords; a one-time setup link directs them to `/set-password` for initial password creation.
 - After setting a password, users are redirected to the login page for their role.
 - `POST /auth/resend-password-setup` reissues this link when the original token expires. Requests are rate limited by email or client ID.
  - Expired or invalid setup links display an error on the set password page and prompt users to request a new link.
@@ -258,8 +258,8 @@ npm run test:frontend  # frontend tests
 - Booking confirmation dialogs prefill notes from the user's profile when available.
 - Booking history endpoint `/bookings/history` accepts `includeVisits=true` to include walk-in visits in results.
 - When `includeStaffNotes=true` or the requester is staff, `/bookings/history` returns both `client_note` and `staff_note` for each entry.
-- Agencies can supply `clientIds`, `limit`, and `offset` to `/bookings/history` for multi-client, paginated booking history.
-- Agencies can list bookings for their linked clients via `/bookings?clientIds=1,2`.
+- Staff can supply `clientIds`, `limit`, and `offset` to `/bookings/history` for multi-client, paginated booking history.
+- Staff interfaces can list bookings for multiple linked clients via `/bookings?clientIds=1,2`.
 - **Volunteer Recurring Bookings** let volunteers schedule repeating shifts with start and end dates, choose daily, weekly, or weekday patterns, and cancel individual occurrences or the remaining series.
 - Staff can create recurring volunteer booking series for volunteers via `POST /volunteer-bookings/recurring/staff` and list active series with `GET /volunteer-bookings/recurring/volunteer/:volunteer_id`.
 - Recurring volunteer bookings and recurring blocked slots handled by [volunteerBookingController](MJ_FB_Backend/src/controllers/volunteer/volunteerBookingController.ts) and [recurringBlockedSlots routes](MJ_FB_Backend/src/routes/recurringBlockedSlots.ts). Volunteers can create new series and manage existing ones from separate tabs on the **Recurring Bookings** page.
@@ -275,9 +275,9 @@ npm run test:frontend  # frontend tests
 - Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
 - Volunteer role start and end times are selected via a native time picker and stored as `HH:MM:SS`.
 - Listing volunteer roles (`GET /volunteer-roles`) accepts `includeInactive=true` to return inactive shifts.
-- Slot listing endpoint `/slots` (accessible to shoppers, delivery, staff, agency, and volunteer users) returns an empty array and 200 status on holidays. Each slot includes an `overbooked` flag when approved bookings exceed `max_capacity`, and the `available` count never goes below zero.
+- Slot listing endpoint `/slots` (accessible to shoppers, delivery, staff, and volunteer users) returns an empty array and 200 status on holidays. Each slot includes an `overbooked` flag when approved bookings exceed `max_capacity`, and the `available` count never goes below zero.
 - Staff can add or remove holidays from the Manage Availability page, which persists changes to the backend.
-- Holiday listings via `GET /holidays` are available to agencies so booking interfaces can disable those dates.
+- Booking interfaces retrieve holiday listings via `GET /holidays` so public pages can disable those dates.
 
 ## Clone and initialize submodules
 
@@ -316,7 +316,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `PG_USER`                  | PostgreSQL username                                                                                                                       |
 | `PG_PASSWORD`              | PostgreSQL password                                                                                                                       |
 | `PG_DATABASE`              | PostgreSQL database name                                                                                                                  |
-| `JWT_SECRET`               | Secret used to sign JWT tokens for clients, staff, volunteers, and agencies. Generate a strong random value, e.g., `openssl rand -hex 32` |
+| `JWT_SECRET`               | Secret used to sign JWT tokens for clients, staff, and volunteers. Generate a strong random value, e.g., `openssl rand -hex 32` |
 | `JWT_REFRESH_SECRET`       | Secret used to sign refresh JWT tokens for all roles. Use a different strong value from `JWT_SECRET`.                                     |
 | `FRONTEND_ORIGIN`          | Allowed origins for CORS and base URL for password setup links (comma separated; empty entries are ignored)                               |
 | `PORT`                     | Port for the backend server (defaults to 4000)                                                                                            |
@@ -350,7 +350,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `DONOR_TEMPLATE_ID_1001_10000`               | Monetary donor emails for $1,001–$10,000      | `firstName`, `amount`, `families`, `adults`, `children`, `pounds`, `month`, `year`                                   |
 | `DONOR_TEMPLATE_ID_10001_30000`              | Monetary donor emails for $10,001–$30,000     | `firstName`, `amount`, `families`, `adults`, `children`, `pounds`, `month`, `year`                                   |
 
-Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
+Cancellation, no-show, and volunteer booking notification emails are no longer sent.
 
 See [docs/emailTemplates.md](docs/emailTemplates.md) for detailed usage notes.
 
@@ -373,66 +373,10 @@ Booking confirmation and reminder email bodies include the weekday and time for 
 
 ### Invitation flow
 
-New clients, volunteers, staff, and agencies are created without passwords. The backend generates a one-time token and emails a setup link using the Brevo template defined by `PASSWORD_SETUP_TEMPLATE_ID`. The email notes the recipient's role and includes a direct login link. The setup link points to `/set-password` on the first origin listed in `FRONTEND_ORIGIN`.
+New clients, volunteers, and staff are created without passwords. The backend generates a one-time token and emails a setup link using the Brevo template defined by `PASSWORD_SETUP_TEMPLATE_ID`. The email notes the recipient's role and includes a direct login link. The setup link points to `/set-password` on the first origin listed in `FRONTEND_ORIGIN`.
 After setting a password, users are redirected to the login page for their role.
 
-### Agency setup
-
-1. **Create an agency** – as staff, call `POST /agencies` with the agency details:
-
-   ```bash
-    curl -X POST http://localhost:4000/api/v1/agencies \
-     -H "Authorization: Bearer <staff-token>" \
-    -H "Content-Type: application/json" \
-    -d '{"name":"Sample Agency","email":"agency@example.com","contactInfo":"123-4567"}'
-   ```
-
-````
-
- The endpoint emails a password setup link and returns the new agency ID. You can also create one directly in SQL if needed:
-
- ```bash
- node -e "console.log(require('bcrypt').hashSync('secret123', 10))"
- psql -U $PG_USER -d $PG_DATABASE \
-   -c "INSERT INTO agencies (name,email,password) VALUES ('Sample Agency','agency@example.com','<hashed-password>');"
-````
-
-2. **Assign clients to the agency** – authenticate as staff or the
-   agency and call the API:
-
-   ```bash
-
-   ```
-
-# As staff assigning client 42 to agency 1
-
-curl -X POST http://localhost:4000/api/v1/agencies/add-client \
- -H "Authorization: Bearer <token>" \
- -H "Content-Type: application/json" \
- -d '{"agencyId":1,"clientId":42}'
-
-# As the agency itself
-
-curl -X POST http://localhost:4000/api/v1/agencies/add-client \
- -H "Authorization: Bearer <agency-token>" \
- -H "Content-Type: application/json" \
- -d '{"agencyId":1,"clientId":42}'
-
-````
-
- In these examples, `clientId` is the public identifier from the `clients`
- table (`clients.client_id`), which also serves as the table's primary key.
-
-A client may be linked to only one agency at a time. If the client is
-already associated with another agency, the request returns a `409 Conflict`
-response containing that agency's name. Supplying a `clientId` that doesn't
-exist results in a `404 Not Found` error.
-
- Remove a client with
- `DELETE /agencies/:id/clients/:clientId` (use `me` for the authenticated agency).
-
- List clients for an agency with
- `GET /agencies/:id/clients` (use `me` for the authenticated agency).
+Community partners no longer receive dedicated logins; staff manage partner-assist bookings using the Harvest Pantry tools.
 
 ### Password Requirements
 
@@ -523,12 +467,8 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Volunteer schedule shows Moose Jaw Food Bank as closed on weekends and holidays with a reason, while Gardening and Special Events roles remain available daily.
 - Font sizes on mobile screens have been slightly increased for better readability.
 - Wednesdays include an additional 6:30–7:00 PM pantry slot.
-- Agencies can book appointments for their associated clients via the Agency → Book Appointment page. Clients are searched server-side and appear as you type, avoiding long lists. The page hides the client list after a selection and uses a single “Book Appointment” heading for clarity.
-- Agencies can view slot availability and cancel or reschedule bookings for their clients using the standard booking APIs.
-- Agency navigation offers Dashboard, Book Appointment, Booking History, Clients, and Schedule pages, all behind an `AgencyGuard`.
-- Agency profile page shows the agency's name, email, and contact info with editable fields and sends password reset links via email.
-- Agency navigation offers Dashboard, Book Appointment, and Booking History pages, all behind an `AgencyGuard`.
-- Staff can add agencies, assign clients, and book appointments for those clients through the Harvest Pantry → Agency Management page. The **Add Client to Agency** tab initially shows only agency search; selecting an agency reveals a client search column and the agency's client list with Book buttons for scheduling on their behalf.
+- Staff manage partner-assisted bookings from the Harvest Pantry tools. The staff-only Add Client tab includes partner search, a client list with removal confirmations, and reveals results only after a partner is selected.
+- Partner navigation pages have been retired; staff create, cancel, and review partner appointments on behalf of the clients.
 - Staff can enter pay period timesheets with daily hour categories, request vacation leave, and submit periods for approval with admin review and processing.
 - Staff can delete client and volunteer accounts from the Client Management and Volunteer Management pages.
 - Pantry pages include quick links for Pantry Schedule, Record a Visit, and Search Client.

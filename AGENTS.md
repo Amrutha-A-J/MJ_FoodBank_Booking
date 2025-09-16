@@ -15,7 +15,7 @@
 - Staff can book appointments for any future date from the pantry schedule; the client-only limit of booking in the current month (and next month only during the final week) does not apply to staff.
 - Delivery clients submit grocery requests from the Book Delivery page. Each request enforces per-category item limits configured in Admin → Settings → Pantry and emails the operations inbox using Brevo template `DELIVERY_REQUEST_TEMPLATE_ID`.
 - Delivery clients review submissions on the Delivery History page. Keep staff processing steps documented in `docs/delivery.md`.
-- A unified `/login` page serves clients, staff, volunteers, and agencies; everyone signs in with their client ID or email and password.
+- A unified `/login` page serves clients, staff, and volunteers; everyone signs in with their client ID or email and password.
 - The login page automatically prompts for passkeys via WebAuthn on supported devices.
 - Volunteers see an Install App button on their first visit to volunteer pages when the app isn't already installed. An onboarding modal explains offline use, and installations are tracked.
 - Client and volunteer dashboards show an onboarding modal with tips on first visit; a localStorage flag prevents repeat displays.
@@ -26,7 +26,7 @@
 - Sunshine bag, surplus, pig pound, and outgoing donation logs roll up into monthly aggregates and raw log entries older than one year are purged every Jan 31.
 - Anonymous pantry visits display "(ANONYMOUS)" after the client ID and their family size is excluded from the summary counts.
 - Client visits enforce a unique client/date combination; attempts to record a second visit for the same client and day return a 409 error.
-- Booking notes consist of **client notes** (entered when booking) and **staff notes** (recorded during visits). Staff users automatically receive staff notes in booking history responses, while agency users can include them with `includeStaffNotes=true`.
+- Booking notes consist of **client notes** (entered when booking) and **staff notes** (recorded during visits). Staff users automatically receive staff notes in booking history responses; other roles never see them.
 - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, and UI screenshots whenever the timesheet feature changes.
 - A cron job seeds pay periods for the upcoming year every **Nov 30** using `seedPayPeriods`.
 - Expired password setup and email verification tokens are purged nightly once they are more than 10 days past `expires_at`.
@@ -75,7 +75,7 @@ Client and volunteer reschedule emails currently use Brevo template ID **10**. D
 with category headings so staff can scan grouped selections quickly (for example, `Bakery` followed by the requested loaves on
 their own lines).
 
-Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
+Cancellation, no-show, and volunteer booking notification emails are no longer sent.
 
 Calendar emails attach an ICS file so users can download the event. Set `ICS_BASE_URL`
 to host these files publicly; otherwise `appleCalendarLink` falls back to a base64
