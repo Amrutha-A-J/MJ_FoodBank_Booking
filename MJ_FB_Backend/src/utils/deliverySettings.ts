@@ -18,7 +18,7 @@ const deliveryEnvSchema = z
   .object({
     DELIVERY_MONTHLY_ORDER_LIMIT: z
       .coerce.number({
-        invalid_type_error: 'DELIVERY_MONTHLY_ORDER_LIMIT must be a number',
+        message: 'DELIVERY_MONTHLY_ORDER_LIMIT must be a number',
       })
       .int('DELIVERY_MONTHLY_ORDER_LIMIT must be a whole number')
       .min(
