@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import VolunteerSettingsTab from '../settings/VolunteerSettingsTab';
 
@@ -22,6 +22,7 @@ const {
 
 describe('VolunteerSettingsTab', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
     (getVolunteerMasterRoles as jest.Mock).mockResolvedValue([
       { id: 1, name: 'Food Prep' },
@@ -49,12 +50,27 @@ describe('VolunteerSettingsTab', () => {
     ]);
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  async function flushScrollTimers() {
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+  }
+
   it('renders master role sections with buttons', async () => {
     render(
       <MemoryRouter>
         <VolunteerSettingsTab />
       </MemoryRouter>
     );
+
+    await flushScrollTimers();
 
     expect(await screen.findByText('Food Prep')).toBeInTheDocument();
     expect(screen.getByText('Packing')).toBeInTheDocument();
@@ -74,12 +90,16 @@ describe('VolunteerSettingsTab', () => {
       </MemoryRouter>
     );
 
+    await flushScrollTimers();
+
     fireEvent.click(await screen.findByText('Add Master Role'));
     const dialog = await screen.findByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('Name'), {
       target: { value: 'Drivers' },
     });
     fireEvent.click(within(dialog).getByText('Save'));
+
+    await flushScrollTimers();
 
     await waitFor(() => expect(createVolunteerMasterRole).toHaveBeenCalledWith('Drivers'));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -98,6 +118,8 @@ describe('VolunteerSettingsTab', () => {
       </MemoryRouter>
     );
 
+    await flushScrollTimers();
+
     fireEvent.click(await screen.findByText('Add Sub-role'));
     const dialog = await screen.findByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('Name'), {
@@ -114,6 +136,8 @@ describe('VolunteerSettingsTab', () => {
     });
     fireEvent.click(within(dialog).getByText('Save'));
 
+    await flushScrollTimers();
+
     await waitFor(() =>
       expect(createVolunteerRole).toHaveBeenCalledWith(
         undefined,
@@ -126,6 +150,7 @@ describe('VolunteerSettingsTab', () => {
         true
       )
     );
+    await flushScrollTimers();
   });
 
   it('adds shift to existing sub-role', async () => {
@@ -137,6 +162,8 @@ describe('VolunteerSettingsTab', () => {
       </MemoryRouter>
     );
 
+    await flushScrollTimers();
+
     fireEvent.click(await screen.findByText('Add Shift'));
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByLabelText('Name')).toBeDisabled();
@@ -147,6 +174,8 @@ describe('VolunteerSettingsTab', () => {
       target: { value: '15:00:00' },
     });
     fireEvent.click(within(dialog).getByText('Save'));
+
+    await flushScrollTimers();
 
     await waitFor(() =>
       expect(createVolunteerRole).toHaveBeenCalledWith(
@@ -160,6 +189,7 @@ describe('VolunteerSettingsTab', () => {
         true
       )
     );
+    await flushScrollTimers();
   });
 
   it('shows validation errors for required fields', async () => {
@@ -168,6 +198,8 @@ describe('VolunteerSettingsTab', () => {
         <VolunteerSettingsTab />
       </MemoryRouter>
     );
+
+    await flushScrollTimers();
 
     fireEvent.click(await screen.findByText('Add Sub-role'));
     const dialog = await screen.findByRole('dialog');
@@ -193,6 +225,8 @@ describe('VolunteerSettingsTab', () => {
       </MemoryRouter>
     );
 
+    await flushScrollTimers();
+
     fireEvent.click(await screen.findByText('Add Sub-role'));
     const dialog = await screen.findByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('Name'), {
@@ -209,6 +243,8 @@ describe('VolunteerSettingsTab', () => {
     });
     fireEvent.click(within(dialog).getByText('Save'));
 
+    await flushScrollTimers();
+
     expect(await screen.findByText('Slot times overlap existing slots'))
       .toBeInTheDocument();
   });
@@ -222,9 +258,13 @@ describe('VolunteerSettingsTab', () => {
       </MemoryRouter>
     );
 
+    await flushScrollTimers();
+
     fireEvent.click(await screen.findByText('Restore Original Roles & Shifts'));
     const dialog = await screen.findByRole('dialog');
     fireEvent.click(within(dialog).getByText('Restore'));
+
+    await flushScrollTimers();
 
     await waitFor(() => expect(restoreVolunteerRoles).toHaveBeenCalled());
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalledTimes(2));
@@ -239,6 +279,8 @@ describe('VolunteerSettingsTab', () => {
       </MemoryRouter>
     );
 
+    await flushScrollTimers();
+
     const deleteButtons = await screen.findAllByLabelText('delete');
     fireEvent.click(deleteButtons[deleteButtons.length - 1]);
 
@@ -246,6 +288,8 @@ describe('VolunteerSettingsTab', () => {
     expect(dialog).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+    await flushScrollTimers();
 
     await waitFor(() => expect(deleteVolunteerRole).toHaveBeenCalledWith(10));
   });
