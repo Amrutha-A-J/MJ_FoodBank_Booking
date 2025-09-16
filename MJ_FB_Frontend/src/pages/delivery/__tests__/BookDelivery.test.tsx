@@ -112,6 +112,41 @@ describe('BookDelivery', () => {
     expect(screen.getByLabelText(/email is correct/i)).not.toBeChecked();
   });
 
+  test('enables editing automatically when contact details are missing', async () => {
+    mockGetUserProfile.mockResolvedValueOnce({
+      ...mockProfile,
+      address: '',
+      phone: '',
+      email: '',
+    });
+
+    renderPage();
+
+    const addressField = (await screen.findByLabelText(
+      /delivery address/i,
+    )) as HTMLInputElement;
+    const phoneField = screen.getByLabelText(/^phone number$/i) as HTMLInputElement;
+    const emailField = screen.getByLabelText(/^email$/i) as HTMLInputElement;
+
+    await waitFor(() => expect(addressField).not.toHaveAttribute('readonly'));
+    expect(phoneField).not.toHaveAttribute('readonly');
+    expect(emailField).not.toHaveAttribute('readonly');
+    expect(screen.queryByRole('button', { name: /edit contact info/i })).not.toBeInTheDocument();
+
+    fireEvent.change(addressField, { target: { value: '123 Missing St' } });
+    fireEvent.change(phoneField, { target: { value: '306-555-0100' } });
+    fireEvent.change(emailField, { target: { value: 'fill@example.com' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /save contact info/i }));
+
+    await waitFor(() => expect(addressField).toHaveAttribute('readonly'));
+    expect(phoneField).toHaveAttribute('readonly');
+    expect(emailField).toHaveAttribute('readonly');
+
+    const editButton = await screen.findByRole('button', { name: /edit contact info/i });
+    expect(editButton).not.toBeDisabled();
+  });
+
   test('requires confirming contact information before enabling submission', async () => {
     renderPage();
 
