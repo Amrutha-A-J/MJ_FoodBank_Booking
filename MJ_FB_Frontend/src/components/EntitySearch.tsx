@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { TextField, Button, Typography } from '@mui/material';
 import { searchUsers } from '../api/users';
 import { searchVolunteers } from '../api/volunteers';
-import { searchAgencies } from '../api/agencies';
 import FeedbackSnackbar from './FeedbackSnackbar';
 interface SearchResultBase {
   id?: number | string;
@@ -13,7 +12,7 @@ interface SearchResultBase {
 }
 
 interface EntitySearchProps<T extends SearchResultBase> {
-  type: 'user' | 'volunteer' | 'agency';
+  type: 'user' | 'volunteer';
   placeholder?: string;
   onSelect: (result: T) => void;
   renderResult?: (result: T, select: () => void) => ReactNode;
@@ -49,13 +48,7 @@ export default function EntitySearch<T extends SearchResultBase>({
       return;
     }
     let active = true;
-    const fn =
-      searchFn ||
-      (type === 'user'
-        ? searchUsers
-        : type === 'volunteer'
-        ? searchVolunteers
-        : searchAgencies);
+    const fn = searchFn || (type === 'user' ? searchUsers : searchVolunteers);
     setHasSearched(true);
     fn(debouncedQuery)
       .then(data => {
@@ -72,7 +65,6 @@ export default function EntitySearch<T extends SearchResultBase>({
 
   const getLabel = (r: T) => {
     if (type === 'user') return `${r.name} (${r.client_id})`;
-    if (type === 'agency') return `${r.name} (${r.id})`;
     return r.name;
   };
 
@@ -85,7 +77,7 @@ export default function EntitySearch<T extends SearchResultBase>({
 
   return (
     <div>
-        <TextField
+      <TextField
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder={placeholder}

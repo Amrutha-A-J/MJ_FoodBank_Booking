@@ -7,7 +7,7 @@ const Dashboard = React.lazy(
 import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import MainLayout from './components/layout/MainLayout';
-import { useAuth, AgencyGuard, DonorManagementGuard } from './hooks/useAuth';
+import { useAuth, DonorManagementGuard } from './hooks/useAuth';
 import useMaintenance from './hooks/useMaintenance';
 import type { StaffAccess } from './types';
 import { getStaffRootPath } from './utils/staffRootPath';
@@ -25,18 +25,9 @@ const UserHistory = React.lazy(() =>
 const ClientManagement = React.lazy(() =>
   import('./pages/staff/ClientManagement')
 );
-const AgencyManagement = React.lazy(() =>
-  import('./pages/staff/AgencyManagement')
-);
 const BookingUI = React.lazy(() => import('./pages/BookingUI'));
 const PantrySchedule = React.lazy(() =>
   import('./pages/staff/PantrySchedule')
-);
-const AgencyDashboard = React.lazy(() =>
-  import('./pages/agency/AgencyDashboard')
-);
-const ClientHistory = React.lazy(() =>
-  import('./pages/agency/ClientHistory')
 );
 const Login = React.lazy(() => import('./pages/auth/Login'));
 const PasswordSetup = React.lazy(() => import('./pages/auth/PasswordSetup'));
@@ -107,9 +98,6 @@ const LeaveManagement = React.lazy(
 );
 const AdminLeaveRequests = React.lazy(
   () => import('./pages/admin/LeaveRequests'),
-);
-const AgencyBookAppointment = React.lazy(() =>
-  import('./pages/agency/AgencyBookAppointment')
 );
 const CancelBooking = React.lazy(() => import('./pages/CancelBooking'));
 const RescheduleBooking = React.lazy(() => import('./pages/RescheduleBooking'));
@@ -185,7 +173,6 @@ export default function App() {
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
       { label: 'Client Management', to: '/pantry/client-management' },
-      { label: 'Agency Management', to: '/pantry/agency-management' },
       { label: 'Deliveries', to: '/pantry/deliveries' },
     ];
     if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
@@ -249,15 +236,6 @@ export default function App() {
       links: [{ label: 'Donation Log', to: '/warehouse-management/donation-log' }],
     });
 
-  } else if (role === 'agency') {
-    navGroups.push({
-      label: 'Agency',
-      links: [
-        { label: 'Dashboard', to: '/' },
-        { label: 'Book Appointment', to: '/agency/book' },
-        { label: 'Booking History', to: '/agency/history' },
-      ],
-    });
   } else if (role === 'delivery') {
     navGroups.push({
       label: 'Delivery',
@@ -345,10 +323,6 @@ export default function App() {
                         ) : (
                           <VolunteerDashboard />
                         )
-                      ) : role === 'agency' ? (
-                        <AgencyGuard>
-                          <AgencyDashboard />
-                        </AgencyGuard>
                       ) : isStaff ? (
                         singleAccessOnly && staffRootPath !== '/' ? (
                           <Navigate to={staffRootPath} replace />
@@ -480,12 +454,6 @@ export default function App() {
                       element={<ClientManagement />}
                     />
                   )}
-                  {showStaff && (
-                    <Route
-                      path="/pantry/agency-management"
-                      element={<AgencyManagement />}
-                    />
-                  )}
                   {isStaff && <Route path="/events" element={<Events />} />}
                   {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
                   {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
@@ -607,26 +575,6 @@ export default function App() {
                     </>
                   )}
 
-                  {role === 'agency' && (
-                    <>
-                      <Route
-                        path="/agency/book"
-                        element={
-                          <AgencyGuard>
-                            <AgencyBookAppointment />
-                          </AgencyGuard>
-                        }
-                      />
-                      <Route
-                        path="/agency/history"
-                        element={
-                          <AgencyGuard>
-                            <ClientHistory />
-                          </AgencyGuard>
-                        }
-                      />
-                    </>
-                  )}
                   <Route path="/set-password" element={<PasswordSetup />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="*" element={<Navigate to="/" replace />} />

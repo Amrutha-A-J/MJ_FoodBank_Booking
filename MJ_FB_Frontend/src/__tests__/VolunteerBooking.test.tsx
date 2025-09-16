@@ -31,62 +31,69 @@ jest.mock('../hooks/useAuth', () => ({
 
 describe('VolunteerBooking', () => {
   it('requests a slot and shows confirmation', async () => {
-    (getHolidays as jest.Mock).mockResolvedValue([]);
-    (getUserProfile as jest.Mock).mockResolvedValue({ bookingsThisMonth: 0 });
-    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
-      {
-        id: 1,
-        start_time: '09:00:00',
-        end_time: '12:00:00',
-        available: 3,
-        status: 'available',
-        name: 'Greeter',
-      },
-    ]);
-    (requestVolunteerBooking as jest.Mock).mockResolvedValue({});
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-09-16T00:00:00Z'));
 
-    const queryClient = new QueryClient();
-    render(
-      <MemoryRouter>
-        <QueryClientProvider client={queryClient}>
-          <LocalizationProvider
-            dateAdapter={AdapterDayjs}
-            dateLibInstance={dayjs}
-          >
-            <VolunteerBooking />
-          </LocalizationProvider>
-        </QueryClientProvider>
-      </MemoryRouter>,
-    );
+    try {
+      (getHolidays as jest.Mock).mockResolvedValue([]);
+      (getUserProfile as jest.Mock).mockResolvedValue({ bookingsThisMonth: 0 });
+      (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
+        {
+          id: 1,
+          start_time: '09:00:00',
+          end_time: '12:00:00',
+          available: 3,
+          status: 'available',
+          name: 'Greeter',
+        },
+      ]);
+      (requestVolunteerBooking as jest.Mock).mockResolvedValue({});
 
-    await waitFor(() =>
-      expect(
-        screen.getByText(/9:00 am – 12:00 pm/i),
-      ).toBeInTheDocument(),
-    );
-    const slot = screen.getByText(/9:00 am – 12:00 pm/i);
-    fireEvent.click(slot);
-    const bookButton = within(slot.closest('li')!).getByRole('button', {
-      name: /book selected slot/i,
-    });
-    fireEvent.click(bookButton);
-    const noteField = await screen.findByLabelText(/note/i);
-    fireEvent.change(noteField, { target: { value: 'Bring gloves' } });
-    fireEvent.click(
-      await screen.findByRole('button', { name: /confirm/i }),
-    );
+      const queryClient = new QueryClient();
+      render(
+        <MemoryRouter>
+          <QueryClientProvider client={queryClient}>
+            <LocalizationProvider
+              dateAdapter={AdapterDayjs}
+              dateLibInstance={dayjs}
+            >
+              <VolunteerBooking />
+            </LocalizationProvider>
+          </QueryClientProvider>
+        </MemoryRouter>,
+      );
 
-    await waitFor(() =>
-      expect(requestVolunteerBooking).toHaveBeenCalledWith(
-        1,
-        expect.any(String),
-        'Bring gloves',
-      ),
-    );
-    await waitFor(() =>
-      expect(
-        screen.getByText('Slot booked successfully'),
-      ).toBeInTheDocument(),
-    );
+      await waitFor(() =>
+        expect(
+          screen.getByText(/9:00 am – 12:00 pm/i),
+        ).toBeInTheDocument(),
+      );
+      const slot = screen.getByText(/9:00 am – 12:00 pm/i);
+      fireEvent.click(slot);
+      const bookButton = within(slot.closest('li')!).getByRole('button', {
+        name: /book selected slot/i,
+      });
+      fireEvent.click(bookButton);
+      const noteField = await screen.findByLabelText(/note/i);
+      fireEvent.change(noteField, { target: { value: 'Bring gloves' } });
+      fireEvent.click(
+        await screen.findByRole('button', { name: /confirm/i }),
+      );
+
+      await waitFor(() =>
+        expect(requestVolunteerBooking).toHaveBeenCalledWith(
+          1,
+          expect.any(String),
+          'Bring gloves',
+        ),
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByText('Slot booked successfully'),
+        ).toBeInTheDocument(),
+      );
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
