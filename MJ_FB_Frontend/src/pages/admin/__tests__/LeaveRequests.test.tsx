@@ -1,4 +1,4 @@
-import { screen, waitFor, act } from '@testing-library/react';
+import { waitFor, act, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../testUtils/renderWithProviders';
 import LeaveRequests from '../LeaveRequests';
@@ -33,30 +33,34 @@ describe('AdminLeaveRequests', () => {
 
   it('shows confirmation dialog before rejection and removes card on confirm', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<LeaveRequests />);
-    expect(screen.getByText(/Jane Doe/)).toBeInTheDocument();
-    const rejectBtn = screen.getByRole('button', { name: 'Reject', exact: true });
+    const { container } = renderWithProviders(<LeaveRequests />);
+    const view = within(container);
+    expect(view.getByText(/Jane Doe/)).toBeInTheDocument();
+    const rejectBtn = view.getByRole('button', { name: 'Reject', exact: true });
     await user.click(rejectBtn);
+    const dialog = within(document.body);
     expect(
-      screen.getByText('Reject leave request for Jane Doe?'),
+      dialog.getByText('Reject leave request for Jane Doe?'),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+    await user.click(dialog.getByRole('button', { name: 'Confirm' }));
     expect(mockReject).toHaveBeenCalledWith(
       { requestId: 1 },
       expect.any(Object),
     );
     await waitFor(() =>
-      expect(screen.queryByText(/Jane Doe/)).not.toBeInTheDocument(),
+      expect(view.queryByText(/Jane Doe/)).not.toBeInTheDocument(),
     );
   });
 
   it('closes dialog without rejecting when cancelled', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<LeaveRequests />);
-    await user.click(screen.getByRole('button', { name: 'Reject', exact: true }));
-    await user.click(screen.getByLabelText('close'));
+    const { container } = renderWithProviders(<LeaveRequests />);
+    const view = within(container);
+    await user.click(view.getByRole('button', { name: 'Reject', exact: true }));
+    const dialog = within(document.body);
+    await user.click(dialog.getByLabelText('close'));
     expect(mockReject).not.toHaveBeenCalled();
-    expect(screen.getByText(/Jane Doe/)).toBeInTheDocument();
+    expect(view.getByText(/Jane Doe/)).toBeInTheDocument();
   });
 });
 
