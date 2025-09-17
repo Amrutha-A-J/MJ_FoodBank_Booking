@@ -33,7 +33,9 @@ function Main() {
 const container = document.getElementById('root')!;
 const root = ReactDOM.createRoot(container);
 
-registerSW({ immediate: true });
+const updateServiceWorker = registerSW({ immediate: true });
+
+void updateServiceWorker(true);
 
 root.render(
   <React.StrictMode>
