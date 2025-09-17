@@ -11,6 +11,7 @@ import {
 } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { BackgroundSyncPlugin } from 'workbox-background-sync'
+import { clientsClaim } from 'workbox-core'
 
 declare let self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: ManifestEntry[]
@@ -18,6 +19,24 @@ declare let self: ServiceWorkerGlobalScope & {
 
 // self.__WB_MANIFEST is injected at build time
 precacheAndRoute(self.__WB_MANIFEST)
+
+self.addEventListener('install', () => {
+  self.skipWaiting()
+})
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      const cacheKeys = await caches.keys()
+      await Promise.all(
+        cacheKeys
+          .filter((cacheName) => cacheName === 'static-assets')
+          .map((cacheName) => caches.delete(cacheName)),
+      )
+      clientsClaim()
+    })(),
+  )
+})
 
 // Cache static assets
 registerRoute(
