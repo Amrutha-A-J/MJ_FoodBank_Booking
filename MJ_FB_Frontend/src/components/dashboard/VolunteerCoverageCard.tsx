@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import {
   List,
   ListItem,
@@ -8,13 +8,14 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  ListSubheader,
   type SxProps,
   type Theme,
 } from '@mui/material';
 import SectionCard from './SectionCard';
 import { getVolunteerRoles, getVolunteerBookingsByRole } from '../../api/volunteers';
 import { formatReginaDate, formatTime } from '../../utils/time';
-import { toDate } from '../../utils/date';
+import { toDate, toDayjs } from '../../utils/date';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import DialogCloseButton from '../DialogCloseButton';
 
@@ -24,6 +25,8 @@ interface CoverageItem {
   filled: number;
   total: number;
   volunteers: string[];
+  startTime: string;
+  period: 'morning' | 'afternoon';
 }
 
 interface VolunteerCoverageCardProps {
@@ -40,6 +43,22 @@ export default function VolunteerCoverageCard({
   const [coverage, setCoverage] = useState<CoverageItem[]>([]);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<CoverageItem | null>(null);
+  const showMorningFirst = useMemo(() => toDayjs(new Date()).hour() < 11, []);
+
+  const groupedCoverage = useMemo(() => {
+    const morning = coverage.filter(item => item.period === 'morning');
+    const afternoon = coverage.filter(item => item.period === 'afternoon');
+    const groups = showMorningFirst
+      ? [
+          { label: 'Morning', items: morning },
+          { label: 'Afternoon', items: afternoon },
+        ]
+      : [
+          { label: 'Afternoon', items: afternoon },
+          { label: 'Morning', items: morning },
+        ];
+    return groups.filter(group => group.items.length > 0);
+  }, [coverage, showMorningFirst]);
 
   useEffect(() => {
     const todayStr = formatReginaDate(toDate());
@@ -63,6 +82,8 @@ export default function VolunteerCoverageCard({
               const volunteers = todayBookings
                 .map((b: any) => b.volunteer_name)
                 .filter(Boolean);
+              const startTime = s.start_time;
+              const hour = Number.parseInt(startTime?.split(':')[0] ?? '', 10);
               return {
                 roleName: `${r.name} ${formatTime(s.start_time)}–${formatTime(
                   s.end_time,
@@ -71,6 +92,8 @@ export default function VolunteerCoverageCard({
                 filled: todayBookings.length,
                 total: r.max_volunteers,
                 volunteers,
+                startTime,
+                period: Number.isFinite(hour) && hour < 12 ? 'morning' : 'afternoon',
               };
             }),
           ),
@@ -91,24 +114,34 @@ export default function VolunteerCoverageCard({
     <>
       <SectionCard title="Volunteer Coverage" sx={sx}>
         <List sx={{ maxHeight: '200px', overflowY: 'auto' }}>
-          {coverage.map(c => {
-            const ratio = c.filled / c.total;
-            let color: 'success' | 'warning' | 'error' | 'default' = 'default';
-            if (ratio >= 1) color = 'success';
-            else if (ratio >= 0.5) color = 'warning';
-            else color = 'error';
-            return (
-              <ListItem
-                key={`${c.roleName}-${c.masterRole}`}
-                secondaryAction={<Chip color={color} label={`${c.filled}/${c.total}`} />}
-                disablePadding
+          {groupedCoverage.map(group => (
+            <Fragment key={group.label}>
+              <ListSubheader
+                disableSticky
+                data-testid={`coverage-group-${group.label.toLowerCase()}`}
               >
-                <ListItemButton onClick={() => setSelected(c)}>
-                  <ListItemText primary={`${c.roleName} (${c.masterRole})`} />
-                </ListItemButton>
-              </ListItem>
-            );
-          })}
+                {group.label}
+              </ListSubheader>
+              {group.items.map(c => {
+                const ratio = c.filled / c.total;
+                let color: 'success' | 'warning' | 'error' | 'default' = 'default';
+                if (ratio >= 1) color = 'success';
+                else if (ratio >= 0.5) color = 'warning';
+                else color = 'error';
+                return (
+                  <ListItem
+                    key={`${c.roleName}-${c.masterRole}`}
+                    secondaryAction={<Chip color={color} label={`${c.filled}/${c.total}`} />}
+                    disablePadding
+                  >
+                    <ListItemButton onClick={() => setSelected(c)}>
+                      <ListItemText primary={`${c.roleName} (${c.masterRole})`} />
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </Fragment>
+          ))}
         </List>
       </SectionCard>
       <Dialog open={!!selected} onClose={() => setSelected(null)}>

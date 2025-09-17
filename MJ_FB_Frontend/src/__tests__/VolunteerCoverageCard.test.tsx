@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react';
 import VolunteerCoverageCard from '../components/dashboard/VolunteerCoverageCard';
@@ -104,6 +104,64 @@ describe('VolunteerCoverageCard', () => {
     ).toBeInTheDocument();
     expect(screen.getAllByText('1/2')).toHaveLength(1);
     expect(screen.getAllByText('2/2')).toHaveLength(1);
+  });
+
+  it('orders morning coverage before afternoon before 11:00 Regina time', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2024-01-15T16:59:00Z'));
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        name: 'Greeter',
+        category_name: 'Front',
+        max_volunteers: 2,
+        shifts: [
+          { id: 1, start_time: '08:00', end_time: '10:00' },
+          { id: 2, start_time: '13:00', end_time: '15:00' },
+        ],
+      },
+    ]);
+    (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
+
+    let loaded: unknown[] = [];
+    render(<VolunteerCoverageCard onCoverageLoaded={data => (loaded = data)} />);
+
+    await waitFor(() => expect(loaded).toHaveLength(2));
+
+    const morningHeader = await screen.findByTestId('coverage-group-morning');
+    const afternoonHeader = await screen.findByTestId('coverage-group-afternoon');
+    const list = morningHeader.closest('ul');
+    const children = Array.from(list?.children ?? []);
+
+    expect(children.indexOf(morningHeader)).toBeLessThan(children.indexOf(afternoonHeader));
+  });
+
+  it('orders afternoon coverage before morning after 11:00 Regina time', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2024-01-15T17:01:00Z'));
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        name: 'Greeter',
+        category_name: 'Front',
+        max_volunteers: 2,
+        shifts: [
+          { id: 1, start_time: '08:00', end_time: '10:00' },
+          { id: 2, start_time: '13:00', end_time: '15:00' },
+        ],
+      },
+    ]);
+    (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
+
+    let loaded: unknown[] = [];
+    render(<VolunteerCoverageCard onCoverageLoaded={data => (loaded = data)} />);
+
+    await waitFor(() => expect(loaded).toHaveLength(2));
+
+    const afternoonHeader = await screen.findByTestId('coverage-group-afternoon');
+    const morningHeader = await screen.findByTestId('coverage-group-morning');
+    const list = afternoonHeader.closest('ul');
+    const children = Array.from(list?.children ?? []);
+
+    expect(children.indexOf(afternoonHeader)).toBeLessThan(children.indexOf(morningHeader));
   });
 });
 
