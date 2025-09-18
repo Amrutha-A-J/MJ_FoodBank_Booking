@@ -20,6 +20,7 @@ describe('booking monthly limits', () => {
         __esModule: true,
         ...jest.requireActual('../src/models/bookingRepository'),
         checkSlotCapacity: jest.fn(),
+        lockClientRow: jest.fn(),
         insertBooking: jest.fn(),
       }));
       jest.doMock('../src/utils/bookingUtils', () => ({
