@@ -65,6 +65,13 @@ function fmtLbs(value?: number) {
   return `${safe.toLocaleString(undefined, { maximumFractionDigits: 0 })} lbs`;
 }
 
+function formatVisitMonthLabel(month: string) {
+  return formatLocaleDate(`${month}-01`, {
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
 function toErrorMessage(error: unknown, fallback: string, forbidden: string) {
   const err = error as ApiError | undefined;
   if (err?.status === 403) {
@@ -80,6 +87,7 @@ export default function FoodBankTrends() {
   const [visitStats, setVisitStats] = useState<VisitStat[]>([]);
   const [pantryLoading, setPantryLoading] = useState(true);
   const [pantryError, setPantryError] = useState<string | null>(null);
+  const [selectedVisit, setSelectedVisit] = useState<VisitStat | null>(null);
 
   const [events, setEvents] = useState<EventGroups>(emptyEvents);
   const [eventsLoading, setEventsLoading] = useState(true);
@@ -137,6 +145,7 @@ export default function FoodBankTrends() {
             children: row.children,
           }));
         setVisitStats(stats);
+        setSelectedVisit(stats[stats.length - 1] ?? null);
       } catch (error) {
         if (!active) return;
         const message = toErrorMessage(
@@ -146,6 +155,7 @@ export default function FoodBankTrends() {
         );
         setPantryError(message);
         setVisitStats([]);
+        setSelectedVisit(null);
         showError(message);
       } finally {
         if (active) setPantryLoading(false);
@@ -321,7 +331,7 @@ export default function FoodBankTrends() {
               >
                 <Card variant="outlined">
                   <CardHeader title="Monthly Visits" />
-                  <CardContent sx={{ height: 320 }}>
+                  <CardContent sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}>
                     {pantryLoading ? (
                       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                         <CircularProgress size={24} />
@@ -331,7 +341,28 @@ export default function FoodBankTrends() {
                         {pantryError}
                       </Typography>
                     ) : visitStats.length ? (
-                      <ClientVisitTrendChart data={visitStats} />
+                      <>
+                        <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                          <ClientVisitTrendChart data={visitStats} onPointSelect={setSelectedVisit} />
+                        </Box>
+                        {selectedVisit ? (
+                          <Stack
+                            direction={{ xs: 'column', sm: 'row' }}
+                            spacing={1.5}
+                            alignItems={{ xs: 'flex-start', sm: 'center' }}
+                            sx={{ mt: 2 }}
+                          >
+                            <Typography variant="subtitle2">
+                              {formatVisitMonthLabel(selectedVisit.month)}
+                            </Typography>
+                            <Chip
+                              label={`Total visits: ${selectedVisit.clients.toLocaleString()}`}
+                              color="error"
+                              variant="outlined"
+                            />
+                          </Stack>
+                        ) : null}
+                      </>
                     ) : (
                       <Typography variant="body2" color="text.secondary">
                         No data available.
@@ -341,7 +372,7 @@ export default function FoodBankTrends() {
                 </Card>
                 <Card variant="outlined">
                   <CardHeader title="Adults vs Children" />
-                  <CardContent sx={{ height: 320 }}>
+                  <CardContent sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}>
                     {pantryLoading ? (
                       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                         <CircularProgress size={24} />
@@ -351,7 +382,33 @@ export default function FoodBankTrends() {
                         {pantryError}
                       </Typography>
                     ) : visitStats.length ? (
-                      <ClientVisitBreakdownChart data={visitStats} />
+                      <>
+                        <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                          <ClientVisitBreakdownChart
+                            data={visitStats}
+                            onPointSelect={setSelectedVisit}
+                          />
+                        </Box>
+                        {selectedVisit ? (
+                          <Stack spacing={1.5} sx={{ mt: 2 }}>
+                            <Typography variant="subtitle2">
+                              {formatVisitMonthLabel(selectedVisit.month)}
+                            </Typography>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                              <Chip
+                                label={`Adults: ${selectedVisit.adults.toLocaleString()}`}
+                                color="success"
+                                variant="outlined"
+                              />
+                              <Chip
+                                label={`Children: ${selectedVisit.children.toLocaleString()}`}
+                                color="info"
+                                variant="outlined"
+                              />
+                            </Stack>
+                          </Stack>
+                        ) : null}
+                      </>
                     ) : (
                       <Typography variant="body2" color="text.secondary">
                         No data available.
