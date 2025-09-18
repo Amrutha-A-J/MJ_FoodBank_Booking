@@ -7,6 +7,7 @@ import {
   Chip,
   CircularProgress,
   FormControl,
+  Grid,
   InputLabel,
   MenuItem,
   Select,
@@ -309,294 +310,295 @@ export default function FoodBankTrends() {
         severity={snackbar.severity}
       />
 
-      <Stack spacing={3}>
-        <SectionCard title="Pantry & Community">
-          <Box
-            display="grid"
-            gridTemplateColumns={{ xs: '1fr', lg: '2fr 1fr' }}
-            gap={2}
-          >
-            <Stack spacing={2}>
-              <Card variant="outlined">
-                <CardHeader title="Monthly Visits" />
-                <CardContent sx={{ height: 320 }}>
-                  {pantryLoading ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                      <CircularProgress size={24} />
-                    </Box>
-                  ) : pantryError ? (
-                    <Typography variant="body2" color="text.secondary">
-                      {pantryError}
-                    </Typography>
-                  ) : visitStats.length ? (
-                    <ClientVisitTrendChart data={visitStats} />
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No data available.
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-              <Card variant="outlined">
-                <CardHeader title="Adults vs Children" />
-                <CardContent sx={{ height: 320 }}>
-                  {pantryLoading ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                      <CircularProgress size={24} />
-                    </Box>
-                  ) : pantryError ? (
-                    <Typography variant="body2" color="text.secondary">
-                      {pantryError}
-                    </Typography>
-                  ) : visitStats.length ? (
-                    <ClientVisitBreakdownChart data={visitStats} />
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No data available.
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            </Stack>
-            <Card variant="outlined">
-              <CardHeader title="Notices & Events" avatar={<Announcement color="primary" />} />
-              <CardContent>
-                {eventsLoading ? (
-                  <Box display="flex" justifyContent="center" py={2}>
-                    <CircularProgress size={24} />
-                  </Box>
-                ) : eventsError ? (
-                  <Typography variant="body2" color="text.secondary">
-                    {eventsError}
-                  </Typography>
-                ) : visibleEvents.length ? (
-                  <EventList events={visibleEvents} limit={5} />
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    No upcoming events.
-                  </Typography>
-                )}
-              </CardContent>
-            </Card>
-          </Box>
-        </SectionCard>
+      <Grid container spacing={2}>
+        <Grid item xs={12} lg={8}>
+          <Stack spacing={3}>
+            <SectionCard title="Pantry & Community">
+              <Box
+                display="grid"
+                gridTemplateColumns={{ xs: '1fr', md: 'repeat(2, 1fr)' }}
+                gap={2}
+              >
+                <Card variant="outlined">
+                  <CardHeader title="Monthly Visits" />
+                  <CardContent sx={{ height: 320 }}>
+                    {pantryLoading ? (
+                      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                        <CircularProgress size={24} />
+                      </Box>
+                    ) : pantryError ? (
+                      <Typography variant="body2" color="text.secondary">
+                        {pantryError}
+                      </Typography>
+                    ) : visitStats.length ? (
+                      <ClientVisitTrendChart data={visitStats} />
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No data available.
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card variant="outlined">
+                  <CardHeader title="Adults vs Children" />
+                  <CardContent sx={{ height: 320 }}>
+                    {pantryLoading ? (
+                      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                        <CircularProgress size={24} />
+                      </Box>
+                    ) : pantryError ? (
+                      <Typography variant="body2" color="text.secondary">
+                        {pantryError}
+                      </Typography>
+                    ) : visitStats.length ? (
+                      <ClientVisitBreakdownChart data={visitStats} />
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No data available.
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Box>
+            </SectionCard>
 
-        <SectionCard title="Warehouse Overview">
-          <Stack spacing={2}>
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={2}
-              alignItems={{ xs: 'flex-start', sm: 'center' }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                Annual warehouse totals
-              </Typography>
-              <FormControl sx={{ minWidth: 120 }} size="small">
-                <InputLabel id="warehouse-year-label">Year</InputLabel>
-                <Select
-                  labelId="warehouse-year-label"
-                  label="Year"
-                  value={selectedYear ?? ''}
-                  onChange={event => setSelectedYear(Number(event.target.value))}
-                  disabled={yearsLoading || years.length === 0}
+            <SectionCard title="Warehouse Overview">
+              <Stack spacing={2}>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={2}
+                  alignItems={{ xs: 'flex-start', sm: 'center' }}
                 >
-                  {years.map(year => (
-                    <MenuItem key={year} value={year}>
-                      {year}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Stack>
-
-            <Box
-              display="grid"
-              gridTemplateColumns={{ xs: '1fr', lg: '2fr 1fr' }}
-              gap={2}
-            >
-              <Card variant="outlined">
-                <CardHeader title="Monthly Trend" />
-                <CardContent sx={{ height: 300 }}>
-                  {warehouseLoading ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                      <CircularProgress size={24} />
-                    </Box>
-                  ) : warehouseError ? (
-                    <Typography variant="body2" color="text.secondary">
-                      {warehouseError}
-                    </Typography>
-                  ) : hasWarehouseData ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="incoming"
-                          name="Incoming"
-                          stroke={theme.palette.success.main}
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="outgoing"
-                          name="Outgoing"
-                          stroke={theme.palette.error.main}
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No data available.
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-              <Card variant="outlined">
-                <CardHeader title="Composition" subheader="By month" />
-                <CardContent sx={{ height: 300 }}>
-                  {warehouseLoading ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                      <CircularProgress size={24} />
-                    </Box>
-                  ) : warehouseError ? (
-                    <Typography variant="body2" color="text.secondary">
-                      {warehouseError}
-                    </Typography>
-                  ) : hasWarehouseData ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Legend />
-                        <Bar
-                          dataKey="donations"
-                          name="Donations"
-                          stackId="a"
-                          fill={theme.palette.primary.main}
-                        />
-                        <Bar
-                          dataKey="surplus"
-                          name="Surplus"
-                          stackId="a"
-                          fill={theme.palette.warning.main}
-                        />
-                        <Bar
-                          dataKey="pigPound"
-                          name="Pig Pound"
-                          stackId="a"
-                          fill={theme.palette.info.main}
-                        />
-                        <Bar
-                          dataKey="outgoing"
-                          name="Outgoing"
-                          stackId="a"
-                          fill={theme.palette.error.main}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No data available.
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            </Box>
-
-            <Box
-              display="grid"
-              gridTemplateColumns={{ xs: '1fr', md: 'repeat(2, 1fr)' }}
-              gap={2}
-            >
-              <Card variant="outlined">
-                <CardHeader
-                  title="Top Donors"
-                  subheader="This year by total lbs"
-                  action={<Chip label={donors.length} />}
-                />
-                <CardContent>
-                  {warehouseLoading ? (
-                    <Box display="flex" justifyContent="center" py={2}>
-                      <CircularProgress size={24} />
-                    </Box>
-                  ) : donorError ? (
-                    <Typography variant="body2" color="text.secondary">
-                      {donorError}
-                    </Typography>
-                  ) : donors.length ? (
-                    <Stack spacing={1}>
-                      {donors.map((donor, index) => (
-                        <Stack key={index} direction="row" justifyContent="space-between">
-                          <Box>
-                            <Typography variant="body2">
-                              {donor.firstName} {donor.lastName}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {donor.lastDonationISO
-                                ? `Last: ${formatLocaleDate(donor.lastDonationISO)}`
-                                : 'No recent donation'}
-                            </Typography>
-                          </Box>
-                          <Typography variant="body2">{fmtLbs(donor.totalLbs)}</Typography>
-                        </Stack>
+                  <Typography variant="body2" color="text.secondary">
+                    Annual warehouse totals
+                  </Typography>
+                  <FormControl sx={{ minWidth: 120 }} size="small">
+                    <InputLabel id="warehouse-year-label">Year</InputLabel>
+                    <Select
+                      labelId="warehouse-year-label"
+                      label="Year"
+                      value={selectedYear ?? ''}
+                      onChange={event => setSelectedYear(Number(event.target.value))}
+                      disabled={yearsLoading || years.length === 0}
+                    >
+                      {years.map(year => (
+                        <MenuItem key={year} value={year}>
+                          {year}
+                        </MenuItem>
                       ))}
-                    </Stack>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No data available.
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-              <Card variant="outlined">
-                <CardHeader
-                  title="Top Receivers"
-                  subheader="This year by total lbs"
-                  action={<Chip label={receivers.length} />}
-                />
-                <CardContent>
-                  {warehouseLoading ? (
-                    <Box display="flex" justifyContent="center" py={2}>
-                      <CircularProgress size={24} />
-                    </Box>
-                  ) : receiverError ? (
-                    <Typography variant="body2" color="text.secondary">
-                      {receiverError}
-                    </Typography>
-                  ) : receivers.length ? (
-                    <Stack spacing={1}>
-                      {receivers.map((receiver, index) => (
-                        <Stack key={index} direction="row" justifyContent="space-between">
-                          <Box>
-                            <Typography variant="body2">{receiver.name}</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {receiver.lastPickupISO
-                                ? `Last: ${formatLocaleDate(receiver.lastPickupISO)}`
-                                : 'No recent pickup'}
-                            </Typography>
-                          </Box>
-                          <Typography variant="body2">{fmtLbs(receiver.totalLbs)}</Typography>
+                    </Select>
+                  </FormControl>
+                </Stack>
+
+                <Box
+                  display="grid"
+                  gridTemplateColumns={{ xs: '1fr', lg: '2fr 1fr' }}
+                  gap={2}
+                >
+                  <Card variant="outlined">
+                    <CardHeader title="Monthly Trend" />
+                    <CardContent sx={{ height: 300 }}>
+                      {warehouseLoading ? (
+                        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                          <CircularProgress size={24} />
+                        </Box>
+                      ) : warehouseError ? (
+                        <Typography variant="body2" color="text.secondary">
+                          {warehouseError}
+                        </Typography>
+                      ) : hasWarehouseData ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" />
+                            <YAxis />
+                            <Legend />
+                            <Line
+                              type="monotone"
+                              dataKey="incoming"
+                              name="Incoming"
+                              stroke={theme.palette.success.main}
+                              strokeWidth={2}
+                              dot={false}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="outgoing"
+                              name="Outgoing"
+                              stroke={theme.palette.error.main}
+                              strokeWidth={2}
+                              dot={false}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No data available.
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card variant="outlined">
+                    <CardHeader title="Composition" subheader="By month" />
+                    <CardContent sx={{ height: 300 }}>
+                      {warehouseLoading ? (
+                        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                          <CircularProgress size={24} />
+                        </Box>
+                      ) : warehouseError ? (
+                        <Typography variant="body2" color="text.secondary">
+                          {warehouseError}
+                        </Typography>
+                      ) : hasWarehouseData ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" />
+                            <YAxis />
+                            <Legend />
+                            <Bar
+                              dataKey="donations"
+                              name="Donations"
+                              stackId="a"
+                              fill={theme.palette.primary.main}
+                            />
+                            <Bar
+                              dataKey="surplus"
+                              name="Surplus"
+                              stackId="a"
+                              fill={theme.palette.warning.main}
+                            />
+                            <Bar
+                              dataKey="pigPound"
+                              name="Pig Pound"
+                              stackId="a"
+                              fill={theme.palette.info.main}
+                            />
+                            <Bar
+                              dataKey="outgoing"
+                              name="Outgoing"
+                              stackId="a"
+                              fill={theme.palette.error.main}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No data available.
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Box>
+
+                <Box
+                  display="grid"
+                  gridTemplateColumns={{ xs: '1fr', md: 'repeat(2, 1fr)' }}
+                  gap={2}
+                >
+                  <Card variant="outlined">
+                    <CardHeader
+                      title="Top Donors"
+                      subheader="This year by total lbs"
+                      action={<Chip label={donors.length} />}
+                    />
+                    <CardContent>
+                      {warehouseLoading ? (
+                        <Box display="flex" justifyContent="center" py={2}>
+                          <CircularProgress size={24} />
+                        </Box>
+                      ) : donorError ? (
+                        <Typography variant="body2" color="text.secondary">
+                          {donorError}
+                        </Typography>
+                      ) : donors.length ? (
+                        <Stack spacing={1}>
+                          {donors.map((donor, index) => (
+                            <Stack key={index} direction="row" justifyContent="space-between">
+                              <Box>
+                                <Typography variant="body2">
+                                  {donor.firstName} {donor.lastName}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {donor.lastDonationISO
+                                    ? `Last: ${formatLocaleDate(donor.lastDonationISO)}`
+                                    : 'No recent donation'}
+                                </Typography>
+                              </Box>
+                              <Typography variant="body2">{fmtLbs(donor.totalLbs)}</Typography>
+                            </Stack>
+                          ))}
                         </Stack>
-                      ))}
-                    </Stack>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No data available.
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            </Box>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No data available.
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card variant="outlined">
+                    <CardHeader
+                      title="Top Receivers"
+                      subheader="This year by total lbs"
+                      action={<Chip label={receivers.length} />}
+                    />
+                    <CardContent>
+                      {warehouseLoading ? (
+                        <Box display="flex" justifyContent="center" py={2}>
+                          <CircularProgress size={24} />
+                        </Box>
+                      ) : receiverError ? (
+                        <Typography variant="body2" color="text.secondary">
+                          {receiverError}
+                        </Typography>
+                      ) : receivers.length ? (
+                        <Stack spacing={1}>
+                          {receivers.map((receiver, index) => (
+                            <Stack key={index} direction="row" justifyContent="space-between">
+                              <Box>
+                                <Typography variant="body2">{receiver.name}</Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {receiver.lastPickupISO
+                                    ? `Last: ${formatLocaleDate(receiver.lastPickupISO)}`
+                                    : 'No recent pickup'}
+                                </Typography>
+                              </Box>
+                              <Typography variant="body2">{fmtLbs(receiver.totalLbs)}</Typography>
+                            </Stack>
+                          ))}
+                        </Stack>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No data available.
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Box>
+              </Stack>
+            </SectionCard>
           </Stack>
-        </SectionCard>
-      </Stack>
+        </Grid>
+        <Grid item xs={12} lg={4}>
+          <SectionCard title="Notices & Events" icon={<Announcement color="primary" />}>
+            {eventsLoading ? (
+              <Box display="flex" justifyContent="center" py={2}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : eventsError ? (
+              <Typography variant="body2" color="text.secondary">
+                {eventsError}
+              </Typography>
+            ) : visibleEvents.length ? (
+              <EventList events={visibleEvents} limit={5} />
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                No upcoming events.
+              </Typography>
+            )}
+          </SectionCard>
+        </Grid>
+      </Grid>
     </Page>
   );
 }
