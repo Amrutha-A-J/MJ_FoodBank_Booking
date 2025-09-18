@@ -232,6 +232,13 @@ export default function BookingUI<T = Slot>({
       : role === 'volunteer'
         ? 'Book volunteer shift'
         : 'Book appointment';
+  const historyPath = location.pathname.startsWith('/volunteer/schedule')
+    ? '/volunteer/history'
+    : location.pathname.startsWith('/book-appointment')
+      ? '/booking-history'
+      : null;
+  const historyLabel =
+    historyPath === '/volunteer/history' ? 'View volunteer history' : 'View booking history';
   const displayName = shopperName ?? authName ?? 'John Shopper';
 
   const [date, setDate] = useState<Dayjs>(() => {
@@ -691,7 +698,22 @@ export default function BookingUI<T = Slot>({
 
   if (embedded) return content;
   return (
-    <Page title={pageTitle}>
+    <Page
+      title={pageTitle}
+      header={
+        historyPath ? (
+          <Button
+            component={RouterLink}
+            to={historyPath}
+            variant="outlined"
+            size="medium"
+            sx={{ minHeight: 48 }}
+          >
+            {historyLabel}
+          </Button>
+        ) : undefined
+      }
+    >
       {content}
       {role === 'volunteer' ? <VolunteerBottomNav /> : <ClientBottomNav />}
     </Page>
