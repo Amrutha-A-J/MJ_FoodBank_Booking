@@ -803,8 +803,21 @@ WHERE NOT EXISTS (
     donors.forEach((_, index) => {
       donorValues.push(`($${index + 1})`);
     });
+    const hasUniqueNameConstraint = await client
+      .query(
+        `SELECT 1
+         FROM pg_constraint c
+         JOIN pg_class t ON c.conrelid = t.oid
+         JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY (c.conkey)
+         WHERE t.relname = 'donors'
+           AND c.contype IN ('p', 'u')
+           AND array_length(c.conkey, 1) = 1
+           AND a.attname = 'name'`,
+      )
+      .then(res => (res.rowCount ?? 0) > 0);
+    const onConflictClause = hasUniqueNameConstraint ? ' ON CONFLICT (name) DO NOTHING' : '';
     await client.query(
-      `INSERT INTO donors (name) VALUES ${donorValues.join(',')} ON CONFLICT (name) DO NOTHING;`,
+      `INSERT INTO donors (name) VALUES ${donorValues.join(',')}${onConflictClause};`,
       donors,
     );
   }
