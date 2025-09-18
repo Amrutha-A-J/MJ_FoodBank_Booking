@@ -48,6 +48,9 @@ describe('FOR UPDATE fallback', () => {
       'SELECT client_id FROM clients WHERE client_id=$1',
       [1],
     ]);
-    expect(mockClient.query).toHaveBeenCalledTimes(5);
+    expect(mockClient.query.mock.calls[5]).toEqual([
+      'RELEASE SAVEPOINT lock_client_row',
+    ]);
+    expect(mockClient.query).toHaveBeenCalledTimes(6);
   });
 });

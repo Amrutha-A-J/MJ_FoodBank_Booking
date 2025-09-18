@@ -22,6 +22,7 @@ jest.mock('../src/models/bookingRepository', () => ({
   ...jest.requireActual('../src/models/bookingRepository'),
   checkSlotCapacity: jest.fn(),
   insertBooking: jest.fn(),
+  lockClientRow: jest.fn(),
   fetchBookingById: jest.fn(),
   fetchBookingByToken: jest.fn(),
   updateBooking: jest.fn(),

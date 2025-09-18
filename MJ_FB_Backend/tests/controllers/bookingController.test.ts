@@ -140,6 +140,9 @@ describe('createBooking error handling', () => {
         SlotCapacityError: class extends Error {
           status = 400;
         },
+        DuplicateBookingError: class extends Error {
+          status = 409;
+        },
         checkSlotCapacity: checkSlotCapacityMock,
         insertBooking: insertBookingMock,
         lockClientRow: lockClientRowMock,
