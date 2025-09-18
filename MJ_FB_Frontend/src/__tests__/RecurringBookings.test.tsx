@@ -116,6 +116,25 @@ test('submits weekly recurring booking', async () => {
   expect(args[3]).toEqual(expect.arrayContaining([1, 3]));
 });
 
+test('shows validation when end date missing', async () => {
+  renderWithProviders(
+    <MemoryRouter>
+      <VolunteerRecurringBookings />
+    </MemoryRouter>,
+  );
+  fireEvent.mouseDown(await screen.findByLabelText(/role/i));
+  const listbox = await screen.findByRole('listbox');
+  fireEvent.click(within(listbox).getByText('Test Role (9:00 AM–10:00 AM)'));
+  const endDateField = screen.getByLabelText(/end date/i);
+  await act(async () => {
+    fireEvent.submit(document.querySelector('form')!);
+  });
+  expect(createRecurringVolunteerBooking).not.toHaveBeenCalled();
+  await waitFor(() =>
+    expect(endDateField).toHaveAccessibleDescription('Select an end date'),
+  );
+});
+
 test('submits daily recurring booking with end date', async () => {
   renderWithProviders(
     <MemoryRouter>

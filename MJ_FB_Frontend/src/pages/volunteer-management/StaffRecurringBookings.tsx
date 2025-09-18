@@ -52,6 +52,7 @@ export default function StaffRecurringBookings() {
   const [severity, setSeverity] = useState<AlertColor>('success');
   const [tab, setTab] = useState(0);
   const [volunteerId, setVolunteerId] = useState<number | null>(null);
+  const [endDateError, setEndDateError] = useState('');
 
   const roleMap = new Map(roles.map(r => [r.id, r]));
 
@@ -101,6 +102,10 @@ export default function StaffRecurringBookings() {
     if (!volunteerId) return;
     const roleId = Number(selectedRole);
     if (!roleId) return;
+    if (!endDate) {
+      setEndDateError('Select an end date');
+      return;
+    }
     try {
       await createRecurringVolunteerBookingForVolunteer(
         volunteerId,
@@ -108,13 +113,14 @@ export default function StaffRecurringBookings() {
         startDate,
         frequency,
         frequency === 'weekly' ? weekdays : undefined,
-        endDate || undefined,
+        endDate,
       );
       setSeverity('success');
       setMessage('Recurring booking created');
       setSelectedRole('');
       setWeekdays([]);
       setEndDate('');
+      setEndDateError('');
       await loadData();
     } catch (err: any) {
       setSeverity('error');
@@ -172,6 +178,7 @@ export default function StaffRecurringBookings() {
             <Box
               component="form"
               onSubmit={submit}
+              noValidate
               sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 400 }}
             >
               <FormControl>
@@ -244,10 +251,18 @@ export default function StaffRecurringBookings() {
               <TextField
                 label="End date"
                 type="date"
-                
+
                 value={endDate}
-                onChange={e => setEndDate(e.target.value)}
+                onChange={e => {
+                  setEndDate(e.target.value);
+                  if (e.target.value) {
+                    setEndDateError('');
+                  }
+                }}
                 InputLabelProps={{ shrink: true }}
+                required
+                error={!!endDateError}
+                helperText={endDateError}
               />
               <Button type="submit" variant="outlined" color="primary">
                 Create
