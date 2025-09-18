@@ -112,8 +112,8 @@ describe('Aggregations page', () => {
     fireEvent.click(await screen.findByRole('button', { name: /insert aggregate/i }));
 
     fireEvent.change(screen.getByLabelText(/month/i), { target: { value: '5' } });
-    fireEvent.change(screen.getByLabelText(/donor email/i), {
-      target: { value: 'alice@example.com' },
+    fireEvent.change(screen.getByLabelText(/donor id/i), {
+      target: { value: '42' },
     });
     fireEvent.change(screen.getByLabelText(/total/i), { target: { value: '100' } });
 
@@ -123,7 +123,7 @@ describe('Aggregations page', () => {
       expect(mockPostManualDonorAggregation).toHaveBeenCalledWith({
         year,
         month: 5,
-        donorEmail: 'alice@example.com',
+        donorId: 42,
         total: 100,
       }),
     );
