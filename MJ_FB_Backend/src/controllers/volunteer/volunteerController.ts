@@ -7,6 +7,7 @@ import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../..
 import { sendTemplatedEmail } from '../../utils/emailUtils';
 import { reginaStartOfDayISO } from '../../utils/dateUtils';
 import type { PoolClient } from 'pg';
+import { normalizeEmail } from '../../utils/normalizeEmail';
 
 export async function updateTrainedArea(
   req: Request,
@@ -109,6 +110,8 @@ export async function createVolunteer(
     sendPasswordLink?: boolean;
   };
 
+  const normalizedEmail = normalizeEmail(email);
+
   if (
     !firstName ||
     !lastName ||
@@ -121,17 +124,17 @@ export async function createVolunteer(
     });
   }
 
-  if (onlineAccess && !email) {
+  if (onlineAccess && !normalizedEmail) {
     return res
       .status(400)
       .json({ message: 'Email required for online account' });
   }
 
   try {
-    if (email) {
+    if (normalizedEmail) {
       const emailCheck = await pool.query(
         'SELECT id FROM volunteers WHERE LOWER(email) = LOWER($1)',
-        [email],
+        [normalizedEmail],
       );
       if ((emailCheck.rowCount ?? 0) > 0) {
         return res.status(400).json({ message: 'Email already exists' });
@@ -153,7 +156,7 @@ export async function createVolunteer(
       `INSERT INTO volunteers (first_name, last_name, email, phone, password, consent)
        VALUES ($1,$2,$3,$4,$5, true)
        RETURNING id`,
-      [firstName, lastName, email, phone, hashedPassword]
+      [firstName, lastName, normalizedEmail ?? null, phone ?? null, hashedPassword]
     );
     const volunteerId = result.rows[0].id;
     await pool.query(
@@ -161,11 +164,11 @@ export async function createVolunteer(
        SELECT $1, vr.id, vr.category_id FROM volunteer_roles vr WHERE vr.id = ANY($2::int[])`,
       [volunteerId, roleIds]
     );
-    if (sendPasswordLink && email) {
+    if (sendPasswordLink && normalizedEmail) {
       const token = await generatePasswordSetupToken('volunteers', volunteerId);
       const params = buildPasswordSetupEmailParams('volunteers', token);
       await sendTemplatedEmail({
-        to: email,
+        to: normalizedEmail,
         templateId: config.passwordSetupTemplateId,
         params,
       });
@@ -204,10 +207,12 @@ export async function updateVolunteer(
     sendPasswordLink?: boolean;
   };
   try {
-    if (email) {
+    const normalizedEmail = normalizeEmail(email);
+
+    if (normalizedEmail) {
       const emailCheck = await pool.query(
         'SELECT id FROM volunteers WHERE LOWER(email) = LOWER($1) AND id <> $2',
-        [email, id],
+        [normalizedEmail, id],
       );
       if ((emailCheck.rowCount ?? 0) > 0) {
         return res.status(400).json({ message: 'Email already exists' });
@@ -235,7 +240,7 @@ export async function updateVolunteer(
       [
         firstName,
         lastName,
-        email || null,
+        normalizedEmail ?? null,
         phone || null,
         onlineAccess,
         hashedPassword,
@@ -247,11 +252,11 @@ export async function updateVolunteer(
     }
     const row = result.rows[0];
 
-    if (sendPasswordLink && email && onlineAccess && !hadPassword) {
+    if (sendPasswordLink && normalizedEmail && onlineAccess && !hadPassword) {
       const token = await generatePasswordSetupToken('volunteers', Number(id));
       const params = buildPasswordSetupEmailParams('volunteers', token);
       await sendTemplatedEmail({
-        to: email,
+        to: normalizedEmail,
         templateId: config.passwordSetupTemplateId,
         params,
       });

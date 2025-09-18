@@ -9,17 +9,7 @@ import { sendTemplatedEmail } from '../utils/emailUtils';
 import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../utils/passwordSetupUtils';
 import config from '../config';
 import { getClientBookingsThisMonth } from './clientVisitController';
-
-function normalizeEmail(value: unknown): string | undefined {
-  if (typeof value !== 'string') {
-    return undefined;
-  }
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return undefined;
-  }
-  return trimmed.toLowerCase();
-}
+import { normalizeEmail } from '../utils/normalizeEmail';
 
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
@@ -43,7 +33,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         `SELECT v.id, v.first_name, v.last_name, v.password, v.consent, v.user_id, u.role AS user_role
          FROM volunteers v
          LEFT JOIN clients u ON v.user_id = u.client_id
-         WHERE LOWER(v.email) = $1`,
+         WHERE LOWER(v.email) = LOWER($1)`,
         [normalizedEmail],
       );
       if ((volunteerQuery.rowCount ?? 0) > 0) {
@@ -101,7 +91,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       }
 
       const staffQuery = await pool.query(
-        `SELECT id, first_name, last_name, email, password, role, access, consent FROM staff WHERE LOWER(email) = $1`,
+        `SELECT id, first_name, last_name, email, password, role, access, consent FROM staff WHERE LOWER(email) = LOWER($1)`,
         [normalizedEmail],
       );
       if ((staffQuery.rowCount ?? 0) > 0) {
@@ -133,7 +123,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       }
 
       const clientEmailQuery = await pool.query(
-        `SELECT client_id, first_name, last_name, role, password FROM clients WHERE LOWER(email) = $1 AND online_access = true`,
+        `SELECT client_id, first_name, last_name, role, password, consent FROM clients WHERE LOWER(email) = LOWER($1) AND online_access = true`,
         [normalizedEmail],
       );
       if ((clientEmailQuery.rowCount ?? 0) > 0) {
@@ -316,7 +306,10 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     }
 
     if (normalizedEmail) {
-      const emailCheck = await pool.query('SELECT client_id FROM clients WHERE LOWER(email) = $1', [normalizedEmail]);
+      const emailCheck = await pool.query(
+        'SELECT client_id FROM clients WHERE LOWER(email) = LOWER($1)',
+        [normalizedEmail],
+      );
       if ((emailCheck.rowCount ?? 0) > 0) {
         return res.status(400).json({ message: 'Email already exists' });
       }
