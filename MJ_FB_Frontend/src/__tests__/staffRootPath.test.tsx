@@ -23,11 +23,6 @@ describe('getStaffRootPath', () => {
       description: 'single donor management access',
     },
     {
-      access: ['aggregations'],
-      expected: '/aggregations/pantry',
-      description: 'single aggregations access',
-    },
-    {
       access: ['volunteer_management'],
       expected: '/volunteer-management',
       description: 'single volunteer management access',

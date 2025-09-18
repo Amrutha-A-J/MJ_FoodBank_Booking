@@ -977,7 +977,7 @@ describe('userController', () => {
             first_name: 'Staff',
             last_name: 'User',
             email: 'updated@example.com',
-            access: ['aggregations'],
+            access: ['donor_management'],
             consent: true,
           },
         ],
@@ -1003,7 +1003,7 @@ describe('userController', () => {
         phone: null,
         address: null,
         role: 'staff',
-        roles: ['aggregations'],
+        roles: ['donor_management'],
         consent: true,
       });
     });

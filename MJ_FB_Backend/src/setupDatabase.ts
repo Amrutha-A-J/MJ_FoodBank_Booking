@@ -794,8 +794,40 @@ WHERE NOT EXISTS (
         `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`,
       );
     });
+    const hasUniqueEmailConstraint = await client
+      .query(
+        `SELECT 1
+         FROM pg_constraint c
+         JOIN pg_class t ON c.conrelid = t.oid
+         JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY (c.conkey)
+         WHERE t.relname = 'donors'
+           AND c.contype IN ('p', 'u')
+           AND array_length(c.conkey, 1) = 1
+           AND a.attname = 'email'`,
+      )
+      .then(res => (res.rowCount ?? 0) > 0);
+    const hasUniqueEmailIndex = await client
+      .query(
+        `SELECT 1
+         FROM pg_index i
+         JOIN pg_class idx ON idx.oid = i.indexrelid
+         JOIN pg_class tbl ON tbl.oid = i.indrelid
+         JOIN pg_attribute a ON a.attrelid = tbl.oid AND a.attnum = ANY (i.indkey)
+         WHERE tbl.relname = 'donors'
+           AND i.indisunique = true
+           AND array_length(i.indkey, 1) = 1
+           AND a.attname = 'email'
+         LIMIT 1`,
+      )
+      .then(res => (res.rowCount ?? 0) > 0);
+    let onConflictClause = '';
+    if (hasUniqueEmailConstraint) {
+      onConflictClause = ' ON CONFLICT (email) DO NOTHING';
+    } else if (hasUniqueEmailIndex) {
+      onConflictClause = ' ON CONFLICT DO NOTHING';
+    }
     await client.query(
-      `INSERT INTO donors (first_name, last_name, email) VALUES ${donorValues.join(',')} ON CONFLICT (email) DO NOTHING;`,
+      `INSERT INTO donors (first_name, last_name, email) VALUES ${donorValues.join(',')}${onConflictClause};`,
       params,
     );
   } else {

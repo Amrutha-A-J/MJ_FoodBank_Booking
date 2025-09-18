@@ -22,19 +22,19 @@ router.get('/', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), 
 router.get(
   '/aggregations',
   authMiddleware,
-  authorizeAccess('warehouse', 'donation_entry', 'aggregations'),
+  authorizeAccess('warehouse', 'donation_entry', 'donor_management'),
   donorAggregations,
 );
 router.get(
   '/aggregations/export',
   authMiddleware,
-  authorizeAccess('warehouse', 'donation_entry', 'aggregations'),
+  authorizeAccess('warehouse', 'donation_entry', 'donor_management'),
   exportDonorAggregations,
 );
 router.post(
   '/aggregations/manual',
   authMiddleware,
-  authorizeAccess('warehouse', 'aggregations'),
+  authorizeAccess('warehouse', 'donor_management'),
   validate(manualDonorAggregationSchema),
   manualDonorAggregation,
 );
