@@ -108,6 +108,7 @@ describe('Navbar component', () => {
     {
       label: 'Aggregations',
       links: [
+        { label: 'Food Bank Trends', to: '/aggregations/trends' },
         { label: 'Pantry Aggregations', to: '/aggregations/pantry' },
         { label: 'Warehouse Aggregations', to: '/aggregations/warehouse' },
       ],
