@@ -53,7 +53,7 @@
 - Admin settings include a Donor tab for managing test email addresses used when sending donor mail lists.
 - Donor donation log allows editing, deleting, and searching recorded donations by donor email, name, or amount.
 - Donor Management → Donors lists existing donors and lets staff edit donor details.
-- Aggregations pages are accessible to staff with aggregations or donor_management access.
+- Aggregations pages are accessible to all staff accounts; donor_management staff continue to see donor tools within those views.
 
 See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/AGENTS.md` for frontend-specific guidance.
 
