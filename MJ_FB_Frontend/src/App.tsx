@@ -151,8 +151,7 @@ export default function App() {
   const showDonationLog = showWarehouse || showDonationEntry;
   const showAggregations =
     isStaff &&
-    (hasAccess('aggregations') ||
-      hasAccess('pantry') ||
+    (hasAccess('pantry') ||
       hasAccess('warehouse') ||
       hasAccess('donor_management'));
 

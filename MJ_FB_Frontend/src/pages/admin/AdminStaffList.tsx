@@ -31,7 +31,6 @@ export default function AdminStaffList() {
     donor_management: 'Donor Management',
     payroll_management: 'Payroll Management',
     donation_entry: 'Donation Entry',
-    aggregations: 'Aggregations',
   };
 
   async function load() {

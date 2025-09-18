@@ -13,31 +13,31 @@ const router = Router();
 router.get(
   '/',
   authMiddleware,
-  authorizeAccess('warehouse', 'aggregations'),
+  authorizeAccess('warehouse', 'donor_management'),
   listWarehouseOverall,
 );
 router.post(
   '/manual',
   authMiddleware,
-  authorizeAccess('warehouse', 'aggregations'),
+  authorizeAccess('warehouse', 'donor_management'),
   manualWarehouseOverall,
 );
 router.post(
   '/rebuild',
   authMiddleware,
-  authorizeAccess('warehouse', 'aggregations'),
+  authorizeAccess('warehouse', 'donor_management'),
   rebuildWarehouseOverall,
 );
 router.get(
   '/export',
   authMiddleware,
-  authorizeAccess('warehouse', 'aggregations'),
+  authorizeAccess('warehouse', 'donor_management'),
   exportWarehouseOverall,
 );
 router.get(
   '/years',
   authMiddleware,
-  authorizeAccess('warehouse', 'aggregations'),
+  authorizeAccess('warehouse', 'donor_management'),
   listAvailableYears,
 );
 
