@@ -5,6 +5,7 @@ import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
 import useMaintenance from '../hooks/useMaintenance';
 import { DonorManagementGuard } from '../hooks/useAuth';
+import { buildNavData } from '../utils/navConfig';
 
 jest.mock('../hooks/useAuth', () => {
   const React = require('react');
@@ -197,6 +198,43 @@ describe('App authentication persistence', () => {
     expect(
       await screen.findByRole('heading', { name: /login/i }),
     ).toBeInTheDocument();
+  });
+
+  it('shows aggregations navigation for staff without pantry access', () => {
+    const { navGroups } = buildNavData({
+      role: 'staff',
+      isStaff: true,
+      showStaff: false,
+      showVolunteerManagement: false,
+      showWarehouse: false,
+      showDonorManagement: true,
+      showAdmin: false,
+      showDonationEntry: false,
+      showAggregations: true,
+      userRole: null,
+    });
+
+    const aggregationsGroup = navGroups.find(
+      (group) => group.label === 'Aggregations',
+    );
+
+    expect(aggregationsGroup).toBeDefined();
+    expect(aggregationsGroup?.links).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: 'Food Bank Trends',
+          to: '/aggregations/trends',
+        }),
+        expect.objectContaining({
+          label: 'Pantry Aggregations',
+          to: '/aggregations/pantry',
+        }),
+        expect.objectContaining({
+          label: 'Warehouse Aggregations',
+          to: '/aggregations/warehouse',
+        }),
+      ]),
+    );
   });
 
   it('allows access to privacy policy without login', async () => {
