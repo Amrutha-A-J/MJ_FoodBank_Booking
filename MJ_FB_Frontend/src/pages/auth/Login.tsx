@@ -56,7 +56,9 @@ export default function Login({
         setError('Password setup link expired');
         setResendOpen(true);
       } else if (apiErr?.status === 404) {
-        setError('Don’t have an account? Ask staff for help.');
+        setError(
+          'Hmm.. you dont seem to have an account with us. Please email harvestpantry@mjfoodbank.org to have an account created for you.',
+        );
       } else {
         setError(err instanceof Error ? err.message : String(err));
       }

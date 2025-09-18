@@ -38,7 +38,11 @@ describe('Login error handling', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
     await waitFor(() => {
-      expect(screen.getByText(/don’t have an account/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Hmm.. you dont seem to have an account with us. Please email harvestpantry@mjfoodbank.org to have an account created for you.',
+        ),
+      ).toBeInTheDocument();
     });
   });
 
