@@ -52,12 +52,12 @@ function isValidDateString(date: string): boolean {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
 }
 
-function isFutureDate(date: string): boolean {
+function isTodayOrFutureDate(date: string): boolean {
   if (!isValidDateString(date)) return false;
   try {
     const today = new Date(reginaStartOfDayISO(new Date()));
     const bookingDate = new Date(reginaStartOfDayISO(date));
-    return bookingDate > today;
+    return bookingDate >= today;
   } catch {
     return false;
   }
@@ -930,7 +930,7 @@ export async function createBookingForUser(
       .status(400)
       .json({ message: 'Please select a valid time slot' });
   }
-  if (!isFutureDate(date)) {
+  if (!isTodayOrFutureDate(date)) {
     return res.status(400).json({ message: 'Invalid date' });
   }
 
