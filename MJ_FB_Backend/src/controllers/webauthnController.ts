@@ -110,9 +110,9 @@ export async function verifyCredential(
         expectedChallenge: challenge,
         expectedOrigin: config.webauthnOrigin,
         expectedRPID: config.webauthnRpId,
-        authenticator: {
-          credentialID: Buffer.from(stored.credentialId, 'base64url'),
-          credentialPublicKey: Buffer.from(stored.publicKey, 'base64'),
+        credential: {
+          id: stored.credentialId,
+          publicKey: new Uint8Array(Buffer.from(stored.publicKey, 'base64')),
           counter: stored.signCount,
         },
         requireUserVerification: true,
