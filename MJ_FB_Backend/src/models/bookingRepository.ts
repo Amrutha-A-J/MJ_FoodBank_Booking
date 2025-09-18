@@ -27,6 +27,14 @@ export class SlotCapacityError extends Error {
   }
 }
 
+export class ClientNotFoundError extends Error {
+  status: number;
+  constructor(message = 'Client not found', status = 404) {
+    super(message);
+    this.status = status;
+  }
+}
+
 export async function checkSlotCapacity(
   slotId: number,
   date: string,
@@ -99,13 +107,14 @@ export async function lockClientRow(
   client: Queryable = pool,
 ) {
   let useSavepoint = true;
+  let queryResult;
   try {
     await (client as any).query('SAVEPOINT lock_client_row');
   } catch {
     useSavepoint = false;
   }
   try {
-    await client.query(
+    queryResult = await client.query(
       'SELECT client_id FROM clients WHERE client_id=$1 FOR UPDATE',
       [userId],
     );
@@ -122,11 +131,21 @@ export async function lockClientRow(
       }
     }
     if (err.code === '0A000') {
-      await client.query('SELECT client_id FROM clients WHERE client_id=$1', [userId]);
+      queryResult = await client.query('SELECT client_id FROM clients WHERE client_id=$1', [
+        userId,
+      ]);
+      if (useSavepoint) {
+        try {
+          await (client as any).query('RELEASE SAVEPOINT lock_client_row');
+        } catch {}
+      }
     } else {
       logger.error(`Failed to lock client row for user ${userId}`, err);
       throw err;
     }
+  }
+  if (!queryResult || queryResult.rowCount === 0) {
+    throw new ClientNotFoundError(`Client ${userId} not found`);
   }
 }
 

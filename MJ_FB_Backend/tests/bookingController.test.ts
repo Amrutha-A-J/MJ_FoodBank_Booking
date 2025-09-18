@@ -12,6 +12,8 @@ describe('createBookingForUser', () => {
   let pool: any;
   let checkSlotCapacity: jest.Mock;
   let insertBooking: jest.Mock;
+  let lockClientRow: jest.Mock;
+  let ClientNotFoundError: any;
   let bookingUtils: any;
   let holidayCache: any;
 
@@ -35,6 +37,12 @@ describe('createBookingForUser', () => {
         checkSlotCapacity: jest.fn().mockResolvedValue(undefined),
         lockClientRow: jest.fn().mockResolvedValue(undefined),
         SlotCapacityError: class extends Error {},
+        ClientNotFoundError: class extends Error {
+          status = 404;
+          constructor(message = 'Client not found') {
+            super(message);
+          }
+        },
       }));
       jest.doMock('../src/utils/dbUtils', () => ({
         __esModule: true,
@@ -53,6 +61,8 @@ describe('createBookingForUser', () => {
       pool = require('../src/db').default;
       checkSlotCapacity = require('../src/models/bookingRepository').checkSlotCapacity;
       insertBooking = require('../src/models/bookingRepository').insertBooking;
+      lockClientRow = require('../src/models/bookingRepository').lockClientRow;
+      ClientNotFoundError = require('../src/models/bookingRepository').ClientNotFoundError;
       bookingUtils = require('../src/utils/bookingUtils');
       holidayCache = require('../src/utils/holidayCache');
     });
@@ -61,6 +71,8 @@ describe('createBookingForUser', () => {
   it('enqueues confirmation email after booking creation', async () => {
     const client = {
       query: jest.fn().mockImplementation((sql: string) => {
+        if (sql.includes('FROM clients WHERE client_id'))
+          return Promise.resolve({ rows: [{ client_id: 1 }], rowCount: 1 });
         if (sql.includes('SELECT max_capacity FROM slots'))
           return Promise.resolve({ rows: [{ max_capacity: 5 }], rowCount: 1 });
         if (sql.includes('SELECT COUNT(id) AS count FROM bookings'))
@@ -97,7 +109,7 @@ describe('createBookingForUser', () => {
         to: 'client@example.com',
         templateId: expect.any(Number),
         params: expect.objectContaining({
-            body: expect.stringContaining(`${tomorrowWithDay} from 9:00 AM to 9:30 AM`),
+          body: expect.stringContaining(`${tomorrowWithDay} from 9:00 AM to 9:30 AM`),
           googleCalendarLink: expect.any(String),
           appleCalendarLink: expect.any(String),
         }),
@@ -107,6 +119,8 @@ describe('createBookingForUser', () => {
 
   it('returns 400 if booking date is a holiday', async () => {
     const query = jest.fn().mockImplementation((sql: string) => {
+      if (sql.includes('FROM clients WHERE client_id'))
+        return Promise.resolve({ rows: [{ client_id: 1 }], rowCount: 1 });
       if (sql.includes('SELECT date, reason FROM holidays'))
         return Promise.resolve({
           rows: [{ date: holidayDate, reason: 'X' }],
@@ -136,9 +150,33 @@ describe('createBookingForUser', () => {
     expect(checkSlotCapacity).not.toHaveBeenCalled();
   });
 
+  it('returns 404 when the client record is missing', async () => {
+    const client = {
+      query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+      release: jest.fn(),
+    };
+    (pool.connect as jest.Mock).mockResolvedValue(client);
+    lockClientRow.mockRejectedValueOnce(new ClientNotFoundError('Client 999 not found'));
+    const req = {
+      user: { role: 'staff', id: 42 },
+      body: { userId: 999, slotId: 2, date: tomorrow },
+    } as unknown as Request;
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
+    const next = jest.fn() as NextFunction;
+
+    await createBookingForUser(req, res, next);
+
+    expect(client.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Client 999 not found' });
+    expect(insertBooking).not.toHaveBeenCalled();
+  });
+
   it('passes note to insertBooking', async () => {
     const client = {
       query: jest.fn().mockImplementation((sql: string) => {
+        if (sql.includes('FROM clients WHERE client_id'))
+          return Promise.resolve({ rows: [{ client_id: 1 }], rowCount: 1 });
         if (sql.includes('SELECT max_capacity FROM slots'))
           return Promise.resolve({ rows: [{ max_capacity: 5 }], rowCount: 1 });
         if (sql.includes('SELECT COUNT(id) AS count FROM bookings'))
@@ -179,6 +217,8 @@ describe('createBookingForUser', () => {
     (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(false);
     const client = {
       query: jest.fn().mockImplementation((sql: string) => {
+        if (sql.includes('FROM clients WHERE client_id'))
+          return Promise.resolve({ rows: [{ client_id: 1 }], rowCount: 1 });
         if (sql.includes('SELECT max_capacity FROM slots'))
           return Promise.resolve({ rows: [{ max_capacity: 5 }], rowCount: 1 });
         if (sql.includes('SELECT COUNT(id) AS count FROM bookings'))
@@ -213,6 +253,8 @@ describe('createBookingForUser', () => {
     const todayWithDay = formatReginaDateWithDay(todayDate);
     const client = {
       query: jest.fn().mockImplementation((sql: string) => {
+        if (sql.includes('FROM clients WHERE client_id'))
+          return Promise.resolve({ rows: [{ client_id: 1 }], rowCount: 1 });
         if (sql.includes('SELECT max_capacity FROM slots'))
           return Promise.resolve({ rows: [{ max_capacity: 5 }], rowCount: 1 });
         if (sql.includes('SELECT COUNT(id) AS count FROM bookings'))
