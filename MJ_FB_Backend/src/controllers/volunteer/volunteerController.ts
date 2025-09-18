@@ -231,7 +231,7 @@ export async function updateVolunteer(
       `UPDATE volunteers
        SET first_name = $1, last_name = $2, email = $3, phone = $4,
            password = CASE
-             WHEN $6 IS NOT NULL THEN $6
+             WHEN $6::text IS NOT NULL THEN $6::text
              WHEN $5::boolean = false THEN NULL
              ELSE password
            END
@@ -241,7 +241,7 @@ export async function updateVolunteer(
         firstName,
         lastName,
         normalizedEmail ?? null,
-        phone || null,
+        phone ?? null,
         onlineAccess,
         hashedPassword,
         id,
