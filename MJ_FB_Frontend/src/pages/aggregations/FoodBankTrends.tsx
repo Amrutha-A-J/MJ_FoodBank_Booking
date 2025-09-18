@@ -24,16 +24,6 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import Announcement from '@mui/icons-material/Announcement';
-import { useTheme } from '@mui/material/styles';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-} from 'recharts';
 import Page from '../../components/Page';
 import SectionCard from '../../components/dashboard/SectionCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -56,6 +46,9 @@ import FormDialog from '../../components/FormDialog';
 import WarehouseCompositionChart, {
   type WarehouseCompositionDatum,
 } from '../../components/dashboard/WarehouseCompositionChart';
+import WarehouseTrendChart, {
+  type WarehouseTrendDatum,
+} from '../../components/dashboard/WarehouseTrendChart';
 
 interface PantryMonthlyRow {
   month: number;
@@ -93,7 +86,6 @@ function toErrorMessage(error: unknown, fallback: string, forbidden: string) {
 const emptyEvents: EventGroups = { today: [], upcoming: [], past: [] };
 
 export default function FoodBankTrends() {
-  const theme = useTheme();
   const [visitStats, setVisitStats] = useState<VisitStat[]>([]);
   const [pantryLoading, setPantryLoading] = useState(true);
   const [pantryError, setPantryError] = useState<string | null>(null);
@@ -120,6 +112,7 @@ export default function FoodBankTrends() {
     pigPound: number;
     outgoing: number;
   } | null>(null);
+  const [selectedWarehousePoint, setSelectedWarehousePoint] = useState<WarehouseTrendDatum | null>(null);
 
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -310,7 +303,7 @@ export default function FoodBankTrends() {
     [events],
   );
 
-  type CompositionChartDatum = WarehouseCompositionDatum & { incoming: number };
+  type CompositionChartDatum = WarehouseCompositionDatum & WarehouseTrendDatum;
 
   const chartData = useMemo<CompositionChartDatum[]>(
     () =>
@@ -327,6 +320,16 @@ export default function FoodBankTrends() {
       })),
     [warehouseTotals],
   );
+
+  useEffect(() => {
+    setSelectedWarehousePoint(prev => {
+      if (!prev) return null;
+      const match = chartData.find(d => d.month === prev.month);
+      return match
+        ? { month: match.month, incoming: match.incoming, outgoing: match.outgoing }
+        : null;
+    });
+  }, [chartData]);
 
   const handleCompositionClick = useCallback(
     (data: { payload?: WarehouseCompositionDatum } | undefined) => {
@@ -483,7 +486,7 @@ export default function FoodBankTrends() {
                 <Stack spacing={2}>
                   <Card variant="outlined">
                     <CardHeader title="Monthly Trend" />
-                    <CardContent sx={{ height: 300 }}>
+                    <CardContent sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}>
                       {warehouseLoading ? (
                         <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                           <CircularProgress size={24} />
@@ -493,30 +496,51 @@ export default function FoodBankTrends() {
                           {warehouseError}
                         </Typography>
                       ) : hasWarehouseData ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="month" />
-                            <YAxis />
-                            <Legend />
-                            <Line
-                              type="monotone"
-                              dataKey="incoming"
-                              name="Incoming"
-                              stroke={theme.palette.success.main}
-                              strokeWidth={2}
-                              dot={false}
+                        <>
+                          <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                            <WarehouseTrendChart
+                              data={chartData}
+                              onPointSelect={datum =>
+                                setSelectedWarehousePoint({
+                                  month: datum.month,
+                                  incoming: datum.incoming,
+                                  outgoing: datum.outgoing,
+                                })
+                              }
                             />
-                            <Line
-                              type="monotone"
-                              dataKey="outgoing"
-                              name="Outgoing"
-                              stroke={theme.palette.error.main}
-                              strokeWidth={2}
-                              dot={false}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
+                          </Box>
+                          {selectedWarehousePoint ? (
+                            <Stack
+                              direction={{ xs: 'column', sm: 'row' }}
+                              spacing={1.5}
+                              alignItems={{ xs: 'flex-start', sm: 'center' }}
+                              sx={{ mt: 2 }}
+                            >
+                              <Typography variant="subtitle2">
+                                {selectedWarehousePoint.month}
+                                {selectedYear ? ` ${selectedYear}` : ''}
+                              </Typography>
+                              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                                <Chip
+                                  label={`Incoming: ${fmtLbs(selectedWarehousePoint.incoming)}`}
+                                  color="success"
+                                  variant="outlined"
+                                  data-testid="warehouse-trend-incoming"
+                                />
+                                <Chip
+                                  label={`Outgoing: ${fmtLbs(selectedWarehousePoint.outgoing)}`}
+                                  color="error"
+                                  variant="outlined"
+                                  data-testid="warehouse-trend-outgoing"
+                                />
+                              </Stack>
+                            </Stack>
+                          ) : (
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                              Click a point to view totals for that month.
+                            </Typography>
+                          )}
+                        </>
                       ) : (
                         <Typography variant="body2" color="text.secondary">
                           No data available.
