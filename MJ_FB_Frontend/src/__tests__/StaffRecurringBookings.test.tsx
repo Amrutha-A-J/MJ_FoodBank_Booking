@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import StaffRecurringBookings from '../pages/volunteer-management/StaffRecurringBookings';
 import {
   getVolunteerRoles,
@@ -45,6 +45,7 @@ afterAll(() => {
 
 describe('StaffRecurringBookings', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     (getVolunteerRoles as jest.Mock).mockResolvedValue([
       {
         id: 1,
@@ -76,6 +77,9 @@ describe('StaffRecurringBookings', () => {
     fireEvent.mouseDown(await screen.findByLabelText(/role/i));
     const listbox = await screen.findByRole('listbox');
     fireEvent.click(screen.getByText(/Role1/));
+    fireEvent.change(screen.getByLabelText(/end date/i), {
+      target: { value: '2024-12-31' },
+    });
     fireEvent.click(screen.getByRole('button', { name: /create/i }));
     await waitFor(() =>
       expect(createRecurringVolunteerBookingForVolunteer).toHaveBeenCalled(),
@@ -83,6 +87,22 @@ describe('StaffRecurringBookings', () => {
     const args = (createRecurringVolunteerBookingForVolunteer as jest.Mock).mock.calls[0];
     expect(args[0]).toBe(7);
     expect(args[1]).toBe(10);
+  });
+
+  test('requires end date before submitting', async () => {
+    render(<StaffRecurringBookings />);
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    fireEvent.mouseDown(await screen.findByLabelText(/role/i));
+    await screen.findByRole('listbox');
+    fireEvent.click(screen.getByText(/Role1/));
+    const endDateField = screen.getByLabelText(/end date/i);
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /create/i }));
+    });
+    expect(createRecurringVolunteerBookingForVolunteer).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(endDateField).toHaveAccessibleDescription('Select an end date'),
+    );
   });
 
   test('cancels recurring booking and occurrence', async () => {

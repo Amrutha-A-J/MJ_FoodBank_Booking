@@ -49,6 +49,7 @@ export default function VolunteerRecurringBookings() {
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
   const [tab, setTab] = useState(0);
+  const [endDateError, setEndDateError] = useState('');
 
   const roleMap = new Map(roles.map(r => [r.id, r]));
 
@@ -77,19 +78,24 @@ export default function VolunteerRecurringBookings() {
     e.preventDefault();
     const roleId = Number(selectedRole);
     if (!roleId) return;
+    if (!endDate) {
+      setEndDateError('Select an end date');
+      return;
+    }
     try {
       await createRecurringVolunteerBooking(
         roleId,
         startDate,
         frequency,
         frequency === 'weekly' ? weekdays : undefined,
-        endDate || undefined,
+        endDate,
       );
       setSeverity('success');
       setMessage('Recurring booking created');
       setSelectedRole('');
       setWeekdays([]);
       setEndDate('');
+      setEndDateError('');
       await loadData();
     } catch (err: any) {
       setSeverity('error');
@@ -135,7 +141,12 @@ export default function VolunteerRecurringBookings() {
         <Tab label="Manage recurring shifts" />
       </Tabs>
       {tab === 0 && (
-        <Box component="form" onSubmit={submit} sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 400 }}>
+        <Box
+          component="form"
+          onSubmit={submit}
+          noValidate
+          sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 400 }}
+        >
           <FormControl>
             <InputLabel id="role-label">Role</InputLabel>
             <Select labelId="role-label" value={selectedRole} label="Role" onChange={e => setSelectedRole(e.target.value as string)}>
@@ -192,10 +203,18 @@ export default function VolunteerRecurringBookings() {
           <TextField
             label="End date"
             type="date"
-            
+
             value={endDate}
-            onChange={e => setEndDate(e.target.value)}
+            onChange={e => {
+              setEndDate(e.target.value);
+              if (e.target.value) {
+                setEndDateError('');
+              }
+            }}
             InputLabelProps={{ shrink: true }}
+            required
+            error={!!endDateError}
+            helperText={endDateError}
           />
           <Button type="submit" variant="outlined" color="primary">
             Create
