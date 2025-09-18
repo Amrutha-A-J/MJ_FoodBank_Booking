@@ -27,17 +27,7 @@ import { useTheme } from '@mui/material/styles';
 import TrendingUp from '@mui/icons-material/TrendingUp';
 import WarningAmber from '@mui/icons-material/WarningAmber';
 import Announcement from '@mui/icons-material/Announcement';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-  BarChart,
-  Bar,
-} from 'recharts';
+import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { formatLocaleDate, toDate } from '../../utils/date';
 import { normalizeContactSearchValue, normalizeContactValue } from '../../utils/contact';
@@ -57,6 +47,7 @@ import type { AlertColor } from '@mui/material';
 import Page from '../../components/Page';
 import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import FormDialog from '../../components/FormDialog';
+import WarehouseTrendChart from '../../components/dashboard/WarehouseTrendChart';
 
 interface MonthlyTotal {
   year: number;
@@ -127,6 +118,11 @@ export default function WarehouseDashboard() {
     donations: number;
     surplus: number;
     pigPound: number;
+    outgoing: number;
+  } | null>(null);
+  const [selectedTrend, setSelectedTrend] = useState<{
+    month: string;
+    incoming: number;
     outgoing: number;
   } | null>(null);
 
@@ -255,6 +251,12 @@ export default function WarehouseDashboard() {
       }),
     [totals],
   );
+
+  const hasTrendData = useMemo(() => chartData.some(point => point.incoming || point.outgoing), [chartData]);
+
+  useEffect(() => {
+    setSelectedTrend(null);
+  }, [chartData, year]);
 
   const filteredDonors = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -410,31 +412,37 @@ export default function WarehouseDashboard() {
         <Stack spacing={2} sx={{ width: '100%' }}>
           <Card variant="outlined">
             <CardHeader title="Monthly Trend" />
-            <CardContent sx={{ height: 300 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="incoming"
-                    name="Incoming"
-                    stroke={theme.palette.success.main}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="outgoing"
-                    name="Outgoing"
-                    stroke={theme.palette.error.main}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <CardContent sx={{ minHeight: 300, display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ flexGrow: 1 }}>
+                <WarehouseTrendChart data={chartData} onPointSelect={setSelectedTrend} />
+              </Box>
+              <Box mt={2}>
+                {!hasTrendData ? (
+                  <Typography variant="body2" color="text.secondary">
+                    No data available.
+                  </Typography>
+                ) : selectedTrend ? (
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={2}
+                    data-testid="warehouse-trend-selection"
+                  >
+                    <Typography variant="subtitle2" fontWeight={600}>
+                      {selectedTrend.month} {year ?? ''}
+                    </Typography>
+                    <Typography variant="body2">
+                      Incoming: {fmtLbs(selectedTrend.incoming)}
+                    </Typography>
+                    <Typography variant="body2">
+                      Outgoing: {fmtLbs(selectedTrend.outgoing)}
+                    </Typography>
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    Click a month to view incoming vs outgoing totals.
+                  </Typography>
+                )}
+              </Box>
             </CardContent>
           </Card>
           <Box display="grid" gridTemplateColumns={{ xs: '1fr', lg: '1fr 2fr' }} gap={2}>

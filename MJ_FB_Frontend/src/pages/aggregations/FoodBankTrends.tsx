@@ -17,22 +17,13 @@ import {
 import Grid from '@mui/material/Grid';
 import Announcement from '@mui/icons-material/Announcement';
 import { useTheme } from '@mui/material/styles';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-  BarChart,
-  Bar,
-} from 'recharts';
+import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar } from 'recharts';
 import Page from '../../components/Page';
 import SectionCard from '../../components/dashboard/SectionCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import ClientVisitTrendChart from '../../components/dashboard/ClientVisitTrendChart';
 import ClientVisitBreakdownChart from '../../components/dashboard/ClientVisitBreakdownChart';
+import WarehouseTrendChart from '../../components/dashboard/WarehouseTrendChart';
 import EventList from '../../components/EventList';
 import { getEvents, type EventGroups } from '../../api/events';
 import { getPantryMonthly } from '../../api/pantryAggregations';
@@ -99,6 +90,11 @@ export default function FoodBankTrends() {
   const [warehouseTotals, setWarehouseTotals] = useState<WarehouseOverall[]>([]);
   const [warehouseLoading, setWarehouseLoading] = useState(false);
   const [warehouseError, setWarehouseError] = useState<string | null>(null);
+  const [selectedWarehouseTrend, setSelectedWarehouseTrend] = useState<{
+    month: string;
+    incoming: number;
+    outgoing: number;
+  } | null>(null);
   const [donors, setDonors] = useState<TopDonor[]>([]);
   const [donorError, setDonorError] = useState<string | null>(null);
   const [receivers, setReceivers] = useState<TopReceiver[]>([]);
@@ -310,6 +306,14 @@ export default function FoodBankTrends() {
   );
 
   const hasWarehouseData = chartData.length > 0;
+  const hasWarehouseTrendData = useMemo(
+    () => chartData.some(point => point.incoming || point.outgoing),
+    [chartData],
+  );
+
+  useEffect(() => {
+    setSelectedWarehouseTrend(null);
+  }, [chartData, selectedYear]);
 
   return (
     <Page title="Food Bank Trends">
@@ -450,42 +454,53 @@ export default function FoodBankTrends() {
                 <Stack spacing={2}>
                   <Card variant="outlined">
                     <CardHeader title="Monthly Trend" />
-                    <CardContent sx={{ height: 300 }}>
+                    <CardContent sx={{ minHeight: 300, display: 'flex', flexDirection: 'column' }}>
                       {warehouseLoading ? (
-                        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                        <Box display="flex" justifyContent="center" alignItems="center" flexGrow={1}>
                           <CircularProgress size={24} />
                         </Box>
                       ) : warehouseError ? (
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
                           {warehouseError}
                         </Typography>
                       ) : hasWarehouseData ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="month" />
-                            <YAxis />
-                            <Legend />
-                            <Line
-                              type="monotone"
-                              dataKey="incoming"
-                              name="Incoming"
-                              stroke={theme.palette.success.main}
-                              strokeWidth={2}
-                              dot={false}
+                        <>
+                          <Box sx={{ flexGrow: 1 }}>
+                            <WarehouseTrendChart
+                              data={chartData}
+                              onPointSelect={setSelectedWarehouseTrend}
                             />
-                            <Line
-                              type="monotone"
-                              dataKey="outgoing"
-                              name="Outgoing"
-                              stroke={theme.palette.error.main}
-                              strokeWidth={2}
-                              dot={false}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
+                          </Box>
+                          <Box mt={2}>
+                            {!hasWarehouseTrendData ? (
+                              <Typography variant="body2" color="text.secondary">
+                                No data available.
+                              </Typography>
+                            ) : selectedWarehouseTrend ? (
+                              <Stack
+                                direction={{ xs: 'column', sm: 'row' }}
+                                spacing={2}
+                                data-testid="food-bank-trend-selection"
+                              >
+                                <Typography variant="subtitle2" fontWeight={600}>
+                                  {selectedWarehouseTrend.month} {selectedYear ?? ''}
+                                </Typography>
+                                <Typography variant="body2">
+                                  Incoming: {fmtLbs(selectedWarehouseTrend.incoming)}
+                                </Typography>
+                                <Typography variant="body2">
+                                  Outgoing: {fmtLbs(selectedWarehouseTrend.outgoing)}
+                                </Typography>
+                              </Stack>
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">
+                                Click a month to view incoming vs outgoing totals.
+                              </Typography>
+                            )}
+                          </Box>
+                        </>
                       ) : (
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
                           No data available.
                         </Typography>
                       )}

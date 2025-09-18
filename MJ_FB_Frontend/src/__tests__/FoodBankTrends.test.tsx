@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import FoodBankTrends from '../pages/aggregations/FoodBankTrends';
 import '../../tests/mockUrl';
@@ -30,6 +30,19 @@ jest.mock('../api/donors', () => ({
 jest.mock('../api/outgoingReceivers', () => ({
   getTopReceivers: (...args: unknown[]) => mockGetTopReceivers(...args),
 }));
+
+jest.mock('../components/dashboard/WarehouseTrendChart', () =>
+  function MockWarehouseTrendChart(props: { data: any[]; onPointSelect?: (point: any) => void }) {
+    return (
+      <div
+        data-testid="warehouse-trend-chart"
+        onClick={() => props.onPointSelect?.(props.data?.[0])}
+      >
+        Warehouse Trend Chart
+      </div>
+    );
+  },
+);
 
 describe('FoodBankTrends page', () => {
   beforeEach(() => {
@@ -125,5 +138,26 @@ describe('FoodBankTrends page', () => {
     expect(await screen.findByText(/Donor One/)).toBeInTheDocument();
     expect(screen.getByText(/Top Receivers/i)).toBeInTheDocument();
     expect(await screen.findByText(/Community Partner/)).toBeInTheDocument();
+  });
+
+  it('shows warehouse trend selection details after clicking a month', async () => {
+    render(
+      <MemoryRouter>
+        <FoodBankTrends />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(mockGetWarehouseOverall).toHaveBeenCalled());
+
+    const chart = await screen.findByTestId('warehouse-trend-chart');
+    expect(
+      await screen.findByText(/Click a month to view incoming vs outgoing totals./i),
+    ).toBeInTheDocument();
+
+    fireEvent.click(chart);
+
+    const summary = await screen.findByTestId('food-bank-trend-selection');
+    expect(summary).toHaveTextContent('Incoming: 1,650 lbs');
+    expect(summary).toHaveTextContent('Outgoing: 800 lbs');
   });
 });

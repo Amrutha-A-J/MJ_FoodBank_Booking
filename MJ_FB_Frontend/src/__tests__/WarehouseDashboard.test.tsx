@@ -42,6 +42,18 @@ jest.mock('../components/dashboard/VolunteerCoverageCard', () => () => (
 ));
 jest.mock('../components/EventList', () => () => <div>Events</div>);
 jest.mock('../components/WarehouseQuickLinks', () => () => <div />);
+jest.mock('../components/dashboard/WarehouseTrendChart', () =>
+  function MockWarehouseTrendChart(props: { data: any[]; onPointSelect?: (point: any) => void }) {
+    return (
+      <div
+        data-testid="warehouse-trend-chart"
+        onClick={() => props.onPointSelect?.(props.data?.[0])}
+      >
+        Warehouse Trend Chart
+      </div>
+    );
+  },
+);
 
 describe('WarehouseDashboard', () => {
   const donors = [
@@ -120,5 +132,27 @@ describe('WarehouseDashboard', () => {
       expect(screen.getByText('Alice Donor')).toBeInTheDocument();
       expect(screen.queryByText('Bob Helper')).not.toBeInTheDocument();
     });
+  });
+
+  it('shows selected monthly totals when a trend point is clicked', async () => {
+    mockGetWarehouseOverall.mockResolvedValue([
+      { month: 1, donations: 100, surplus: 20, pigPound: 10, outgoingDonations: 50 },
+      { month: 2, donations: 120, surplus: 15, pigPound: 5, outgoingDonations: 60 },
+    ]);
+
+    renderDashboard();
+
+    await waitFor(() => expect(mockGetWarehouseOverall).toHaveBeenCalled());
+
+    const chart = await screen.findByTestId('warehouse-trend-chart');
+    expect(
+      await screen.findByText(/Click a month to view incoming vs outgoing totals./i),
+    ).toBeInTheDocument();
+
+    fireEvent.click(chart);
+
+    const summary = await screen.findByTestId('warehouse-trend-selection');
+    expect(summary).toHaveTextContent('Incoming: 100 lbs');
+    expect(summary).toHaveTextContent('Outgoing: 50 lbs');
   });
 });
