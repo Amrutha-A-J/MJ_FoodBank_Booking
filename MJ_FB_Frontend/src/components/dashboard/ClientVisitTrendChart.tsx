@@ -10,7 +10,12 @@ import {
   Tooltip,
 } from 'recharts';
 import type { VisitStat } from '../../api/clientVisits';
-import type { CategoricalChartState } from 'recharts/types/chart/generateCategoricalChart';
+import type { CategoricalChartFunc } from 'recharts/types/chart/types';
+import type { MouseHandlerDataParam } from 'recharts/types/synchronisation/types';
+
+type ChartState = MouseHandlerDataParam & {
+  activePayload?: Array<{ payload?: unknown }>;
+};
 
 interface Props {
   data: VisitStat[];
@@ -24,9 +29,9 @@ export default function ClientVisitTrendChart({ data, onPointSelect }: Props) {
       ? [...data, { month: '', clients: 0, adults: 0, children: 0 }]
       : data;
 
-  const handleClick = (state: CategoricalChartState | undefined) => {
+  const handleClick: CategoricalChartFunc = (state) => {
     if (!onPointSelect) return;
-    const payload = state?.activePayload?.[0]?.payload as VisitStat | undefined;
+    const payload = (state as ChartState | undefined)?.activePayload?.[0]?.payload as VisitStat | undefined;
     if (payload) {
       onPointSelect(payload);
     }
