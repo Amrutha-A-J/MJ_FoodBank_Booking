@@ -390,11 +390,7 @@ export default function FoodBankTrends() {
                   </FormControl>
                 </Stack>
 
-                <Box
-                  display="grid"
-                  gridTemplateColumns={{ xs: '1fr', lg: '2fr 1fr' }}
-                  gap={2}
-                >
+                <Stack spacing={2}>
                   <Card variant="outlined">
                     <CardHeader title="Monthly Trend" />
                     <CardContent sx={{ height: 300 }}>
@@ -489,7 +485,7 @@ export default function FoodBankTrends() {
                       )}
                     </CardContent>
                   </Card>
-                </Box>
+                </Stack>
 
                 <Box
                   display="grid"
