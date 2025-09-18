@@ -43,7 +43,7 @@ export default function VolunteerCoverageCard({
   const [coverage, setCoverage] = useState<CoverageItem[]>([]);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<CoverageItem | null>(null);
-  const showMorningFirst = useMemo(() => toDayjs(new Date()).hour() < 11, []);
+  const showMorningFirst = useMemo(() => toDayjs().hour() < 11, []);
 
   const groupedCoverage = useMemo(() => {
     const morning = coverage.filter(item => item.period === 'morning');
