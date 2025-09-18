@@ -13,12 +13,33 @@ import { ExpirationPlugin } from 'workbox-expiration'
 import { BackgroundSyncPlugin } from 'workbox-background-sync'
 import { clientsClaim } from 'workbox-core'
 
+declare const __BUILD_VERSION__: string
+
 declare let self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: ManifestEntry[]
 }
 
 // self.__WB_MANIFEST is injected at build time
 precacheAndRoute(self.__WB_MANIFEST)
+
+const CACHE_VERSION = typeof __BUILD_VERSION__ === 'string' ? __BUILD_VERSION__ : 'dev'
+
+const RUNTIME_CACHE_PREFIXES = [
+  'static-assets',
+  'schedule-api',
+  'booking-history-api',
+  'profile-api',
+  'warehouse-settings-api',
+  'volunteer-bookings-api',
+  'notifications-api',
+  'app-config-api',
+]
+
+const versionedCacheName = (name: string) => `${name}-v${CACHE_VERSION}`
+
+const CURRENT_RUNTIME_CACHES = new Set(
+  RUNTIME_CACHE_PREFIXES.map((prefix) => versionedCacheName(prefix)),
+)
 
 self.addEventListener('install', () => {
   self.skipWaiting()
@@ -30,7 +51,10 @@ self.addEventListener('activate', (event) => {
       const cacheKeys = await caches.keys()
       await Promise.all(
         cacheKeys
-          .filter((cacheName) => cacheName === 'static-assets')
+          .filter((cacheName) =>
+            RUNTIME_CACHE_PREFIXES.some((prefix) => cacheName.startsWith(prefix)),
+          )
+          .filter((cacheName) => !CURRENT_RUNTIME_CACHES.has(cacheName))
           .map((cacheName) => caches.delete(cacheName)),
       )
       clientsClaim()
@@ -43,7 +67,7 @@ registerRoute(
   ({ request }) =>
     ['style', 'script', 'worker', 'image'].includes(request.destination),
   new CacheFirst({
-    cacheName: 'static-assets',
+    cacheName: versionedCacheName('static-assets'),
     plugins: [
       new ExpirationPlugin({
         maxEntries: 50,
@@ -57,7 +81,7 @@ registerRoute(
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/v1/slots'),
   new StaleWhileRevalidate({
-    cacheName: 'schedule-api',
+    cacheName: versionedCacheName('schedule-api'),
     plugins: [
       new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 60 }),
     ],
@@ -70,7 +94,7 @@ registerRoute(
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/v1/bookings/history'),
   new StaleWhileRevalidate({
-    cacheName: 'booking-history-api',
+    cacheName: versionedCacheName('booking-history-api'),
     plugins: [
       new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 60 }),
     ],
@@ -83,7 +107,7 @@ registerRoute(
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/v1/users/me'),
   new StaleWhileRevalidate({
-    cacheName: 'profile-api',
+    cacheName: versionedCacheName('profile-api'),
     plugins: [
       new ExpirationPlugin({ maxEntries: 1, maxAgeSeconds: 60 * 60 }),
     ],
@@ -96,7 +120,7 @@ registerRoute(
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/v1/warehouse-settings'),
   new StaleWhileRevalidate({
-    cacheName: 'warehouse-settings-api',
+    cacheName: versionedCacheName('warehouse-settings-api'),
     plugins: [
       new ExpirationPlugin({ maxEntries: 1, maxAgeSeconds: 60 * 60 }),
     ],
@@ -109,7 +133,7 @@ registerRoute(
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/v1/volunteer-bookings'),
   new StaleWhileRevalidate({
-    cacheName: 'volunteer-bookings-api',
+    cacheName: versionedCacheName('volunteer-bookings-api'),
     plugins: [
       new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 60 }),
     ],
@@ -122,7 +146,7 @@ registerRoute(
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/v1/users/me/notifications'),
   new StaleWhileRevalidate({
-    cacheName: 'notifications-api',
+    cacheName: versionedCacheName('notifications-api'),
     plugins: [
       new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 60 }),
     ],
@@ -135,7 +159,7 @@ registerRoute(
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/v1/app-config'),
   new StaleWhileRevalidate({
-    cacheName: 'app-config-api',
+    cacheName: versionedCacheName('app-config-api'),
     plugins: [
       new ExpirationPlugin({ maxEntries: 1, maxAgeSeconds: 60 * 60 }),
     ],

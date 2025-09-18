@@ -33,6 +33,8 @@ Run tests with `npm test` so `.env.test` and `jest.setup.ts` execute, providing 
 
 The frontend registers a Workbox-powered service worker that precaches built assets, caches schedule, booking history, and profile API responses, and serves an offline fallback page when navigation fails. Booking actions made while offline are queued and retried in the background once connectivity returns. A network connection is still recommended for full functionality.
 
+Each production build stamps the service worker with a unique cache version so clients automatically discard old runtime caches when a deployment goes live. You can override the generated version by setting a `BUILD_VERSION` environment variable before running `npm run build`.
+
 ## Environment Variables
 
 The frontend requires `VITE_API_BASE` to be defined. Create a `.env` file in this directory with either an absolute or relative URL:
