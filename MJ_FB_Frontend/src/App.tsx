@@ -4,7 +4,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 const Dashboard = React.lazy(
   () => import('./components/dashboard/Dashboard')
 );
-import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
+import Navbar from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import MainLayout from './components/layout/MainLayout';
 import { useAuth, DonorManagementGuard } from './hooks/useAuth';

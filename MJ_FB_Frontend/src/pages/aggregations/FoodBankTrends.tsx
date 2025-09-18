@@ -7,7 +7,6 @@ import {
   Chip,
   CircularProgress,
   FormControl,
-  Grid,
   InputLabel,
   MenuItem,
   Select,
@@ -15,6 +14,7 @@ import {
   Typography,
   type AlertColor,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import Announcement from '@mui/icons-material/Announcement';
 import { useTheme } from '@mui/material/styles';
 import {
@@ -311,7 +311,7 @@ export default function FoodBankTrends() {
       />
 
       <Grid container spacing={2}>
-        <Grid item xs={12} lg={8}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <Stack spacing={3}>
             <SectionCard title="Pantry & Community">
               <Box
@@ -579,7 +579,7 @@ export default function FoodBankTrends() {
             </SectionCard>
           </Stack>
         </Grid>
-        <Grid item xs={12} lg={4}>
+        <Grid size={{ xs: 12, lg: 4 }}>
           <SectionCard title="Notices & Events" icon={<Announcement color="primary" />}>
             {eventsLoading ? (
               <Box display="flex" justifyContent="center" py={2}>
