@@ -223,6 +223,9 @@ export default function BookingUI<T = Slot>({
 }: BookingUIProps<T>) {
   const location = useLocation();
   const { role, name: authName, userRole } = useAuth();
+  const isVolunteerSchedule = location.pathname.startsWith('/volunteer/schedule');
+  const historyPath = isVolunteerSchedule ? '/volunteer/history' : '/booking-history';
+  const historyButtonLabel = isVolunteerSchedule ? 'View shift history' : 'View booking history';
   const pageTitle =
     location.pathname.startsWith('/book-appointment') && userRole === 'shopper'
       ? 'Book shopping appointment'
@@ -421,7 +424,7 @@ export default function BookingUI<T = Slot>({
                 </Typography>
                 <Typography>
                   If you need to reschedule, please do so from your bookings{' '}
-                  <Link component={RouterLink} to="/booking-history" underline="hover">
+                  <Link component={RouterLink} to={historyPath} underline="hover">
                     page
                   </Link>
                   .
@@ -491,9 +494,29 @@ export default function BookingUI<T = Slot>({
       }}
     >
       <Toolbar />
-      <Typography variant="h5" gutterBottom>
-        {`Booking for ${displayName}`}
-      </Typography>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={1.5}
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        justifyContent="space-between"
+        sx={{ mb: 2 }}
+      >
+        <Typography variant="h5" sx={{ flexGrow: 1 }}>
+          {`Booking for ${displayName}`}
+        </Typography>
+        <Button
+          component={RouterLink}
+          to={historyPath}
+          variant="outlined"
+          size="medium"
+          sx={{
+            minHeight: 48,
+            width: { xs: '100%', sm: 'auto' },
+          }}
+        >
+          {historyButtonLabel}
+        </Button>
+      </Stack>
       <Typography
         variant="subtitle1"
         sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
