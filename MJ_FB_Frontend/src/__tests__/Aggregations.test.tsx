@@ -20,10 +20,22 @@ jest.mock('../api/warehouseOverall', () => ({
 
 const mockGetDonorAggregations = jest.fn().mockResolvedValue([]);
 const mockPostManualDonorAggregation = jest.fn().mockResolvedValue(undefined);
+const mockGetDonors = jest.fn().mockResolvedValue([
+  {
+    id: 42,
+    firstName: 'Jane',
+    lastName: 'Doe',
+    email: null,
+    phone: '306-555-0100',
+  },
+]);
 jest.mock('../api/donations', () => ({
   getDonorAggregations: (...args: unknown[]) => mockGetDonorAggregations(...args),
   postManualDonorAggregation: (...args: unknown[]) =>
     mockPostManualDonorAggregation(...args),
+}));
+jest.mock('../api/donors', () => ({
+  getDonors: (...args: unknown[]) => mockGetDonors(...args),
 }));
 
 describe('Aggregations page', () => {
@@ -43,6 +55,15 @@ describe('Aggregations page', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetDonors.mockResolvedValue([
+      {
+        id: 42,
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: null,
+        phone: '306-555-0100',
+      },
+    ]);
   });
 
   it('loads donor data on mount and when returning to Donor tab', async () => {
@@ -100,7 +121,7 @@ describe('Aggregations page', () => {
         outgoingDonations: 4,
       }),
     );
-  await waitFor(() => expect(mockGetWarehouseOverall).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mockGetWarehouseOverall).toHaveBeenCalledTimes(2));
   });
 
   it('inserts manual donor aggregate through modal', async () => {
@@ -111,10 +132,14 @@ describe('Aggregations page', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: /insert aggregate/i }));
 
+    await waitFor(() => expect(mockGetDonors).toHaveBeenCalled());
+
     fireEvent.change(screen.getByLabelText(/month/i), { target: { value: '5' } });
-    fireEvent.change(screen.getByLabelText(/donor id/i), {
-      target: { value: '42' },
-    });
+    const donorInput = screen.getByRole('combobox', { name: /donor/i });
+    fireEvent.change(donorInput, { target: { value: 'Jane' } });
+
+    const option = await screen.findByRole('option', { name: /jane doe/i });
+    fireEvent.click(option);
     fireEvent.change(screen.getByLabelText(/total/i), { target: { value: '100' } });
 
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
