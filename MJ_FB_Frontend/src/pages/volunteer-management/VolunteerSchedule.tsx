@@ -28,6 +28,7 @@ import FeedbackSnackbar from "../../components/FeedbackSnackbar";
 import RescheduleDialog from "../../components/RescheduleDialog";
 import DialogCloseButton from "../../components/DialogCloseButton";
 import OverlapBookingDialog from "../../components/OverlapBookingDialog";
+import FormDialog from "../../components/FormDialog";
 import type { ApiError } from "../../api/client";
 import type { VolunteerBookingConflict } from "../../types";
 import {
@@ -37,7 +38,6 @@ import {
   Select,
   MenuItem,
   Button,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -566,7 +566,7 @@ export default function VolunteerSchedule() {
           </Typography>
         ) : null}
 
-        <Dialog open={!!requestRole} onClose={() => setRequestRole(null)}>
+        <FormDialog open={!!requestRole} onClose={() => setRequestRole(null)}>
           <DialogCloseButton onClose={() => setRequestRole(null)} />
           <DialogTitle>Request Booking</DialogTitle>
           <DialogContent dividers>
@@ -636,9 +636,9 @@ export default function VolunteerSchedule() {
               Submit
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
 
-        <Dialog
+        <FormDialog
           open={!!decisionBooking}
           onClose={() => {
             setDecisionBooking(null);
@@ -696,7 +696,7 @@ export default function VolunteerSchedule() {
               Cancel Booking
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
         {conflict && (
           <OverlapBookingDialog
             open

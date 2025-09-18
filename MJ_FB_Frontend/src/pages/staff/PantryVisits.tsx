@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Button,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -23,6 +22,7 @@ import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import FormDialog from '../../components/FormDialog';
 import PantryQuickLinks from '../../components/PantryQuickLinks';
 import ResponsiveTable from '../../components/ResponsiveTable';
 import {
@@ -544,7 +544,14 @@ export default function PantryVisits() {
       </Stack>
       <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
-      <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
+      <FormDialog
+        open={recordOpen}
+        onClose={() => {
+          setRecordOpen(false);
+          setEditing(null);
+        }}
+        maxWidth="md"
+      >
         <DialogCloseButton onClose={() => { setRecordOpen(false); setEditing(null); }} />
         <DialogTitle>{editing ? 'Edit Visit' : 'Record Visit'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
@@ -672,9 +679,16 @@ export default function PantryVisits() {
             Save
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
-      <Dialog open={deleteOpen} onClose={() => { setDeleteOpen(false); setToDelete(null); }}>
+      <FormDialog
+        open={deleteOpen}
+        onClose={() => {
+          setDeleteOpen(false);
+          setToDelete(null);
+        }}
+        maxWidth="xs"
+      >
         <DialogCloseButton onClose={() => { setDeleteOpen(false); setToDelete(null); }} />
         <DialogTitle>Delete Visit</DialogTitle>
         <DialogContent>
@@ -699,7 +713,7 @@ export default function PantryVisits() {
             Delete
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
       <FeedbackSnackbar
         open={!!snackbar}

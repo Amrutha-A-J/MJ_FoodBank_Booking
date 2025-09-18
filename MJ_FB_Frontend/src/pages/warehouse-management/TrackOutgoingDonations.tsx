@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Button,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -19,6 +18,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import FormDialog from '../../components/FormDialog';
 import { getOutgoingReceivers, createOutgoingReceiver } from '../../api/outgoingReceivers';
 import { getOutgoingDonations, createOutgoingDonation, updateOutgoingDonation, deleteOutgoingDonation } from '../../api/outgoingDonations';
 import type { OutgoingReceiver } from '../../api/outgoingReceivers';
@@ -191,7 +191,13 @@ export default function TrackOutgoingDonations() {
         </Stack>
         <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
-      <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
+      <FormDialog
+        open={recordOpen}
+        onClose={() => {
+          setRecordOpen(false);
+          setEditing(null);
+        }}
+      >
         <DialogCloseButton onClose={() => { setRecordOpen(false); setEditing(null); }} />
         <DialogTitle>{editing ? 'Edit Outgoing Donation' : 'Record Outgoing Donation'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
@@ -228,9 +234,16 @@ export default function TrackOutgoingDonations() {
         <DialogActions>
           <Button onClick={handleSaveDonation} disabled={!form.receiverId || !form.weight}>Save</Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
-      <Dialog open={deleteOpen} onClose={() => { setDeleteOpen(false); setToDelete(null); }}>
+      <FormDialog
+        open={deleteOpen}
+        onClose={() => {
+          setDeleteOpen(false);
+          setToDelete(null);
+        }}
+        maxWidth="xs"
+      >
         <DialogCloseButton onClose={() => { setDeleteOpen(false); setToDelete(null); }} />
         <DialogTitle>Delete Outgoing Donation</DialogTitle>
         <DialogContent>
@@ -257,9 +270,9 @@ export default function TrackOutgoingDonations() {
             Delete
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
-      <Dialog open={newReceiverOpen} onClose={() => setNewReceiverOpen(false)}>
+      <FormDialog open={newReceiverOpen} onClose={() => setNewReceiverOpen(false)}>
         <DialogCloseButton onClose={() => setNewReceiverOpen(false)} />
         <DialogTitle>Add Donation Receiver</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
@@ -273,7 +286,7 @@ export default function TrackOutgoingDonations() {
         <DialogActions>
           <Button onClick={handleAddReceiver} disabled={!receiverName}>Save</Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
         <FeedbackSnackbar
           open={snackbar.open}

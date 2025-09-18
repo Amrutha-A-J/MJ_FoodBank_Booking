@@ -14,7 +14,6 @@ import VolunteerBottomNav from '../../components/VolunteerBottomNav';
 import BookingHistoryTable from '../../components/BookingHistoryTable';
 import {
   Button,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -23,6 +22,7 @@ import {
 import type { AlertColor } from '@mui/material';
 import { getVolunteerRolesForVolunteer } from '../../api/volunteers';
 import { formatTime } from '../../utils/time';
+import FormDialog from '../../components/FormDialog';
 
 export default function VolunteerBookingHistory() {
   const [history, setHistory] = useState<VolunteerBooking[]>([]);
@@ -137,7 +137,7 @@ export default function VolunteerBookingHistory() {
         />
       )}
 
-      <Dialog open={!!cancelBooking} onClose={() => setCancelBooking(null)}>
+      <FormDialog open={!!cancelBooking} onClose={() => setCancelBooking(null)} maxWidth="xs">
         <DialogCloseButton onClose={() => setCancelBooking(null)} />
         <DialogTitle>Cancel booking</DialogTitle>
         <DialogContent dividers>
@@ -148,9 +148,13 @@ export default function VolunteerBookingHistory() {
             Confirm
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
-      <Dialog open={cancelSeriesId != null} onClose={() => setCancelSeriesId(null)}>
+      <FormDialog
+        open={cancelSeriesId != null}
+        onClose={() => setCancelSeriesId(null)}
+        maxWidth="xs"
+      >
         <DialogCloseButton onClose={() => setCancelSeriesId(null)} />
         <DialogTitle>Cancel series</DialogTitle>
         <DialogContent dividers>
@@ -161,7 +165,7 @@ export default function VolunteerBookingHistory() {
             Confirm
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
       <RescheduleDialog
         open={!!rescheduleBooking}

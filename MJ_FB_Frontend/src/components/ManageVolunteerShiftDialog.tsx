@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -13,6 +12,7 @@ import {
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import FormDialog from './FormDialog';
 import {
   getRoleShifts,
   getVolunteerBookingsByRole,
@@ -162,7 +162,7 @@ export default function ManageVolunteerShiftDialog({
   const availableShifts = shifts.filter(s => !isShiftDisabled(s));
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+    <FormDialog open={open} onClose={onClose}>
       <DialogCloseButton onClose={onClose} />
       <DialogTitle>Manage Shift</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>
@@ -238,6 +238,6 @@ export default function ManageVolunteerShiftDialog({
           Submit
         </Button>
       </DialogActions>
-    </Dialog>
+    </FormDialog>
   );
 }

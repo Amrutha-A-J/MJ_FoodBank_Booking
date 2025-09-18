@@ -22,7 +22,6 @@ import {
   Checkbox,
   Chip,
   Container,
-  Dialog,
   DialogActions,
   DialogContent,
   FormControl,
@@ -48,6 +47,7 @@ import BookingHistoryTable from '../../../components/BookingHistoryTable';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import DialogCloseButton from '../../../components/DialogCloseButton';
+import FormDialog from '../../../components/FormDialog';
 import PasswordField from '../../../components/PasswordField';
 
 export default function EditVolunteer() {
@@ -616,7 +616,7 @@ export default function EditVolunteer() {
         </Box>
       )}
       {shopperOpen && (
-        <Dialog open onClose={() => setShopperOpen(false)}>
+        <FormDialog open onClose={() => setShopperOpen(false)}>
           <DialogCloseButton onClose={() => setShopperOpen(false)} />
           <DialogContent>
             <TextField
@@ -648,7 +648,7 @@ export default function EditVolunteer() {
               Create
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
       )}
       {removeShopperOpen && (
         <ConfirmDialog

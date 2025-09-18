@@ -8,7 +8,6 @@ import {
   Stack,
   CircularProgress,
   Button,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -30,6 +29,7 @@ import {
 } from '../../api/donations';
 import { getDonors, type Donor } from '../../api/donors';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import FormDialog from '../../components/FormDialog';
 import StyledTabs from '../../components/StyledTabs';
 import { toDate } from '../../utils/date';
 import { exportTableToExcel } from '../../utils/exportTableToExcel';
@@ -412,7 +412,7 @@ export default function Aggregations() {
   return (
     <Page title="Warehouse Aggregations">
       <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
-      <Dialog open={donorInsertOpen} onClose={() => setDonorInsertOpen(false)}>
+      <FormDialog open={donorInsertOpen} onClose={() => setDonorInsertOpen(false)}>
         <DialogTitle>Insert Aggregate</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
@@ -502,8 +502,8 @@ export default function Aggregations() {
             {donorInsertLoading ? <CircularProgress size={20} /> : 'Save'}
           </Button>
         </DialogActions>
-      </Dialog>
-      <Dialog open={insertOpen} onClose={() => setInsertOpen(false)}>
+      </FormDialog>
+      <FormDialog open={insertOpen} onClose={() => setInsertOpen(false)}>
         <DialogTitle>Insert Aggregate</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
@@ -577,7 +577,7 @@ export default function Aggregations() {
             {insertLoading ? <CircularProgress size={20} /> : 'Save'}
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
         <FeedbackSnackbar
           open={snackbar.open}
           onClose={() => setSnackbar({ ...snackbar, open: false })}

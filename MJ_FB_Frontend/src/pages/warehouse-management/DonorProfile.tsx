@@ -5,7 +5,6 @@ import {
   Button,
   Card,
   CardContent,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -27,6 +26,7 @@ import { formatLocaleDate } from '../../utils/date';
 import Page from '../../components/Page';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import { getApiErrorMessage } from '../../api/helpers';
+import FormDialog from '../../components/FormDialog';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -224,7 +224,7 @@ export default function DonorProfile() {
           severity={snackbar.severity}
         />
       </Box>
-      <Dialog open={editOpen} onClose={handleCloseEdit} fullWidth maxWidth="sm">
+      <FormDialog open={editOpen} onClose={handleCloseEdit}>
         <DialogCloseButton onClose={handleCloseEdit} />
         <DialogTitle>Edit Donor</DialogTitle>
         <DialogContent>
@@ -273,7 +273,7 @@ export default function DonorProfile() {
             {saving ? 'Saving…' : 'Save'}
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
     </Page>
   );
 }

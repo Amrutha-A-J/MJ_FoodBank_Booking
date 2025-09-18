@@ -36,7 +36,6 @@ import {
   Checkbox,
   FormControlLabel,
   Switch,
-  Dialog,
   DialogActions,
   DialogContent,
   Typography,
@@ -54,6 +53,7 @@ const Dashboard = React.lazy(
 );
 import EntitySearch from '../../components/EntitySearch';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import FormDialog from '../../components/FormDialog';
 import { formatDate, addDays } from '../../utils/date';
 import dayjs from '../../utils/date';
 import Page from '../../components/Page';
@@ -1262,7 +1262,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         </>
       )}
         {shopperOpen && (
-          <Dialog open onClose={() => setShopperOpen(false)}>
+          <FormDialog open onClose={() => setShopperOpen(false)}>
             <DialogCloseButton onClose={() => setShopperOpen(false)} />
             <DialogContent>
             <TextField
@@ -1300,7 +1300,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 Create
               </Button>
             </DialogActions>
-          </Dialog>
+          </FormDialog>
         )}
 
       {removeShopperOpen && (

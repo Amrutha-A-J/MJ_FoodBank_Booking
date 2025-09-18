@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Button,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -18,6 +17,7 @@ import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import FormDialog from '../../components/FormDialog';
 import useSnackbar from '../../hooks/useSnackbar';
 import { getDonors, createDonor } from '../../api/donors';
 import {
@@ -252,7 +252,13 @@ export default function DonationLog() {
 
         {table}
 
-      <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
+      <FormDialog
+        open={recordOpen}
+        onClose={() => {
+          setRecordOpen(false);
+          setEditing(null);
+        }}
+      >
         <DialogCloseButton onClose={() => { setRecordOpen(false); setEditing(null); }} />
         <DialogTitle>{editing ? 'Edit Donation' : 'Record Donation'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
@@ -288,9 +294,16 @@ export default function DonationLog() {
             Save
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
-      <Dialog open={deleteOpen} onClose={() => { setDeleteOpen(false); setToDelete(null); }}>
+      <FormDialog
+        open={deleteOpen}
+        onClose={() => {
+          setDeleteOpen(false);
+          setToDelete(null);
+        }}
+        maxWidth="xs"
+      >
         <DialogCloseButton onClose={() => { setDeleteOpen(false); setToDelete(null); }} />
         <DialogTitle>Delete Donation</DialogTitle>
         <DialogContent>
@@ -320,9 +333,9 @@ export default function DonationLog() {
             Delete
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
-      <Dialog open={newDonorOpen} onClose={() => setNewDonorOpen(false)}>
+      <FormDialog open={newDonorOpen} onClose={() => setNewDonorOpen(false)}>
         <DialogCloseButton onClose={() => setNewDonorOpen(false)} />
         <DialogTitle>Add Donor</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
@@ -363,7 +376,7 @@ export default function DonationLog() {
             Save
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
       <FeedbackSnackbar
         open={open}

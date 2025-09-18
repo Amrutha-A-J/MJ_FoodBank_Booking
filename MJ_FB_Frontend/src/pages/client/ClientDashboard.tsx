@@ -9,7 +9,6 @@ import {
   ListItem,
   ListItemText,
   Chip,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -30,6 +29,7 @@ import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
 import OnboardingModal from '../../components/OnboardingModal';
+import FormDialog from '../../components/FormDialog';
 
 interface NextSlot {
   date: string;
@@ -380,7 +380,7 @@ export default function ClientDashboard() {
           </Stack>
         </Grid>
       </Grid>
-        <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
+        <FormDialog open={cancelId !== null} onClose={() => setCancelId(null)} maxWidth="xs">
           <DialogCloseButton onClose={() => setCancelId(null)} />
           <DialogTitle>Cancel booking</DialogTitle>
           <DialogContent>
@@ -397,7 +397,7 @@ export default function ClientDashboard() {
               Cancel booking
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
       <FeedbackSnackbar
         open={!!message}
         onClose={() => setMessage('')}

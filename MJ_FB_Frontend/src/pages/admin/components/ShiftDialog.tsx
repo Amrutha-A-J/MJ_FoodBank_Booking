@@ -1,5 +1,6 @@
 import { memo, useEffect, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, TextField, DialogActions, Button } from '@mui/material';
+import { DialogTitle, DialogContent, TextField, DialogActions, Button } from '@mui/material';
+import FormDialog from '../../../components/FormDialog';
 
 interface ShiftDialogInitial {
   slotId?: number;
@@ -47,7 +48,7 @@ function ShiftDialog({ open, initial, onClose, onSave }: ShiftDialogProps) {
   }
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+    <FormDialog open={open} onClose={onClose}>
       <DialogTitle>{initial?.slotId ? 'Edit Shift' : 'Add Shift'}</DialogTitle>
       <DialogContent>
         <TextField margin="dense" label="Name" fullWidth value={initial?.roleName || ''} disabled />
@@ -101,7 +102,7 @@ function ShiftDialog({ open, initial, onClose, onSave }: ShiftDialogProps) {
           Save
         </Button>
       </DialogActions>
-    </Dialog>
+    </FormDialog>
   );
 }
 

@@ -1,5 +1,6 @@
 import { memo, useEffect, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, TextField, DialogActions, Button } from '@mui/material';
+import { DialogTitle, DialogContent, TextField, DialogActions, Button } from '@mui/material';
+import FormDialog from '../../../components/FormDialog';
 
 interface SubRoleDialogProps {
   open: boolean;
@@ -48,7 +49,7 @@ function SubRoleDialog({ open, onClose, onSave }: SubRoleDialogProps) {
   }
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+    <FormDialog open={open} onClose={onClose}>
       <DialogTitle>Add Sub-role</DialogTitle>
       <DialogContent>
         <TextField
@@ -113,7 +114,7 @@ function SubRoleDialog({ open, onClose, onSave }: SubRoleDialogProps) {
           Save
         </Button>
       </DialogActions>
-    </Dialog>
+    </FormDialog>
   );
 }
 

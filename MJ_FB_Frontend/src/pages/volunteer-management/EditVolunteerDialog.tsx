@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -17,6 +16,7 @@ import type { AlertColor } from '@mui/material';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import PasswordField from '../../components/PasswordField';
+import FormDialog from '../../components/FormDialog';
 import { updateVolunteer, type VolunteerSearchResult } from '../../api/volunteers';
 import { getApiErrorMessage } from '../../api/helpers';
 
@@ -102,7 +102,7 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
   }
 
   return (
-    <Dialog open={!!volunteer} onClose={onClose}>
+    <FormDialog open={!!volunteer} onClose={onClose}>
       <DialogCloseButton onClose={onClose} />
       <DialogTitle>Edit Volunteer</DialogTitle>
       <DialogContent>
@@ -187,6 +187,6 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
         message={snackbar?.message || ''}
         severity={snackbar?.severity}
       />
-    </Dialog>
+    </FormDialog>
   );
 }

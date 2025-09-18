@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -10,6 +9,7 @@ import {
 } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import FormDialog from './FormDialog';
 import { formatReginaDate } from '../utils/date';
 import type { AlertColor } from '@mui/material';
 
@@ -81,7 +81,7 @@ export default function RescheduleDialog({
   }
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <FormDialog open={open} onClose={onClose}>
       <DialogCloseButton onClose={onClose} />
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
@@ -122,7 +122,7 @@ export default function RescheduleDialog({
           {submitLabel}
         </Button>
       </DialogActions>
-    </Dialog>
+    </FormDialog>
   );
 }
 

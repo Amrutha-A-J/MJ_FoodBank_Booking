@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { Dialog, DialogActions, DialogContent, Button, Typography } from '@mui/material';
+import { DialogActions, DialogContent, Button, Typography } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
+import FormDialog from './FormDialog';
 
 interface ConfirmDialogProps {
   message: string;
@@ -11,7 +12,7 @@ interface ConfirmDialogProps {
 
 export default function ConfirmDialog({ message, onConfirm, onCancel, children }: ConfirmDialogProps) {
   return (
-    <Dialog open onClose={onCancel}>
+    <FormDialog open onClose={onCancel} maxWidth="xs">
       <DialogCloseButton onClose={onCancel} />
       <DialogContent>
         <Typography>{message}</Typography>
@@ -20,6 +21,6 @@ export default function ConfirmDialog({ message, onConfirm, onCancel, children }
       <DialogActions>
         <Button onClick={onConfirm} variant="outlined" color="primary">Confirm</Button>
       </DialogActions>
-    </Dialog>
+    </FormDialog>
   );
 }

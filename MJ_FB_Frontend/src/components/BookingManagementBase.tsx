@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -25,6 +24,7 @@ import getApiErrorMessage from '../utils/getApiErrorMessage';
 import { formatReginaDate, toDayjs, toDate } from '../utils/date';
 import { formatTime } from '../utils/time';
 import type { Booking, Slot } from '../types';
+import FormDialog from './FormDialog';
 
 interface User {
   name?: string;
@@ -331,7 +331,7 @@ export default function BookingManagementBase({
             setMessage(m);
           },
         })}
-      <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
+      <FormDialog open={cancelId !== null} onClose={() => setCancelId(null)} maxWidth="xs">
         <DialogCloseButton onClose={() => setCancelId(null)} />
         <DialogTitle>Cancel booking</DialogTitle>
         <DialogContent>
@@ -346,11 +346,12 @@ export default function BookingManagementBase({
             Cancel booking
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
       {onDeleteVisit && (
-        <Dialog
+        <FormDialog
           open={deleteVisitId !== null}
           onClose={() => setDeleteVisitId(null)}
+          maxWidth="xs"
         >
           <DialogCloseButton onClose={() => setDeleteVisitId(null)} />
           <DialogTitle>Delete visit</DialogTitle>
@@ -366,7 +367,7 @@ export default function BookingManagementBase({
               Delete visit
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
       )}
       <FeedbackSnackbar
         open={!!message}

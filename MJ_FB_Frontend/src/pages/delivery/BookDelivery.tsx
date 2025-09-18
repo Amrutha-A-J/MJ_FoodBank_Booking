@@ -8,7 +8,6 @@ import {
   Checkbox,
   CircularProgress,
   Container,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
@@ -37,6 +36,7 @@ import type { DeliveryCategory, DeliveryItem } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { getUserProfile } from '../../api/users';
 import { useNavigate } from 'react-router-dom';
+import FormDialog from '../../components/FormDialog';
 
 type SelectionState = Record<number, boolean>;
 
@@ -331,10 +331,11 @@ export default function BookDelivery() {
 
   return (
     <>
-      <Dialog
+      <FormDialog
         open={successDialogOpen}
         onClose={handleSuccessDialogClose}
         aria-labelledby="delivery-request-submitted-title"
+        maxWidth="xs"
       >
         <DialogTitle id="delivery-request-submitted-title">
           Delivery request submitted
@@ -361,7 +362,7 @@ export default function BookDelivery() {
             View Delivery History
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
       <Container
         component="form"
         onSubmit={handleSubmit}
