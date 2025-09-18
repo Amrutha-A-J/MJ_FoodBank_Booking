@@ -522,6 +522,38 @@ describe('Update volunteer', () => {
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('volunteers', 1);
     expect(sendTemplatedEmail).toHaveBeenCalled();
   });
+
+  it('keeps existing password when not provided', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // emailCheck
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ password: 'existing' }] }) // existing
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 1,
+            first_name: 'A',
+            last_name: 'B',
+            email: 'a@b.c',
+            phone: '555',
+            password: 'existing',
+            consent: true,
+          },
+        ],
+      });
+
+    const res = await request(staffApp).put('/volunteers/1').send({
+      firstName: 'A',
+      lastName: 'B',
+      email: 'a@b.ca',
+      phone: '555',
+      onlineAccess: true,
+    });
+
+    expect(res.status).toBe(200);
+    const updateQuery = (pool.query as jest.Mock).mock.calls[2][0];
+    expect(updateQuery).toContain('$6::text');
+  });
 });
 
 describe('Delete volunteer', () => {
