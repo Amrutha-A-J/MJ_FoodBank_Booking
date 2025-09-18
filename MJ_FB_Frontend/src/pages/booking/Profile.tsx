@@ -147,7 +147,10 @@ export default function Profile({ role }: { role: Role }) {
 
   return (
     <ErrorBoundary>
-      <PageContainer maxWidth="sm">
+      <PageContainer
+        maxWidth="sm"
+        sx={{ pb: { xs: 'calc(72px + env(safe-area-inset-bottom))' } }}
+      >
         <PageCard
           variant="elevation"
           elevation={0}

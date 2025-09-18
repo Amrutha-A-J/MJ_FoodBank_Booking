@@ -7,7 +7,10 @@ import { useAuth } from '../../hooks/useAuth';
 export default function PrivacyPolicy() {
   const { role, isAuthenticated } = useAuth();
   return (
-    <Page title="Privacy Policy – Harvest Pantry Booking App">
+    <Page
+      title="Privacy Policy – Harvest Pantry Booking App"
+      sx={{ pb: { xs: 'calc(72px + env(safe-area-inset-bottom))' } }}
+    >
       <Stack spacing={2}>
         <Typography>Last updated: September 13, 2025</Typography>
 

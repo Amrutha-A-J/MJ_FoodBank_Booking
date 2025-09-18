@@ -35,7 +35,10 @@ export default function DeliveryDashboard() {
   );
 
   return (
-    <Page title="Delivery Dashboard">
+    <Page
+      title="Delivery Dashboard"
+      sx={{ pb: { xs: 'calc(72px + env(safe-area-inset-bottom))' } }}
+    >
       <FeedbackSnackbar
         open={!!error}
         onClose={() => setError('')}
