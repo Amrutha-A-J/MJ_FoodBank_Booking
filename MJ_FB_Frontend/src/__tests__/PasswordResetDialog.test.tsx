@@ -38,4 +38,30 @@ describe('PasswordResetDialog', () => {
       }),
     );
   });
+
+  it('trims whitespace around email identifier before submitting', async () => {
+    render(<PasswordResetDialog open onClose={() => {}} />);
+    fireEvent.change(screen.getByLabelText(/email or client id/i), {
+      target: { value: '  spaced@example.com  ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+    await waitFor(() =>
+      expect(requestPasswordReset).toHaveBeenCalledWith({
+        email: 'spaced@example.com',
+      }),
+    );
+  });
+
+  it('trims whitespace around numeric identifier before submitting', async () => {
+    render(<PasswordResetDialog open onClose={() => {}} />);
+    fireEvent.change(screen.getByLabelText(/email or client id/i), {
+      target: { value: '  67890  ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+    await waitFor(() =>
+      expect(requestPasswordReset).toHaveBeenCalledWith({
+        clientId: '67890',
+      }),
+    );
+  });
 });

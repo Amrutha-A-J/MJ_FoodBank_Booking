@@ -24,10 +24,11 @@ export default function PasswordResetDialog({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
+      const trimmedIdentifier = identifier.trim();
       const body: PasswordResetBody =
-        identifier.includes('@') || !/^\d+$/.test(identifier)
-          ? { email: identifier }
-          : { clientId: identifier };
+        trimmedIdentifier.includes('@') || !/^\d+$/.test(trimmedIdentifier)
+          ? { email: trimmedIdentifier }
+          : { clientId: trimmedIdentifier };
       await requestPasswordReset(body);
       setSnackbarSeverity('success');
       setMessage('If an account exists, a reset link has been sent.');
