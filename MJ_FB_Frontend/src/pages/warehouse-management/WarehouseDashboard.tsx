@@ -41,6 +41,7 @@ import {
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { formatLocaleDate, toDate } from '../../utils/date';
+import { normalizeContactValue } from '../../utils/contact';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import VolunteerCoverageCard from '../../components/dashboard/VolunteerCoverageCard';
 import EventList from '../../components/EventList';
@@ -242,18 +243,18 @@ export default function WarehouseDashboard() {
     [totals],
   );
 
-  const filteredDonors = useMemo(
-    () =>
-      donors.filter(d => {
-        const term = search.toLowerCase();
-        return (
-          d.id.toString().includes(term) ||
-          `${d.firstName} ${d.lastName}`.toLowerCase().includes(term) ||
-          d.email.toLowerCase().includes(term)
-        );
-      }),
-    [donors, search],
-  );
+  const filteredDonors = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return donors;
+    return donors.filter(d => {
+      const idMatch = d.id.toString().includes(term);
+      const firstName = normalizeContactValue(d.firstName).toLowerCase();
+      const lastName = normalizeContactValue(d.lastName).toLowerCase();
+      const fullName = `${firstName} ${lastName}`.trim();
+      const email = normalizeContactValue(d.email).toLowerCase();
+      return idMatch || fullName.includes(term) || email.includes(term);
+    });
+  }, [donors, search]);
   const filteredReceivers = useMemo(
     () => receivers.filter(r => r.name.toLowerCase().includes(search.toLowerCase())),
     [receivers, search],
@@ -291,317 +292,327 @@ export default function WarehouseDashboard() {
     <>
       <WarehouseQuickLinks />
       <Page title="Warehouse Manager Dashboard">
-      <Box>
-      <Stack
-        direction={{ xs: 'column', md: 'row' }}
-        spacing={2}
-        justifyContent="space-between"
-        alignItems={{ xs: 'stretch', md: 'center' }}
-        mb={2}
-      >
         <Box>
-          <Typography variant="body2" color="text.secondary">
-            Annual warehouse overview
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <FormControl sx={{ minWidth: 80 }}>
-            <InputLabel id="year-label">Year</InputLabel>
-            <Select
-              labelId="year-label"
-              value={year ?? ''}
-              label="Year"
-              onChange={e => setYear(Number(e.target.value))}
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            justifyContent="space-between"
+            alignItems={{ xs: 'stretch', md: 'center' }}
+            mb={2}
+          >
+            <Box>
+              <Typography variant="body2" color="text.secondary">
+                Annual warehouse overview
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <FormControl sx={{ minWidth: 80 }}>
+                <InputLabel id="year-label">Year</InputLabel>
+                <Select
+                  labelId="year-label"
+                  value={year ?? ''}
+                  label="Year"
+                  onChange={e => setYear(Number(e.target.value))}
+                >
+                  {years.map(y => (
+                    <MenuItem key={y} value={y}>
+                      {y}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Autocomplete
+                options={donorOptions}
+                getOptionLabel={o => {
+                  const firstName = normalizeContactValue(o.firstName);
+                  const lastName = normalizeContactValue(o.lastName);
+                  const name = `${firstName} ${lastName}`.trim();
+                  const phone = normalizeContactValue(o.phone);
+                  const details = [`ID ${o.id}`];
+                  if (phone) details.push(phone);
+                  if (name) {
+                    return `${name} (${details.join(' · ')})`;
+                  }
+                  return details.join(' · ');
+                }}
+                inputValue={search}
+                onInputChange={(_e, v) => setSearch(v)}
+                onChange={(_e, v) => {
+                  if (v) navigate(`/warehouse-management/donors/${v.id}`);
+                }}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    placeholder="Find donor/receiver"
+                    inputRef={searchRef}
+                  />
+                )}
+                sx={{ minWidth: 200 }}
+              />
+            </Stack>
+          </Stack>
+
+          {showAnomaly && (
+            <Alert severity="warning" icon={<WarningAmber />} sx={{ mb: 2 }}>
+              Outgoing significantly exceeds incoming this month (ratio {anomalyRatio.toFixed(2)}x). Verify logs.
+            </Alert>
+          )}
+
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: '1fr', md: 'repeat(3,1fr)', lg: 'repeat(4,1fr)' }}
+            gap={2}
+            mb={2}
+          >
+            {kpis.map(k => {
+              const { pct, up } = kpiDelta(k.value, k.prev);
+              return (
+                <Card key={k.title} variant="outlined">
+                  <CardHeader
+                    title={
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <span>{k.title}</span>
+                      </Stack>
+                    }
+                  />
+                  <CardContent>
+                    <Typography variant="h5" gutterBottom>
+                      {fmtLbs(k.value)}
+                    </Typography>
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <TrendingUp
+                        fontSize="small"
+                        sx={{ color: up ? 'success.main' : 'error.main' }}
+                      />
+                      <Typography variant="caption" color={up ? 'success.main' : 'error.main'}>
+                        {pct.toFixed(1)}% vs prev month
+                      </Typography>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </Box>
+
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: '1fr', lg: 'minmax(0,3fr) minmax(280px,1fr)' }}
+            alignItems="start"
+            gap={2}
+          >
+            <Stack spacing={2} sx={{ width: '100%' }}>
+              <Card variant="outlined">
+                <CardHeader title="Monthly Trend" />
+                <CardContent sx={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="incoming"
+                        name="Incoming"
+                        stroke={theme.palette.success.main}
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="outgoing"
+                        name="Outgoing"
+                        stroke={theme.palette.error.main}
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+              <Box display="grid" gridTemplateColumns={{ xs: '1fr', lg: '1fr 2fr' }} gap={2}>
+                <Card variant="outlined">
+                  <CardHeader title="Quick Actions" />
+                  <CardContent>
+                    <Stack spacing={1}>
+                      <Button variant="contained" fullWidth onClick={() => go('/warehouse-management/donation-log')}>
+                        Go to Donation Log
+                      </Button>
+                      <Button variant="contained" fullWidth onClick={() => go('/warehouse-management/track-surplus')}>
+                        Track Surplus
+                      </Button>
+                      <Button variant="contained" fullWidth onClick={() => go('/warehouse-management/track-pigpound')}>
+                        Log Pig Pound
+                      </Button>
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={() => go('/warehouse-management/track-outgoing-donations')}
+                      >
+                        Track Outgoing Donations
+                      </Button>
+                    </Stack>
+                  </CardContent>
+                </Card>
+                <Card variant="outlined">
+                  <CardHeader title="Composition (This Year)" />
+                  <CardContent sx={{ height: 300 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Legend />
+                        <Bar
+                          dataKey="donations"
+                          name="Donations"
+                          stackId="a"
+                          fill={theme.palette.primary.main}
+                          onClick={handleCompositionClick}
+                        />
+                        <Bar
+                          dataKey="surplus"
+                          name="Surplus"
+                          stackId="a"
+                          fill={theme.palette.warning.main}
+                          onClick={handleCompositionClick}
+                        />
+                        <Bar
+                          dataKey="pigPound"
+                          name="Pig Pound"
+                          stackId="a"
+                          fill={theme.palette.info.main}
+                          onClick={handleCompositionClick}
+                        />
+                        <Bar
+                          dataKey="outgoing"
+                          name="Outgoing"
+                          stackId="a"
+                          fill={theme.palette.error.main}
+                          onClick={handleCompositionClick}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </Box>
+              <Box display="grid" gridTemplateColumns={{ xs: '1fr', lg: 'repeat(3, 1fr)' }} gap={2}>
+                <Card variant="outlined">
+                  <CardHeader
+                    title="Top Donors"
+                    subheader="This year by total lbs"
+                    action={<Chip label={filteredDonors.length} />}
+                  />
+                  <CardContent>
+                    {filteredDonors.length ? (
+                      <Stack spacing={1}>
+                        {filteredDonors.map((d, i) => (
+                          <Stack key={i} direction="row" justifyContent="space-between">
+                            <Box>
+                              <Typography variant="body2">
+                                {d.firstName} {d.lastName}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Last: {formatLocaleDate(d.lastDonationISO)}
+                              </Typography>
+                            </Box>
+                            <Typography variant="body2">{fmtLbs(d.totalLbs)}</Typography>
+                          </Stack>
+                        ))}
+                      </Stack>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No data
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card variant="outlined">
+                  <CardHeader
+                    title="Top Receivers"
+                    subheader="This year by total lbs"
+                    action={<Chip label={filteredReceivers.length} />}
+                  />
+                  <CardContent>
+                    {filteredReceivers.length ? (
+                      <Stack spacing={1}>
+                        {filteredReceivers.map((r, i) => (
+                          <Stack key={i} direction="row" justifyContent="space-between">
+                            <Box>
+                              <Typography variant="body2">{r.name}</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Last: {formatLocaleDate(r.lastPickupISO)}
+                              </Typography>
+                            </Box>
+                            <Typography variant="body2">{fmtLbs(r.totalLbs)}</Typography>
+                          </Stack>
+                        ))}
+                      </Stack>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No data
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+                <VolunteerCoverageCard masterRoleFilter={['Warehouse']} />
+              </Box>
+              <Typography variant="caption" color="text.secondary">
+                Tip: Press Ctrl/Cmd+K in the search box to quickly filter donors/receivers.
+              </Typography>
+            </Stack>
+            <Card
+              variant="outlined"
+              sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
             >
-              {years.map(y => (
-                <MenuItem key={y} value={y}>
-                  {y}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Autocomplete
-            options={donorOptions}
-            getOptionLabel={o => `${o.firstName} ${o.lastName} (${o.email})`}
-            inputValue={search}
-            onInputChange={(_e, v) => setSearch(v)}
-            onChange={(_e, v) => {
-              if (v) navigate(`/warehouse-management/donors/${v.id}`);
-            }}
-            renderInput={params => (
-              <TextField
-                {...params}
-                placeholder="Find donor/receiver"
-                inputRef={searchRef}
-              />
-            )}
-            sx={{ minWidth: 200 }}
-          />
-        </Stack>
-      </Stack>
-
-      {showAnomaly && (
-        <Alert severity="warning" icon={<WarningAmber />} sx={{ mb: 2 }}>
-          Outgoing significantly exceeds incoming this month (ratio {anomalyRatio.toFixed(2)}x). Verify logs.
-        </Alert>
-      )}
-
-      <Box
-        display="grid"
-        gridTemplateColumns={{ xs: '1fr', md: 'repeat(3,1fr)', lg: 'repeat(4,1fr)' }}
-        gap={2}
-        mb={2}
-      >
-        {kpis.map(k => {
-          const { pct, up } = kpiDelta(k.value, k.prev);
-          return (
-            <Card key={k.title} variant="outlined">
-              <CardHeader
-                title={
-                  <Stack direction="row" spacing={0.5} alignItems="center">
-                    <span>{k.title}</span>
-                  </Stack>
-                }
-              />
-              <CardContent>
-                <Typography variant="h5" gutterBottom>
-                  {fmtLbs(k.value)}
-                </Typography>
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  <TrendingUp
-                    fontSize="small"
-                    sx={{ color: up ? 'success.main' : 'error.main' }}
-                  />
-                  <Typography variant="caption" color={up ? 'success.main' : 'error.main'}>
-                    {pct.toFixed(1)}% vs prev month
-                  </Typography>
-                </Stack>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </Box>
-
-      <Box
-        display="grid"
-        gridTemplateColumns={{ xs: '1fr', lg: 'minmax(0,3fr) minmax(280px,1fr)' }}
-        alignItems="start"
-        gap={2}
-      >
-        <Stack spacing={2} sx={{ width: '100%' }}>
-          <Card variant="outlined">
-            <CardHeader title="Monthly Trend" />
-            <CardContent sx={{ height: 300 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="incoming"
-                    name="Incoming"
-                    stroke={theme.palette.success.main}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="outgoing"
-                    name="Outgoing"
-                    stroke={theme.palette.error.main}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          <Box display="grid" gridTemplateColumns={{ xs: '1fr', lg: '1fr 2fr' }} gap={2}>
-            <Card variant="outlined">
-              <CardHeader title="Quick Actions" />
-              <CardContent>
-                <Stack spacing={1}>
-                  <Button variant="contained" fullWidth onClick={() => go('/warehouse-management/donation-log')}>
-                    Go to Donation Log
-                  </Button>
-                  <Button variant="contained" fullWidth onClick={() => go('/warehouse-management/track-surplus')}>
-                    Track Surplus
-                  </Button>
-                  <Button variant="contained" fullWidth onClick={() => go('/warehouse-management/track-pigpound')}>
-                    Log Pig Pound
-                  </Button>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={() => go('/warehouse-management/track-outgoing-donations')}
-                  >
-                    Track Outgoing Donations
-                  </Button>
-                </Stack>
-              </CardContent>
-            </Card>
-            <Card variant="outlined">
-              <CardHeader title="Composition (This Year)" />
-              <CardContent sx={{ height: 300 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Legend />
-                    <Bar
-                      dataKey="donations"
-                      name="Donations"
-                      stackId="a"
-                      fill={theme.palette.primary.main}
-                      onClick={handleCompositionClick}
-                    />
-                    <Bar
-                      dataKey="surplus"
-                      name="Surplus"
-                      stackId="a"
-                      fill={theme.palette.warning.main}
-                      onClick={handleCompositionClick}
-                    />
-                    <Bar
-                      dataKey="pigPound"
-                      name="Pig Pound"
-                      stackId="a"
-                      fill={theme.palette.info.main}
-                      onClick={handleCompositionClick}
-                    />
-                    <Bar
-                      dataKey="outgoing"
-                      name="Outgoing"
-                      stackId="a"
-                      fill={theme.palette.error.main}
-                      onClick={handleCompositionClick}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+              <CardHeader title="Notices & Events" avatar={<Announcement color="primary" />} />
+              <CardContent sx={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                <EventList events={visibleEvents} limit={5} />
               </CardContent>
             </Card>
           </Box>
-          <Box display="grid" gridTemplateColumns={{ xs: '1fr', lg: 'repeat(3, 1fr)' }} gap={2}>
-            <Card variant="outlined">
-              <CardHeader
-                title="Top Donors"
-                subheader="This year by total lbs"
-                action={<Chip label={filteredDonors.length} />}
-              />
-              <CardContent>
-                {filteredDonors.length ? (
-                  <Stack spacing={1}>
-                    {filteredDonors.map((d, i) => (
-                      <Stack key={i} direction="row" justifyContent="space-between">
-                        <Box>
-                          <Typography variant="body2">
-                            {d.firstName} {d.lastName}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Last: {formatLocaleDate(d.lastDonationISO)}
-                          </Typography>
-                        </Box>
-                        <Typography variant="body2">{fmtLbs(d.totalLbs)}</Typography>
-                      </Stack>
-                    ))}
-                  </Stack>
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    No data
-                  </Typography>
-                )}
-              </CardContent>
-            </Card>
-            <Card variant="outlined">
-              <CardHeader
-                title="Top Receivers"
-                subheader="This year by total lbs"
-                action={<Chip label={filteredReceivers.length} />}
-              />
-              <CardContent>
-                {filteredReceivers.length ? (
-                  <Stack spacing={1}>
-                    {filteredReceivers.map((r, i) => (
-                      <Stack key={i} direction="row" justifyContent="space-between">
-                        <Box>
-                          <Typography variant="body2">{r.name}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Last: {formatLocaleDate(r.lastPickupISO)}
-                          </Typography>
-                        </Box>
-                        <Typography variant="body2">{fmtLbs(r.totalLbs)}</Typography>
-                      </Stack>
-                    ))}
-                  </Stack>
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    No data
-                  </Typography>
-                )}
-              </CardContent>
-            </Card>
-            <VolunteerCoverageCard masterRoleFilter={['Warehouse']} />
-          </Box>
-          <Typography variant="caption" color="text.secondary">
-            Tip: Press Ctrl/Cmd+K in the search box to quickly filter donors/receivers.
-          </Typography>
-        </Stack>
-        <Card
-          variant="outlined"
-          sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-        >
-          <CardHeader title="Notices & Events" avatar={<Announcement color="primary" />} />
-          <CardContent sx={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-            <EventList events={visibleEvents} limit={5} />
-          </CardContent>
-        </Card>
-      </Box>
 
-      <Dialog
-        open={Boolean(selectedComposition)}
-        onClose={() => setSelectedComposition(null)}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle>
-          Composition for {selectedComposition?.month} {year}
-        </DialogTitle>
-        <DialogContent dividers>
-          <List disablePadding>
-            <ListItem>
-              <ListItemText primary="Donations" secondary={fmtLbs(selectedComposition?.donations)} />
-            </ListItem>
-            <Divider component="li" />
-            <ListItem>
-              <ListItemText primary="Surplus" secondary={fmtLbs(selectedComposition?.surplus)} />
-            </ListItem>
-            <Divider component="li" />
-            <ListItem>
-              <ListItemText primary="Pig Pound" secondary={fmtLbs(selectedComposition?.pigPound)} />
-            </ListItem>
-            <Divider component="li" />
-            <ListItem>
-              <ListItemText primary="Outgoing" secondary={fmtLbs(selectedComposition?.outgoing)} />
-            </ListItem>
-          </List>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSelectedComposition(null)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-
-      </Box>
-      <FeedbackSnackbar
-        open={snackbar.open}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        message={snackbar.message}
-        severity={snackbar.severity}
-      />
-    </Page>
-  </>
+          <Dialog
+            open={Boolean(selectedComposition)}
+            onClose={() => setSelectedComposition(null)}
+            fullWidth
+            maxWidth="xs"
+          >
+            <DialogTitle>
+              Composition for {selectedComposition?.month} {year}
+            </DialogTitle>
+            <DialogContent dividers>
+              <List disablePadding>
+                <ListItem>
+                  <ListItemText primary="Donations" secondary={fmtLbs(selectedComposition?.donations)} />
+                </ListItem>
+                <Divider component="li" />
+                <ListItem>
+                  <ListItemText primary="Surplus" secondary={fmtLbs(selectedComposition?.surplus)} />
+                </ListItem>
+                <Divider component="li" />
+                <ListItem>
+                  <ListItemText primary="Pig Pound" secondary={fmtLbs(selectedComposition?.pigPound)} />
+                </ListItem>
+                <Divider component="li" />
+                <ListItem>
+                  <ListItemText primary="Outgoing" secondary={fmtLbs(selectedComposition?.outgoing)} />
+                </ListItem>
+              </List>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setSelectedComposition(null)}>Close</Button>
+            </DialogActions>
+          </Dialog>
+        </Box>
+        <FeedbackSnackbar
+          open={snackbar.open}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          message={snackbar.message}
+          severity={snackbar.severity}
+        />
+      </Page>
+    </>
   );
 }
 
