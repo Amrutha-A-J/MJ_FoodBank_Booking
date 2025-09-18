@@ -104,6 +104,35 @@ describe('requestPasswordReset', () => {
     );
   });
 
+  it('trims whitespace around email identifiers before lookup', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ id: 7, email: 'vol@example.com', user_type: 'volunteers' }],
+    });
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
+    const res = await request(app)
+      .post('/auth/request-password-reset')
+      .send({ email: '  vol@example.com  ' });
+    expect(res.status).toBe(204);
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('user_lookup'),
+      ['vol@example.com'],
+    );
+  });
+
+  it('trims whitespace and parses numeric client identifiers', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ client_id: 12, email: 'client@example.com' }],
+    });
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
+    const res = await request(app)
+      .post('/auth/request-password-reset')
+      .send({ clientId: '  12  ' });
+    expect(res.status).toBe(204);
+    expect((pool.query as jest.Mock).mock.calls[0][1][0]).toBe(12);
+  });
+
   it('skips sending email when client lacks email', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rowCount: 1,
@@ -192,6 +221,37 @@ describe('resendPasswordSetup', () => {
         }),
       }),
     );
+  });
+
+  it('trims whitespace around email identifiers before resending', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ id: 9, email: 'resend@example.com', user_type: 'staff' }],
+    });
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok2');
+    const res = await request(app)
+      .post('/auth/resend-password-setup')
+      .send({ email: '  resend@example.com  ' });
+    expect(res.status).toBe(204);
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('user_lookup'),
+      ['resend@example.com'],
+    );
+    expect(resendLimit.has('resend@example.com')).toBe(true);
+  });
+
+  it('trims whitespace and parses numeric identifiers for resends', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ client_id: 5, email: 'client@example.com' }],
+    });
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok2');
+    const res = await request(app)
+      .post('/auth/resend-password-setup')
+      .send({ clientId: '  5  ' });
+    expect(res.status).toBe(204);
+    expect((pool.query as jest.Mock).mock.calls[0][1][0]).toBe(5);
+    expect(resendLimit.has('5')).toBe(true);
   });
 
   it('does not send email when clientId has no email', async () => {

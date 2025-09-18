@@ -40,15 +40,47 @@ export const TABLE_MAP = {
   client: { table: 'clients', idColumn: 'client_id' },
 } as const;
 
+type IdentifierPayload = {
+  email?: unknown;
+  clientId?: unknown;
+};
+
+function normalizeIdentifiers({ email, clientId }: IdentifierPayload) {
+  let normalizedEmail: string | undefined;
+  if (typeof email === 'string') {
+    const trimmed = email.trim();
+    if (trimmed !== '') {
+      normalizedEmail = trimmed;
+    }
+  } else if (typeof email === 'number') {
+    const converted = String(email).trim();
+    if (converted !== '') {
+      normalizedEmail = converted;
+    }
+  }
+
+  const rawClientId =
+    typeof clientId === 'string' ? clientId.trim() : typeof clientId === 'number' ? clientId : undefined;
+
+  let normalizedClientId: number | undefined;
+  if (typeof rawClientId === 'number' && Number.isFinite(rawClientId)) {
+    normalizedClientId = rawClientId;
+  } else if (typeof rawClientId === 'string' && rawClientId !== '') {
+    const parsed = Number.parseInt(rawClientId, 10);
+    if (!Number.isNaN(parsed)) {
+      normalizedClientId = parsed;
+    }
+  }
+
+  return { email: normalizedEmail, clientId: normalizedClientId };
+}
+
 export async function requestPasswordReset(
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
-  const { email, clientId } = req.body as {
-    email?: string;
-    clientId?: number;
-  };
+  const { email, clientId } = normalizeIdentifiers(req.body as IdentifierPayload);
   try {
     let user: { id: number; email: string; table: 'staff' | 'volunteers' | 'clients' } | null = null;
 
@@ -61,7 +93,7 @@ export async function requestPasswordReset(
           table: result.userType,
         };
       }
-    } else if (clientId) {
+    } else if (clientId !== undefined) {
       const userRes = await pool.query('SELECT client_id, email FROM clients WHERE client_id=$1', [clientId]);
       if ((userRes.rowCount ?? 0) > 0) {
         user = {
@@ -103,22 +135,21 @@ export async function resendPasswordSetup(
   res: Response,
   next: NextFunction,
 ) {
-  const { email, clientId } = req.body as {
-    email?: string;
-    clientId?: number;
-  };
-  if (!email && !clientId) {
+  const { email, clientId } = normalizeIdentifiers(req.body as IdentifierPayload);
+  if (!email && clientId === undefined) {
     return res.status(400).json({ message: 'Email or clientId required' });
   }
   try {
-    const key = email ?? String(clientId);
-    if (resendLimit.has(key!)) {
+    const key = email ?? (clientId !== undefined ? String(clientId) : undefined);
+    if (key && resendLimit.has(key)) {
       return res.status(429).json({ message: 'Too many requests' });
     }
-    resendLimit.set(
-      key!,
-      setTimeout(() => resendLimit.delete(key!), RESEND_WINDOW_MS),
-    );
+    if (key) {
+      resendLimit.set(
+        key,
+        setTimeout(() => resendLimit.delete(key), RESEND_WINDOW_MS),
+      );
+    }
 
     let user: { id: number; email: string; table: 'staff' | 'volunteers' | 'clients' } | null = null;
     if (email) {
@@ -130,7 +161,7 @@ export async function resendPasswordSetup(
           table: result.userType,
         };
       }
-    } else if (clientId) {
+    } else if (clientId !== undefined) {
       const userRes = await pool.query('SELECT client_id, email FROM clients WHERE client_id=$1', [clientId]);
       if ((userRes.rowCount ?? 0) > 0) {
         user = {
