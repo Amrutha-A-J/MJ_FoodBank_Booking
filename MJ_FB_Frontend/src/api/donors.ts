@@ -4,7 +4,7 @@ export interface Donor {
   id: number;
   firstName: string;
   lastName: string;
-  email: string | null;
+  email?: string | null;
   phone?: string | null;
 }
 
@@ -12,7 +12,7 @@ export interface TopDonor {
   id: number;
   firstName: string;
   lastName: string;
-  email: string | null;
+  email?: string | null;
   phone?: string | null;
   totalLbs: number;
   lastDonationISO: string;

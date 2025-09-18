@@ -35,6 +35,21 @@ function formatMonth(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
+function formatDonorDisplay(donor: {
+  firstName: string;
+  lastName: string;
+  email?: string | null;
+  phone?: string | null;
+}) {
+  const contact = [donor.email, donor.phone]
+    .map(value => value?.trim())
+    .filter((value): value is string => Boolean(value))
+    .join(' • ');
+  return contact
+    ? `${donor.firstName} ${donor.lastName} (${contact})`
+    : `${donor.firstName} ${donor.lastName}`;
+}
+
 export default function DonationLog() {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [donorOptions, setDonorOptions] = useState<Donor[]>([]);
@@ -69,7 +84,7 @@ export default function DonationLog() {
     {
       field: 'donor' as keyof DonationRow & string,
       header: 'Donor',
-      render: d => `${d.donor.firstName} ${d.donor.lastName} (${d.donor.email})`,
+      render: d => formatDonorDisplay(d.donor),
     },
     {
       field: 'weight',
@@ -246,7 +261,7 @@ export default function DonationLog() {
               onChange={(_e, v) => setForm({ ...form, donorId: v ? v.id : null })}
               renderInput={params => <TextField {...params} label="Donor" />}
               isOptionEqualToValue={(option, value) => option.id === value.id}
-              getOptionLabel={o => `${o.firstName} ${o.lastName} (${o.email})`}
+              getOptionLabel={o => formatDonorDisplay(o)}
             />
           </Stack>
         </DialogContent>

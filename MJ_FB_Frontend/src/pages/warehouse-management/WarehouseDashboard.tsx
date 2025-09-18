@@ -90,6 +90,21 @@ function kpiDelta(curr: number, prev?: number) {
   return { pct, up: pct >= 0 };
 }
 
+function formatDonorDisplay(donor: {
+  firstName: string;
+  lastName: string;
+  email?: string | null;
+  phone?: string | null;
+}) {
+  const contact = [donor.email, donor.phone]
+    .map(value => value?.trim())
+    .filter((value): value is string => Boolean(value))
+    .join(' • ');
+  return contact
+    ? `${donor.firstName} ${donor.lastName} (${contact})`
+    : `${donor.firstName} ${donor.lastName}`;
+}
+
 export default function WarehouseDashboard() {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -246,10 +261,13 @@ export default function WarehouseDashboard() {
     () =>
       donors.filter(d => {
         const term = search.toLowerCase();
+        const email = (d.email ?? '').toLowerCase();
+        const phone = (d.phone ?? '').toLowerCase();
         return (
           d.id.toString().includes(term) ||
           `${d.firstName} ${d.lastName}`.toLowerCase().includes(term) ||
-          d.email.toLowerCase().includes(term)
+          email.includes(term) ||
+          phone.includes(term)
         );
       }),
     [donors, search],
@@ -322,7 +340,7 @@ export default function WarehouseDashboard() {
           </FormControl>
           <Autocomplete
             options={donorOptions}
-            getOptionLabel={o => `${o.firstName} ${o.lastName} (${o.email})`}
+            getOptionLabel={o => formatDonorDisplay(o)}
             inputValue={search}
             onInputChange={(_e, v) => setSearch(v)}
             onChange={(_e, v) => {
