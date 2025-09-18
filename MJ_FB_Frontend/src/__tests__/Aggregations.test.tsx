@@ -136,9 +136,13 @@ describe('Aggregations page', () => {
 
     fireEvent.change(screen.getByLabelText(/month/i), { target: { value: '5' } });
     const donorInput = screen.getByRole('combobox', { name: /donor/i });
-    fireEvent.change(donorInput, { target: { value: 'Jane' } });
+    fireEvent.change(donorInput, { target: { value: '42' } });
 
-    const option = await screen.findByRole('option', { name: /jane doe/i });
+    await waitFor(() => expect(mockGetDonors).toHaveBeenCalledWith('42'));
+
+    const option = await screen.findByRole('option', {
+      name: /jane doe \(306-555-0100\)/i,
+    });
     fireEvent.click(option);
     fireEvent.change(screen.getByLabelText(/total/i), { target: { value: '100' } });
 
@@ -153,6 +157,19 @@ describe('Aggregations page', () => {
       }),
     );
     await waitFor(() => expect(mockGetDonorAggregations).toHaveBeenCalledTimes(2));
+  });
+
+  it('searches donors by ID when inserting donor aggregate', async () => {
+    render(<Aggregations />);
+
+    await waitFor(() => expect(mockGetDonorAggregations).toHaveBeenCalled());
+
+    fireEvent.click(await screen.findByRole('button', { name: /insert aggregate/i }));
+
+    const donorInput = screen.getByRole('combobox', { name: /donor/i });
+    fireEvent.change(donorInput, { target: { value: '007' } });
+
+    await waitFor(() => expect(mockGetDonors).toHaveBeenCalledWith('007'));
   });
 });
 
