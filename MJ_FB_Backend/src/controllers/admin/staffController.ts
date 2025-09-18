@@ -7,6 +7,7 @@ import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../..
 import { sendTemplatedEmail } from '../../utils/emailUtils';
 import config from '../../config';
 import seedTimesheets from '../../utils/timesheetSeeder';
+import { normalizeEmail } from '../../utils/normalizeEmail';
 
 export async function checkStaffExists(
   _req: Request,
@@ -35,6 +36,11 @@ export async function createStaff(
   }
 
   const { firstName, lastName, email, access } = parsed.data;
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail) {
+    return res.status(400).json({ message: 'Invalid email' });
+  }
 
   let finalAccess: StaffAccess[];
   if (defaultAccess) {
@@ -46,20 +52,23 @@ export async function createStaff(
   const role = 'staff';
 
   try {
-    const emailCheck = await pool.query('SELECT id FROM staff WHERE email = $1', [email]);
+    const emailCheck = await pool.query(
+      'SELECT id FROM staff WHERE LOWER(email) = LOWER($1)',
+      [normalizedEmail],
+    );
     if ((emailCheck.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
     const result = await pool.query(
       `INSERT INTO staff (first_name, last_name, role, email, password, access, consent) VALUES ($1, $2, $3, $4, NULL, $5, true) RETURNING id`,
-      [firstName, lastName, role, email, finalAccess]
+      [firstName, lastName, role, normalizedEmail, finalAccess]
     );
     const staffId = result.rows[0].id;
     const token = await generatePasswordSetupToken('staff', staffId);
     const params = buildPasswordSetupEmailParams('staff', token);
     await sendTemplatedEmail({
-      to: email,
+      to: normalizedEmail,
       templateId: config.passwordSetupTemplateId,
       params,
     });
