@@ -37,7 +37,15 @@ describe('donor routes', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
       .mockResolvedValueOnce({
-        rows: [{ id: 2, firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com' }],
+        rows: [
+          {
+            id: 2,
+            firstName: 'Alice',
+            lastName: 'Smith',
+            email: 'alice@example.com',
+            phone: '306-555-1234',
+          },
+        ],
       });
     const res = await request(app)
       .get(`/donors?search=${encodeURIComponent(search)}`)
@@ -50,7 +58,7 @@ describe('donor routes', () => {
     );
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
-      `SELECT id, first_name AS "firstName", last_name AS "lastName", email
+      `SELECT id, first_name AS "firstName", last_name AS "lastName", email, phone
        FROM donors
        WHERE CAST(id AS TEXT) ILIKE $1
           OR first_name ILIKE $1
@@ -60,7 +68,13 @@ describe('donor routes', () => {
       [`%${search}%`],
     );
     expect(res.body).toEqual([
-      { id: 2, firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com' },
+      {
+        id: 2,
+        firstName: 'Alice',
+        lastName: 'Smith',
+        email: 'alice@example.com',
+        phone: '306-555-1234',
+      },
     ]);
   });
 
@@ -69,12 +83,20 @@ describe('donor routes', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
       .mockResolvedValueOnce({
-        rows: [{ id: 3, firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com' }],
+        rows: [
+          {
+            id: 3,
+            firstName: 'Bob',
+            lastName: 'Brown',
+            email: 'bob@example.com',
+            phone: '555-0000',
+          },
+        ],
       });
     const res = await request(app)
       .post('/donors')
       .set('Authorization', 'Bearer token')
-      .send({ firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com' });
+      .send({ firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com', phone: '555-0000' });
     expect(res.status).toBe(201);
     expect(pool.query).toHaveBeenNthCalledWith(
       1,
@@ -83,10 +105,44 @@ describe('donor routes', () => {
     );
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
-      'INSERT INTO donors (first_name, last_name, email) VALUES ($1, $2, $3) RETURNING id, first_name AS "firstName", last_name AS "lastName", email',
-      ['Bob', 'Brown', 'bob@example.com'],
+      'INSERT INTO donors (first_name, last_name, email, phone) VALUES ($1, $2, $3, $4) RETURNING id, first_name AS "firstName", last_name AS "lastName", email, phone',
+      ['Bob', 'Brown', 'bob@example.com', '555-0000'],
     );
-    expect(res.body).toEqual({ id: 3, firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com' });
+    expect(res.body).toEqual({
+      id: 3,
+      firstName: 'Bob',
+      lastName: 'Brown',
+      email: 'bob@example.com',
+      phone: '555-0000',
+    });
+  });
+
+  it('adds a donor without email or phone', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse', 'donation_entry'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 4,
+            firstName: 'Cara',
+            lastName: 'Jones',
+            email: null,
+            phone: null,
+          },
+        ],
+      });
+    const res = await request(app)
+      .post('/donors')
+      .set('Authorization', 'Bearer token')
+      .send({ firstName: 'Cara', lastName: 'Jones', email: null, phone: null });
+    expect(res.status).toBe(201);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      'INSERT INTO donors (first_name, last_name, email, phone) VALUES ($1, $2, $3, $4) RETURNING id, first_name AS "firstName", last_name AS "lastName", email, phone',
+      ['Cara', 'Jones', null, null],
+    );
+    expect(res.body).toEqual({ id: 4, firstName: 'Cara', lastName: 'Jones', email: null, phone: null });
   });
 
   it('returns 409 for duplicate donor email', async () => {
@@ -161,3 +217,75 @@ describe('donor routes', () => {
     expect(res.status).toBe(500);
   });
 });
+  it('updates a donor', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse', 'donation_entry'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 3,
+            firstName: 'Bob',
+            lastName: 'Brown',
+            email: 'bob@example.com',
+            phone: '555-0000',
+          },
+        ],
+      });
+    const res = await request(app)
+      .put('/donors/3')
+      .set('Authorization', 'Bearer token')
+      .send({ firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com', phone: '555-0000' });
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      'UPDATE donors SET first_name = $2, last_name = $3, email = $4, phone = $5 WHERE id = $1 RETURNING id, first_name AS "firstName", last_name AS "lastName", email, phone',
+      ['3', 'Bob', 'Brown', 'bob@example.com', '555-0000'],
+    );
+    expect(res.body).toEqual({
+      id: 3,
+      firstName: 'Bob',
+      lastName: 'Brown',
+      email: 'bob@example.com',
+      phone: '555-0000',
+    });
+  });
+
+  it('returns 404 when donor not found on update', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse', 'donation_entry'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
+    const res = await request(app)
+      .put('/donors/99')
+      .set('Authorization', 'Bearer token')
+      .send({ firstName: 'X', lastName: 'Y', email: null, phone: null });
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ message: 'Donor not found' });
+  });
+
+  it('returns 409 when update violates unique email', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse', 'donation_entry'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce({ code: '23505' });
+    const res = await request(app)
+      .put('/donors/3')
+      .set('Authorization', 'Bearer token')
+      .send({ firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com', phone: null });
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({ message: 'Donor already exists' });
+  });
+
+  it('returns 500 when db fails on update', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse', 'donation_entry'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce(new Error('db failure'));
+    const res = await request(app)
+      .put('/donors/3')
+      .set('Authorization', 'Bearer token')
+      .send({ firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com', phone: null });
+    expect(res.status).toBe(500);
+  });

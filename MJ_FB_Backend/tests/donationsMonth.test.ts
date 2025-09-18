@@ -49,6 +49,7 @@ describe('GET /donations?month=', () => {
             firstName: 'Alice',
             lastName: 'Smith',
             email: 'a@example.com',
+            phone: '555-1111',
           },
           {
             id: 2,
@@ -58,6 +59,7 @@ describe('GET /donations?month=', () => {
             firstName: 'Bob',
             lastName: 'Brown',
             email: 'b@example.com',
+            phone: null,
           },
         ],
       });
@@ -75,8 +77,8 @@ describe('GET /donations?month=', () => {
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
       `SELECT d.id, d.date, d.weight, o.id as "donorId",
-              o.first_name as "firstName", o.last_name as "lastName", o.email
-         FROM donations d JOIN donors o ON d.donor_email = o.email
+              o.first_name as "firstName", o.last_name as "lastName", o.email, o.phone
+         FROM donations d JOIN donors o ON d.donor_id = o.id
          WHERE d.date >= $1 AND d.date < $2 ORDER BY d.date, d.id`,
       [`${year}-${month}-01`, `${year}-${nextMonth}-01`],
     );
@@ -89,6 +91,7 @@ describe('GET /donations?month=', () => {
         firstName: 'Alice',
         lastName: 'Smith',
         email: 'a@example.com',
+        phone: '555-1111',
       },
       {
         id: 2,
@@ -98,6 +101,7 @@ describe('GET /donations?month=', () => {
         firstName: 'Bob',
         lastName: 'Brown',
         email: 'b@example.com',
+        phone: null,
       },
     ]);
   });
