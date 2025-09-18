@@ -31,6 +31,7 @@ import {
   insertBooking,
   lockClientRow,
   ClientNotFoundError,
+  DuplicateBookingError,
   fetchBookings as repoFetchBookings,
   fetchBookingById,
   updateBooking,
@@ -234,7 +235,11 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
           }
         }
       }
-      if (err instanceof SlotCapacityError || err?.code === '25P02') {
+      if (
+        err instanceof SlotCapacityError ||
+        err instanceof DuplicateBookingError ||
+        err?.code === '25P02'
+      ) {
         if (err?.code === '25P02') {
           return res
             .status(503)

@@ -35,6 +35,14 @@ export class ClientNotFoundError extends Error {
   }
 }
 
+export class DuplicateBookingError extends Error {
+  status: number;
+  constructor(message = 'You already have a booking on this date.', status = 409) {
+    super(message);
+    this.status = status;
+  }
+}
+
 export async function checkSlotCapacity(
   slotId: number,
   date: string,
@@ -162,22 +170,29 @@ export async function insertBooking(
   client: Queryable = pool,
 ): Promise<number> {
   const reginaDate = formatReginaDate(date);
-  const res = await client.query<{ id: number }>(
-    `INSERT INTO bookings (user_id, new_client_id, slot_id, status, request_data, note, date, is_staff_booking, reschedule_token)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
-    [
-      userId,
-      newClientId,
-      slotId,
-      status,
-      requestData,
-      note,
-      reginaDate,
-      isStaffBooking,
-      rescheduleToken,
-    ],
-  );
-  return res.rows[0].id;
+  try {
+    const res = await client.query<{ id: number }>(
+      `INSERT INTO bookings (user_id, new_client_id, slot_id, status, request_data, note, date, is_staff_booking, reschedule_token)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+      [
+        userId,
+        newClientId,
+        slotId,
+        status,
+        requestData,
+        note,
+        reginaDate,
+        isStaffBooking,
+        rescheduleToken,
+      ],
+    );
+    return res.rows[0].id;
+  } catch (err: any) {
+    if (err?.code === '23505') {
+      throw new DuplicateBookingError();
+    }
+    throw err;
+  }
 }
 
 export async function fetchBookingById(id: number, client: Queryable = pool) {
