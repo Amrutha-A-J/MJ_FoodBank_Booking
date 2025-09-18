@@ -5,6 +5,17 @@ import dayjs from 'dayjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 
+const mockUseAuth = jest.fn();
+const mockUseBreadcrumbActions = jest.fn();
+const mockUsePageTitle = jest.fn();
+
+function getLatestBreadcrumbAction() {
+  const actions = mockUseBreadcrumbActions.mock.calls
+    .map(call => call[0])
+    .filter(Boolean);
+  return actions.at(-1) ?? null;
+}
+
 jest.mock('@mui/x-date-pickers/DateCalendar', () => ({
   DateCalendar: () => <div />,
 }));
@@ -20,7 +31,12 @@ jest.mock('../api/users', () => ({
 }));
 
 jest.mock('../hooks/useAuth', () => ({
-  useAuth: () => ({ role: 'client', name: 'Test User', userRole: 'shopper' }),
+  useAuth: () => mockUseAuth(),
+}));
+
+jest.mock('../components/layout/MainLayout', () => ({
+  useBreadcrumbActions: (actions: unknown) => mockUseBreadcrumbActions(actions),
+  usePageTitle: (title: string) => mockUsePageTitle(title),
 }));
 
 const { getSlots, getHolidays, createBooking } = jest.requireMock('../api/bookings');
@@ -35,6 +51,10 @@ describe('BookingUI visible slots', () => {
   beforeEach(() => {
     jest.setSystemTime(new Date('2024-01-01T10:30:00'));
     jest.clearAllMocks();
+    mockUseAuth.mockReset();
+    mockUseAuth.mockReturnValue({ role: 'client', name: 'Test User', userRole: 'shopper' });
+    mockUseBreadcrumbActions.mockReset();
+    mockUsePageTitle.mockReset();
   });
 
   afterAll(() => {
@@ -109,6 +129,69 @@ describe('BookingUI visible slots', () => {
     await screen.findByText(/Booking for Test/);
     expect(screen.queryByText('Book Shopping Appointment')).toBeNull();
   });
+
+  it('links to booking history from the shopper booking page', async () => {
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+
+    const queryClient = new QueryClient();
+    render(
+      <MemoryRouter initialEntries={['/book-appointment']}>
+        <QueryClientProvider client={queryClient}>
+          <BookingUI shopperName="Test" initialDate={dayjs('2024-01-01')} />
+        </QueryClientProvider>
+      </MemoryRouter>,
+    );
+
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
+    });
+    await waitFor(() => expect(mockUseBreadcrumbActions).toHaveBeenCalled());
+    const action = getLatestBreadcrumbAction();
+    expect(action && React.isValidElement(action)).toBe(true);
+    const { getByRole, unmount } = render(
+      <MemoryRouter>{action as React.ReactElement}</MemoryRouter>,
+    );
+    const historyLink = getByRole('link', { name: /history/i });
+    expect(historyLink).toHaveAttribute('href', '/booking-history');
+    expect(historyLink).toHaveTextContent(/booking history/i);
+    unmount();
+  });
+
+  it('links to volunteer history from the volunteer schedule page', async () => {
+    mockUseAuth.mockReturnValue({
+      role: 'volunteer',
+      name: 'Test Volunteer',
+      userRole: 'volunteer',
+    });
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+
+    const queryClient = new QueryClient();
+    render(
+      <MemoryRouter initialEntries={['/volunteer/schedule']}>
+        <QueryClientProvider client={queryClient}>
+          <BookingUI initialDate={dayjs('2024-01-01')} />
+        </QueryClientProvider>
+      </MemoryRouter>,
+    );
+
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
+    });
+    await waitFor(() => expect(mockUseBreadcrumbActions).toHaveBeenCalled());
+    const action = getLatestBreadcrumbAction();
+    expect(action && React.isValidElement(action)).toBe(true);
+    const { getByRole, unmount } = render(
+      <MemoryRouter>{action as React.ReactElement}</MemoryRouter>,
+    );
+    const historyLink = getByRole('link', { name: /history/i });
+    expect(historyLink).toHaveAttribute('href', '/volunteer/history');
+    expect(historyLink).toHaveTextContent(/volunteer history/i);
+    unmount();
+  });
 });
 
 describe('SlotRow', () => {
@@ -159,6 +242,10 @@ describe('Booking confirmation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseAuth.mockReset();
+    mockUseAuth.mockReturnValue({ role: 'client', name: 'Test User', userRole: 'shopper' });
+    mockUseBreadcrumbActions.mockReset();
+    mockUsePageTitle.mockReset();
     jest.setSystemTime(new Date('2023-12-31T10:30:00'));
   });
 
