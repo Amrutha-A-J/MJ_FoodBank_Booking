@@ -8,6 +8,7 @@ import {
   CacheFirst,
   StaleWhileRevalidate,
   NetworkOnly,
+  NetworkFirst,
 } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { BackgroundSyncPlugin } from 'workbox-background-sync'
@@ -24,15 +25,25 @@ precacheAndRoute(self.__WB_MANIFEST)
 
 const CACHE_VERSION = typeof __BUILD_VERSION__ === 'string' ? __BUILD_VERSION__ : 'dev'
 
+const DEPRECATED_RUNTIME_CACHE_PREFIXES = [
+  'booking-history-api',
+  'volunteer-bookings-api',
+]
+
 const RUNTIME_CACHE_PREFIXES = [
   'static-assets',
   'schedule-api',
-  'booking-history-api',
   'profile-api',
   'warehouse-settings-api',
-  'volunteer-bookings-api',
   'notifications-api',
   'app-config-api',
+  'booking-history-network-api',
+  'volunteer-bookings-network-api',
+]
+
+const ALL_RUNTIME_CACHE_PREFIXES = [
+  ...RUNTIME_CACHE_PREFIXES,
+  ...DEPRECATED_RUNTIME_CACHE_PREFIXES,
 ]
 
 const versionedCacheName = (name: string) => `${name}-v${CACHE_VERSION}`
@@ -52,7 +63,9 @@ self.addEventListener('activate', (event) => {
       await Promise.all(
         cacheKeys
           .filter((cacheName) =>
-            RUNTIME_CACHE_PREFIXES.some((prefix) => cacheName.startsWith(prefix)),
+            ALL_RUNTIME_CACHE_PREFIXES.some((prefix) =>
+              cacheName.startsWith(prefix),
+            ),
           )
           .filter((cacheName) => !CURRENT_RUNTIME_CACHES.has(cacheName))
           .map((cacheName) => caches.delete(cacheName)),
@@ -93,8 +106,8 @@ registerRoute(
 // Cache booking history
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/v1/bookings/history'),
-  new StaleWhileRevalidate({
-    cacheName: versionedCacheName('booking-history-api'),
+  new NetworkFirst({
+    cacheName: versionedCacheName('booking-history-network-api'),
     plugins: [
       new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 60 }),
     ],
@@ -132,8 +145,8 @@ registerRoute(
 // Cache volunteer booking data
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/v1/volunteer-bookings'),
-  new StaleWhileRevalidate({
-    cacheName: versionedCacheName('volunteer-bookings-api'),
+  new NetworkFirst({
+    cacheName: versionedCacheName('volunteer-bookings-network-api'),
     plugins: [
       new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 60 }),
     ],
