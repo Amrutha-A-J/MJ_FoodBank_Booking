@@ -207,6 +207,53 @@ describe('createBookingForUser', () => {
     expect(insertBooking).toHaveBeenCalled();
   });
 
+  it('allows staff to book same-day appointments', async () => {
+    const todayDate = new Date();
+    const today = formatReginaDate(todayDate);
+    const todayWithDay = formatReginaDateWithDay(todayDate);
+    const client = {
+      query: jest.fn().mockImplementation((sql: string) => {
+        if (sql.includes('SELECT max_capacity FROM slots'))
+          return Promise.resolve({ rows: [{ max_capacity: 5 }], rowCount: 1 });
+        if (sql.includes('SELECT COUNT(id) AS count FROM bookings'))
+          return Promise.resolve({ rows: [{ count: 0 }], rowCount: 1 });
+        return Promise.resolve({ rows: [], rowCount: 0 });
+      }),
+      release: jest.fn(),
+    };
+    (pool.connect as jest.Mock).mockResolvedValue(client);
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            email: 'client@example.com',
+            first_name: 'Same',
+            last_name: 'Day',
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [{ start_time: '13:00:00', end_time: '13:30:00' }] });
+
+    const req = {
+      user: { role: 'staff', id: 42 },
+      body: { userId: 1, slotId: 2, date: today },
+    } as unknown as Request;
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
+    const next = jest.fn() as NextFunction;
+
+    await createBookingForUser(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(enqueueEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'client@example.com',
+        params: expect.objectContaining({
+          body: expect.stringContaining(`${todayWithDay} from 1:00 PM to 1:30 PM`),
+        }),
+      }),
+    );
+  });
+
 });
 
 describe('createBooking', () => {
