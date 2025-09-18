@@ -31,6 +31,8 @@ describe('GET /users/id/:clientId', () => {
           address: '123 Main',
           online_access: true,
           password: 'hash',
+          consent: true,
+          role: 'delivery',
         },
       ],
     });
@@ -46,9 +48,11 @@ describe('GET /users/id/:clientId', () => {
       clientId: 5,
       onlineAccess: true,
       hasPassword: true,
+      consent: true,
+      role: 'delivery',
     });
     expect(pool.query).toHaveBeenCalledWith(
-      `SELECT client_id, first_name, last_name, email, phone, address, online_access, password, consent\n       FROM clients WHERE client_id = $1`,
+      `SELECT client_id, first_name, last_name, email, phone, address, online_access, password, consent, role\n       FROM clients WHERE client_id = $1`,
       ['5'],
     );
   });

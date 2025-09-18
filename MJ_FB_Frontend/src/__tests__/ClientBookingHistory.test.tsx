@@ -31,7 +31,9 @@ describe('Client booking history', () => {
   it('hides staff-only controls for clients', async () => {
     renderWithProviders(
       <MemoryRouter>
-        <UserHistory initialUser={{ name: 'Test Client', client_id: 1 }} />
+        <UserHistory
+          initialUser={{ name: 'Test Client', client_id: 1, role: 'shopper' }}
+        />
       </MemoryRouter>
     );
 

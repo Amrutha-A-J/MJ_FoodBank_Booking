@@ -189,6 +189,7 @@ describe('userController', () => {
             online_access: true,
             password: 'hash',
             consent: true,
+            role: 'delivery',
           },
         ],
       });
@@ -212,6 +213,7 @@ describe('userController', () => {
         onlineAccess: true,
         hasPassword: true,
         consent: true,
+        role: 'delivery',
       });
     });
 

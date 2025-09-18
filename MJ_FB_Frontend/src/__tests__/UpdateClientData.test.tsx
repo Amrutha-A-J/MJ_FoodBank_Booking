@@ -33,6 +33,7 @@ beforeEach(() => {
     phone: '',
     onlineAccess: false,
     hasPassword: false,
+    role: 'shopper',
   });
   (requestPasswordReset as jest.Mock).mockResolvedValue(undefined);
 });
@@ -99,6 +100,7 @@ describe('UpdateClientData', () => {
       phone: '',
       onlineAccess: true,
       hasPassword: true,
+      role: 'shopper',
     });
 
     render(<UpdateClientData />);
