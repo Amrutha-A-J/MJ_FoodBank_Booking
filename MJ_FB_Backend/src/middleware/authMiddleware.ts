@@ -68,28 +68,28 @@ async function authenticate(req: Request): Promise<AuthResult> {
       };
     }
 
-      if (type === 'user') {
-        const userRes = await pool.query(
-          'SELECT client_id, first_name, last_name, email, role, phone, address FROM clients WHERE client_id = $1',
-          [id],
-        );
-        if ((userRes.rowCount ?? 0) > 0) {
-          const user: RequestUser = {
-            id: userRes.rows[0].client_id.toString(),
-            type: 'user',
-            role,
-            email: userRes.rows[0].email,
-            phone: userRes.rows[0].phone,
-            address: userRes.rows[0].address,
-            name: `${userRes.rows[0].first_name} ${userRes.rows[0].last_name}`,
-          };
-          return {
-            status: 'ok',
-            user,
-          };
-        }
-        return { status: 'invalid' };
+    if (type === 'user') {
+      const userRes = await pool.query(
+        'SELECT client_id, first_name, last_name, email, role, phone, address FROM clients WHERE client_id = $1',
+        [id],
+      );
+      if ((userRes.rowCount ?? 0) > 0) {
+        const user: RequestUser = {
+          id: userRes.rows[0].client_id.toString(),
+          type: 'user',
+          role,
+          email: userRes.rows[0].email,
+          phone: userRes.rows[0].phone,
+          address: userRes.rows[0].address,
+          name: `${userRes.rows[0].first_name} ${userRes.rows[0].last_name}`,
+        };
+        return {
+          status: 'ok',
+          user,
+        };
       }
+      return { status: 'invalid' };
+    }
 
     if (type === 'volunteer') {
       const volRes = await pool.query(
@@ -199,5 +199,21 @@ export function authorizeAccess(...allowed: string[]) {
       return res.status(403).json({ message: 'Forbidden' });
     }
     next();
+  };
+}
+
+export function authorizeStaffOrAccess(...allowed: string[]) {
+  const accessGuard = authorizeAccess(...allowed);
+
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    if (req.user.type === 'staff') {
+      return next();
+    }
+
+    return accessGuard(req, res, next);
   };
 }
