@@ -36,7 +36,10 @@ export default function CancelBooking() {
   }
 
   return (
-    <Page title="Cancel booking">
+    <Page
+      title="Cancel booking"
+      sx={{ pb: { xs: 'calc(72px + env(safe-area-inset-bottom))' } }}
+    >
       <Grid container spacing={2} justifyContent="center">
         <Grid size={{ xs: 12, sm: 8, md: 6 }}>
           <FormCard title="Cancel booking" onSubmit={handleSubmit} actions={

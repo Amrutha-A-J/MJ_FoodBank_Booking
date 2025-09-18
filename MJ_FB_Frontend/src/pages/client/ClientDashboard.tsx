@@ -152,7 +152,10 @@ export default function ClientDashboard() {
   }
 
   return (
-    <Page title="Client Dashboard">
+    <Page
+      title="Client Dashboard"
+      sx={{ pb: { xs: 'calc(72px + env(safe-area-inset-bottom))' } }}
+    >
       <OnboardingModal
         storageKey="clientOnboarding"
         title="Welcome!"

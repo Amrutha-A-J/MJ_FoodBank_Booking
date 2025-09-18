@@ -84,7 +84,10 @@ export default function RescheduleBooking() {
   }
 
   return (
-    <Page title="Reschedule">
+    <Page
+      title="Reschedule"
+      sx={{ pb: { xs: 'calc(72px + env(safe-area-inset-bottom))' } }}
+    >
       <Grid container spacing={2} justifyContent="center">
         <Grid size={{ xs: 12, sm: 8, md: 6 }}>
           {tokenValid && (
