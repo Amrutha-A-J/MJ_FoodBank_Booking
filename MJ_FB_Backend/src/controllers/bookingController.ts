@@ -30,6 +30,7 @@ import {
   checkSlotCapacity,
   insertBooking,
   lockClientRow,
+  ClientNotFoundError,
   fetchBookings as repoFetchBookings,
   fetchBookingById,
   updateBooking,
@@ -1006,6 +1007,12 @@ export async function createBookingForUser(
       await client.query('COMMIT');
     } catch (err: any) {
       await client.query('ROLLBACK');
+      if (err instanceof ClientNotFoundError) {
+        return res.status(err.status).json({ message: err.message });
+      }
+      if (err?.code === '23503') {
+        return res.status(404).json({ message: 'Client not found' });
+      }
       if (err instanceof SlotCapacityError || err?.code === '25P02') {
         if (err?.code === '25P02') {
           return res
