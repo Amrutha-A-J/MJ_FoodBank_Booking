@@ -35,19 +35,21 @@ function formatMonth(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
-function formatDonorDisplay(donor: {
-  firstName: string;
-  lastName: string;
-  email?: string | null;
-  phone?: string | null;
-}) {
-  const contact = [donor.email, donor.phone]
-    .map(value => value?.trim())
-    .filter((value): value is string => Boolean(value))
-    .join(' • ');
-  return contact
-    ? `${donor.firstName} ${donor.lastName} (${contact})`
+function formatDonorDisplay(
+  donor: {
+    id?: number | null;
+    firstName: string;
+    lastName: string;
+    phone?: string | null;
+  },
+  fallbackId?: number | null,
+) {
+  const id = donor.id ?? fallbackId ?? undefined;
+  const trimmedPhone = donor.phone?.trim();
+  const base = id
+    ? `${donor.firstName} ${donor.lastName} (ID: ${id})`
     : `${donor.firstName} ${donor.lastName}`;
+  return trimmedPhone ? `${base} • ${trimmedPhone}` : base;
 }
 
 export default function DonationLog() {
@@ -71,7 +73,12 @@ export default function DonationLog() {
     donorId: null,
     weight: '',
   });
-  const [newDonor, setNewDonor] = useState({ firstName: '', lastName: '', email: '' });
+  const [newDonor, setNewDonor] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+  });
 
   type DonationRow = Donation & { actions?: string };
 
@@ -84,8 +91,7 @@ export default function DonationLog() {
     {
       field: 'donor' as keyof DonationRow & string,
       header: 'Donor',
-      render: d =>
-        `${d.donor.firstName} ${d.donor.lastName} (${d.donor.email || 'No email'})`,
+      render: d => formatDonorDisplay(d.donor, d.donorId),
     },
     {
       field: 'weight',
@@ -173,8 +179,17 @@ export default function DonationLog() {
   }
 
   function handleAddDonor() {
-    if (newDonor.firstName && newDonor.lastName && newDonor.email) {
-      createDonor(newDonor)
+    const firstName = newDonor.firstName.trim();
+    const lastName = newDonor.lastName.trim();
+    const email = newDonor.email.trim();
+    const phone = newDonor.phone.trim();
+    if (firstName && lastName) {
+      createDonor({
+        firstName,
+        lastName,
+        email: email || null,
+        phone: phone || null,
+      })
         .then(d => {
           setDonorOptions(prev =>
             [...prev, d].sort((a, b) =>
@@ -187,7 +202,7 @@ export default function DonationLog() {
           showSnackbar(err.message || 'Failed to add donor', 'error');
         });
     }
-    setNewDonor({ firstName: '', lastName: '', email: '' });
+    setNewDonor({ firstName: '', lastName: '', email: '', phone: '' });
     setNewDonorOpen(false);
   }
 
@@ -260,7 +275,9 @@ export default function DonationLog() {
               value={donorOptions.find(d => d.id === form.donorId) || null}
               onInputChange={(_e, v) => setDonorSearch(v)}
               onChange={(_e, v) => setForm({ ...form, donorId: v ? v.id : null })}
-              renderInput={params => <TextField {...params} label="Donor" />}
+              renderInput={params => (
+                <TextField {...params} label="Donor (search by name or ID)" />
+              )}
               isOptionEqualToValue={(option, value) => option.id === value.id}
               getOptionLabel={o => formatDonorDisplay(o)}
             />
@@ -329,10 +346,22 @@ export default function DonationLog() {
               onChange={e => setNewDonor({ ...newDonor, email: e.target.value })}
               fullWidth
             />
+            <TextField
+              label="Phone"
+              type="tel"
+              value={newDonor.phone}
+              onChange={e => setNewDonor({ ...newDonor, phone: e.target.value })}
+              fullWidth
+            />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleAddDonor} disabled={!newDonor.firstName || !newDonor.lastName || !newDonor.email}>Save</Button>
+          <Button
+            onClick={handleAddDonor}
+            disabled={!newDonor.firstName.trim() || !newDonor.lastName.trim()}
+          >
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
 
