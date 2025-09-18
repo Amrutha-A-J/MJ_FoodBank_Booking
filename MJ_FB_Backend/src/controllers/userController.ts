@@ -10,6 +10,14 @@ import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../ut
 import config from '../config';
 import { getClientBookingsThisMonth } from './clientVisitController';
 
+const normalizeOptionalEmail = (value?: string | null) => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed ? trimmed.toLowerCase() : null;
+};
+
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
   const normalizedEmail =
@@ -33,7 +41,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         `SELECT v.id, v.first_name, v.last_name, v.password, v.consent, v.user_id, u.role AS user_role
          FROM volunteers v
          LEFT JOIN clients u ON v.user_id = u.client_id
-         WHERE v.email = $1`,
+         WHERE LOWER(v.email) = $1`,
         [normalizedEmail],
       );
       if ((volunteerQuery.rowCount ?? 0) > 0) {
@@ -91,7 +99,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       }
 
       const staffQuery = await pool.query(
-        `SELECT id, first_name, last_name, email, password, role, access, consent FROM staff WHERE email = $1`,
+        `SELECT id, first_name, last_name, email, password, role, access, consent FROM staff WHERE LOWER(email) = $1`,
         [normalizedEmail],
       );
       if ((staffQuery.rowCount ?? 0) > 0) {
@@ -123,7 +131,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       }
 
       const clientEmailQuery = await pool.query(
-        `SELECT client_id, first_name, last_name, role, password FROM clients WHERE email = $1 AND online_access = true`,
+        `SELECT client_id, first_name, last_name, role, password FROM clients WHERE LOWER(email) = $1 AND online_access = true`,
         [normalizedEmail],
       );
       if ((clientEmailQuery.rowCount ?? 0) > 0) {
@@ -279,11 +287,13 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     sendPasswordLink?: boolean;
   };
 
+  const normalizedEmail = normalizeOptionalEmail(email);
+
   if (!clientId || !role) {
     return res.status(400).json({ message: 'Client ID and role required' });
   }
 
-  if (onlineAccess && (!firstName || !lastName || !email)) {
+  if (onlineAccess && (!firstName || !lastName || !normalizedEmail)) {
     return res.status(400).json({ message: 'Missing fields for online account' });
   }
 
@@ -303,8 +313,11 @@ export async function createUser(req: Request, res: Response, next: NextFunction
       return res.status(400).json({ message: 'Client ID already exists' });
     }
 
-    if (email) {
-      const emailCheck = await pool.query('SELECT client_id FROM clients WHERE email = $1', [email]);
+    if (normalizedEmail) {
+      const emailCheck = await pool.query(
+        'SELECT client_id FROM clients WHERE LOWER(email) = $1',
+        [normalizedEmail],
+      );
       if ((emailCheck.rowCount ?? 0) > 0) {
         return res.status(400).json({ message: 'Email already exists' });
       }
@@ -318,7 +331,7 @@ export async function createUser(req: Request, res: Response, next: NextFunction
       [
         firstName || null,
         lastName || null,
-        email || null,
+        normalizedEmail,
         phone || null,
         address || null,
         clientId,
@@ -329,11 +342,11 @@ export async function createUser(req: Request, res: Response, next: NextFunction
       ],
     );
 
-    if (sendPasswordLink && email) {
+    if (sendPasswordLink && normalizedEmail) {
       const token = await generatePasswordSetupToken('clients', clientId);
       const params = buildPasswordSetupEmailParams('clients', token, clientId);
       await sendTemplatedEmail({
-        to: email,
+        to: normalizedEmail,
         templateId: config.passwordSetupTemplateId,
         params,
       });

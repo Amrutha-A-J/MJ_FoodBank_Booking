@@ -53,6 +53,8 @@ describe('donation entry volunteer login', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.access).toEqual(['donation_entry']);
-    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/WHERE v.email = \$1/);
+    expect((pool.query as jest.Mock).mock.calls[1][0]).toContain(
+      'WHERE LOWER(v.email) = $1',
+    );
   });
 });

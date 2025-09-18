@@ -11,6 +11,8 @@ import { parsePaginationParams } from '../../utils/parsePaginationParams';
 
 type StaffUpdateValues = [string, string, string, string[], string, ...(string | number)[]];
 
+const normalizeEmailAddress = (value: string) => value.trim().toLowerCase();
+
 export async function listStaff(req: Request, res: Response, next: NextFunction) {
   let limit: number;
   let offset: number;
@@ -71,20 +73,21 @@ export async function createStaff(req: Request, res: Response, next: NextFunctio
   }
   const { firstName, lastName, email, access = ['pantry'] } = parsed.data;
   try {
-    const emailCheck = await pool.query('SELECT id FROM staff WHERE email = $1', [email]);
+    const normalizedEmail = normalizeEmailAddress(email);
+    const emailCheck = await pool.query('SELECT id FROM staff WHERE LOWER(email) = $1', [normalizedEmail]);
     if ((emailCheck.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Email already exists' });
     }
     const role = 'staff';
     const result = await pool.query(
       `INSERT INTO staff (first_name, last_name, role, email, password, access, consent) VALUES ($1, $2, $3, $4, NULL, $5, true) RETURNING id`,
-      [firstName, lastName, role, email, access],
+      [firstName, lastName, role, normalizedEmail, access],
     );
     const staffId = result.rows[0].id;
     const token = await generatePasswordSetupToken('staff', staffId);
     const params = buildPasswordSetupEmailParams('staff', token);
     await sendTemplatedEmail({
-      to: email,
+      to: normalizedEmail,
       templateId: config.passwordSetupTemplateId,
       params,
     });

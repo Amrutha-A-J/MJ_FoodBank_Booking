@@ -81,7 +81,41 @@ describe('POST /api/v1/auth/login', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('role', 'staff');
-    expect((pool.query as jest.Mock).mock.calls[2][0]).toMatch(/WHERE email = \$1/);
+    expect((pool.query as jest.Mock).mock.calls[2][0]).toContain(
+      'WHERE LOWER(email) = $1',
+    );
+  });
+
+  it('logs in staff using mixed-case email input', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 2,
+            first_name: 'Case',
+            last_name: 'Tester',
+            email: 'case@example.com',
+            password: 'hashed',
+            role: 'staff',
+            access: [],
+            consent: true,
+          },
+        ],
+      });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (jwt.sign as jest.Mock).mockReturnValue('token');
+
+    const res = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'Case@Example.COM', password: 'secret' });
+
+    expect(res.status).toBe(200);
+    expect((pool.query as jest.Mock).mock.calls[2][1][0]).toBe(
+      'case@example.com',
+    );
   });
 
   it('logs in volunteer with shopper profile and returns both roles', async () => {
@@ -104,7 +138,9 @@ describe('POST /api/v1/auth/login', () => {
       id: 1,
       consent: false,
     });
-    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/WHERE v.email = \$1/);
+    expect((pool.query as jest.Mock).mock.calls[1][0]).toContain(
+      'WHERE LOWER(v.email) = $1',
+    );
     expect((jwt.sign as jest.Mock).mock.calls[0][0]).toMatchObject({
       id: 1,
       role: 'volunteer',
@@ -112,6 +148,35 @@ describe('POST /api/v1/auth/login', () => {
       userId: volunteerWithShopper.user_id,
       userRole: 'shopper',
     });
+  });
+
+  it('logs in volunteer using mixed-case email input', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 3,
+            first_name: 'Val',
+            last_name: 'Volunteer',
+            email: 'volunteer@example.com',
+            password: 'hashed',
+            consent: true,
+          },
+        ],
+      });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (jwt.sign as jest.Mock).mockReturnValue('token');
+
+    const res = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'Volunteer@Example.COM', password: 'secret' });
+
+    expect(res.status).toBe(200);
+    expect((pool.query as jest.Mock).mock.calls[1][1][0]).toBe(
+      'volunteer@example.com',
+    );
   });
 
   it('logs in volunteer via client ID and returns both roles', async () => {
@@ -159,6 +224,37 @@ describe('POST /api/v1/auth/login', () => {
       userId: 9,
       userRole: 'shopper',
     });
+  });
+
+  it('logs in client using mixed-case email input', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            client_id: 42,
+            first_name: 'Client',
+            last_name: 'User',
+            role: 'shopper',
+            password: 'hashed',
+          },
+        ],
+      });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (jwt.sign as jest.Mock).mockReturnValue('token');
+
+    const res = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'Client@Example.COM', password: 'secret' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ role: 'shopper', id: 42 });
+    expect((pool.query as jest.Mock).mock.calls[3][1][0]).toBe(
+      'client@example.com',
+    );
   });
 
   it('returns 401 with invalid credentials', async () => {
