@@ -1,13 +1,21 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Card,
   CardContent,
   CardHeader,
   Chip,
+  Button,
   CircularProgress,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   InputLabel,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
   MenuItem,
   Select,
   Stack,
@@ -25,8 +33,6 @@ import {
   YAxis,
   CartesianGrid,
   Legend,
-  BarChart,
-  Bar,
 } from 'recharts';
 import Page from '../../components/Page';
 import SectionCard from '../../components/dashboard/SectionCard';
@@ -46,6 +52,10 @@ import { getTopDonors, type TopDonor } from '../../api/donors';
 import { getTopReceivers, type TopReceiver } from '../../api/outgoingReceivers';
 import { formatLocaleDate } from '../../utils/date';
 import { getApiErrorMessage, type ApiError } from '../../api/client';
+import FormDialog from '../../components/FormDialog';
+import WarehouseCompositionChart, {
+  type WarehouseCompositionDatum,
+} from '../../components/dashboard/WarehouseCompositionChart';
 
 interface PantryMonthlyRow {
   month: number;
@@ -103,6 +113,13 @@ export default function FoodBankTrends() {
   const [donorError, setDonorError] = useState<string | null>(null);
   const [receivers, setReceivers] = useState<TopReceiver[]>([]);
   const [receiverError, setReceiverError] = useState<string | null>(null);
+  const [selectedComposition, setSelectedComposition] = useState<{
+    month: string;
+    donations: number;
+    surplus: number;
+    pigPound: number;
+    outgoing: number;
+  } | null>(null);
 
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -293,7 +310,9 @@ export default function FoodBankTrends() {
     [events],
   );
 
-  const chartData = useMemo(
+  type CompositionChartDatum = WarehouseCompositionDatum & { incoming: number };
+
+  const chartData = useMemo<CompositionChartDatum[]>(
     () =>
       warehouseTotals.map(total => ({
         month: monthName(total.month),
@@ -307,6 +326,20 @@ export default function FoodBankTrends() {
         pigPound: total.pigPound ?? 0,
       })),
     [warehouseTotals],
+  );
+
+  const handleCompositionClick = useCallback(
+    (data: { payload?: WarehouseCompositionDatum } | undefined) => {
+      if (!data?.payload) return;
+      setSelectedComposition({
+        month: data.payload.month,
+        donations: data.payload.donations ?? 0,
+        surplus: data.payload.surplus ?? 0,
+        pigPound: data.payload.pigPound ?? 0,
+        outgoing: data.payload.outgoing ?? 0,
+      });
+    },
+    [],
   );
 
   const hasWarehouseData = chartData.length > 0;
@@ -503,38 +536,10 @@ export default function FoodBankTrends() {
                           {warehouseError}
                         </Typography>
                       ) : hasWarehouseData ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="month" />
-                            <YAxis />
-                            <Legend />
-                            <Bar
-                              dataKey="donations"
-                              name="Donations"
-                              stackId="a"
-                              fill={theme.palette.primary.main}
-                            />
-                            <Bar
-                              dataKey="surplus"
-                              name="Surplus"
-                              stackId="a"
-                              fill={theme.palette.warning.main}
-                            />
-                            <Bar
-                              dataKey="pigPound"
-                              name="Pig Pound"
-                              stackId="a"
-                              fill={theme.palette.info.main}
-                            />
-                            <Bar
-                              dataKey="outgoing"
-                              name="Outgoing"
-                              stackId="a"
-                              fill={theme.palette.error.main}
-                            />
-                          </BarChart>
-                        </ResponsiveContainer>
+                        <WarehouseCompositionChart
+                          data={chartData}
+                          onBarClick={handleCompositionClick}
+                        />
                       ) : (
                         <Typography variant="body2" color="text.secondary">
                           No data available.
@@ -652,6 +657,51 @@ export default function FoodBankTrends() {
           </SectionCard>
         </Grid>
       </Grid>
+
+      <FormDialog
+        open={Boolean(selectedComposition)}
+        onClose={() => setSelectedComposition(null)}
+        maxWidth="xs"
+      >
+        <DialogTitle>
+          Composition for {selectedComposition?.month}
+          {selectedYear ? ` ${selectedYear}` : ''}
+        </DialogTitle>
+        <DialogContent dividers>
+          <List disablePadding>
+            <ListItem>
+              <ListItemText
+                primary="Donations"
+                secondary={fmtLbs(selectedComposition?.donations)}
+              />
+            </ListItem>
+            <Divider component="li" />
+            <ListItem>
+              <ListItemText
+                primary="Surplus"
+                secondary={fmtLbs(selectedComposition?.surplus)}
+              />
+            </ListItem>
+            <Divider component="li" />
+            <ListItem>
+              <ListItemText
+                primary="Pig Pound"
+                secondary={fmtLbs(selectedComposition?.pigPound)}
+              />
+            </ListItem>
+            <Divider component="li" />
+            <ListItem>
+              <ListItemText
+                primary="Outgoing"
+                secondary={fmtLbs(selectedComposition?.outgoing)}
+              />
+            </ListItem>
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSelectedComposition(null)}>Close</Button>
+        </DialogActions>
+      </FormDialog>
     </Page>
   );
 }
