@@ -191,6 +191,56 @@ describe('Volunteer routes role ID validation', () => {
   });
 });
 
+describe('getVolunteerStatsById route', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns aggregated stats for the volunteer', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [
+        {
+          lifetime_hours: '12.5',
+          lifetime_shifts: '15',
+          ytd_hours: '5',
+          ytd_shifts: '6',
+          mtd_hours: '2.5',
+          mtd_shifts: '3',
+        },
+      ],
+    });
+
+    const res = await request(app).get('/volunteers/7/stats');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      volunteerId: 7,
+      lifetime: { hours: 12.5, shifts: 15 },
+      yearToDate: { hours: 5, shifts: 6 },
+      monthToDate: { hours: 2.5, shifts: 3 },
+    });
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/archived_hours/i);
+  });
+
+  it('returns 404 when the volunteer does not exist', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
+
+    const res = await request(app).get('/volunteers/99/stats');
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ message: 'Volunteer not found' });
+  });
+
+  it('rejects invalid volunteer id', async () => {
+    const res = await request(app).get('/volunteers/foo/stats');
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: 'Invalid volunteer ID' });
+    expect(pool.query).not.toHaveBeenCalled();
+  });
+});
+
 describe('updateVolunteer', () => {
   beforeEach(() => {
     jest.clearAllMocks();

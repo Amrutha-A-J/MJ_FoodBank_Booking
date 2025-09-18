@@ -8,6 +8,7 @@ import {
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
   getVolunteerStats,
+  getVolunteerStatsById,
   awardVolunteerBadge,
   removeVolunteerBadge,
   deleteVolunteer,
@@ -21,6 +22,13 @@ const router = express.Router();
 router.get('/me', authMiddleware, getVolunteerProfile);
 
 router.get('/me/stats', authMiddleware, getVolunteerStats);
+
+router.get(
+  '/:id/stats',
+  authMiddleware,
+  authorizeRoles('staff'),
+  getVolunteerStatsById,
+);
 
 router.post('/me/badges', authMiddleware, awardVolunteerBadge);
 router.delete('/me/badges/:badgeCode', authMiddleware, removeVolunteerBadge);

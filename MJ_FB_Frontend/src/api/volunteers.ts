@@ -66,6 +66,20 @@ export async function getVolunteerById(
   return handleResponse(res);
 }
 
+export interface VolunteerStatsByIdResponse {
+  volunteerId: number;
+  lifetime: { hours: number; shifts: number };
+  yearToDate: { hours: number; shifts: number };
+  monthToDate: { hours: number; shifts: number };
+}
+
+export async function getVolunteerStatsById(
+  id: number,
+): Promise<VolunteerStatsByIdResponse> {
+  const res = await apiFetch(`${API_BASE}/volunteers/${id}/stats`);
+  return handleResponse(res);
+}
+
 export async function searchVolunteers(
   search: string,
 ): Promise<VolunteerSearchResult[]> {
