@@ -143,15 +143,6 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
           }
           label="Payroll Management"
         />
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={access.includes('aggregations')}
-              onChange={() => toggleAccess('aggregations')}
-            />
-          }
-          label="Aggregations"
-        />
       </FormCard>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
       <FeedbackSnackbar open={!!success} onClose={() => setSuccess('')} message={success} />
