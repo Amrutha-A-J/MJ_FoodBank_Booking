@@ -129,7 +129,7 @@ let theme = createTheme({
     MuiAppBar: { styleOverrides: { root: { backgroundColor: BRAND_PRIMARY } } },
 
     MuiButton: {
-      defaultProps: { size: 'small', disableElevation: true },
+      defaultProps: { size: 'medium', disableElevation: true },
       styleOverrides: {
         root: {
           borderRadius: 5,
@@ -142,6 +142,7 @@ let theme = createTheme({
           transition: 'border-color 0.25s, background-color 0.25s',
           '&:focus-visible': { boxShadow: `0 0 0 3px ${alpha(BRAND_PRIMARY, 0.25)}` },
           lineHeight: 1.2,
+          minHeight: '48px',
         },
         containedPrimary: {
           '&:hover': { backgroundColor: darken(BRAND_PRIMARY, 0.08) },
