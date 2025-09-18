@@ -38,7 +38,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Staff dashboards include a Volunteer Coverage card; click a role to see which volunteers are on duty.
 - Staff dashboard charts pull pantry monthly aggregates to show total orders and adult/child breakdowns.
 
-- Staff with `aggregations` or `donor_management` access see an **Aggregations** navigation item with **Pantry Aggregations** and **Warehouse Aggregations** pages for reporting.
+- Staff with `aggregations` or `donor_management` access see an **Aggregations** navigation item with **Food Bank Trends**, **Pantry Aggregations**, and **Warehouse Aggregations** pages for reporting. Food Bank Trends consolidates pantry and warehouse metrics for staff who do not have direct access to those tools.
 
 Staff can reach **Timesheets** at `/timesheet` and **Leave Management** at
 `/leave-requests` from the profile menu once logged in. Admin users also see
