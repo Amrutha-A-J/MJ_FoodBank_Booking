@@ -7,7 +7,12 @@
     "skipLibCheck": true,
     "rootDir": "src",
     "outDir": "dist",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@simplewebauthn/server": ["node_modules/@simplewebauthn/server/esm/index.d.ts"],
+      "@simplewebauthn/types": ["node_modules/@simplewebauthn/types/types/index.d.ts"]
+    }
   },
   "include": [
     "src/**/*.ts",
