@@ -38,6 +38,7 @@ describe('donationController', () => {
             firstName: 'Alice',
             lastName: 'Smith',
             email: 'a@example.com',
+            phone: '555-1111',
           },
         ],
       });
@@ -55,6 +56,7 @@ describe('donationController', () => {
           firstName: 'Alice',
           lastName: 'Smith',
           email: 'a@example.com',
+          phone: '555-1111',
         },
       ]);
     });
@@ -70,6 +72,7 @@ describe('donationController', () => {
             firstName: 'Alice',
             lastName: 'Smith',
             email: 'a@example.com',
+            phone: '555-1111',
           },
         ],
       });
@@ -87,6 +90,7 @@ describe('donationController', () => {
           firstName: 'Alice',
           lastName: 'Smith',
           email: 'a@example.com',
+          phone: '555-1111',
         },
       ]);
     });
@@ -125,7 +129,7 @@ describe('donationController', () => {
       (mockDb.query as jest.Mock)
         .mockResolvedValueOnce({
           rows: [
-            { id: 2, firstName: 'Alice', lastName: 'Smith', email: 'a@example.com' },
+            { id: 2, firstName: 'Alice', lastName: 'Smith', email: 'a@example.com', phone: '555-1111' },
           ],
         })
         .mockResolvedValueOnce({
@@ -139,13 +143,13 @@ describe('donationController', () => {
       await flushPromises();
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        'SELECT id, first_name AS "firstName", last_name AS "lastName", email FROM donors WHERE id = $1',
+        'SELECT id, first_name AS "firstName", last_name AS "lastName", email, phone FROM donors WHERE id = $1',
         [2],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
-        'INSERT INTO donations (date, donor_email, weight) VALUES ($1, $2, $3) RETURNING id, date, weight',
-        ['2024-05-20', 'a@example.com', 10],
+        'INSERT INTO donations (date, donor_id, weight) VALUES ($1, $2, $3) RETURNING id, date, weight',
+        ['2024-05-20', 2, 10],
       );
       expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 5);
       expect(res.status).toHaveBeenCalledWith(201);
@@ -157,6 +161,7 @@ describe('donationController', () => {
         firstName: 'Alice',
         lastName: 'Smith',
         email: 'a@example.com',
+        phone: '555-1111',
       });
     });
 
@@ -177,7 +182,7 @@ describe('donationController', () => {
         .mockResolvedValueOnce({ rows: [{ date: '2024-04-30' }] })
         .mockResolvedValueOnce({
           rows: [
-            { id: 2, firstName: 'Alice', lastName: 'Smith', email: 'a@example.com' },
+            { id: 2, firstName: 'Alice', lastName: 'Smith', email: 'a@example.com', phone: '555-1111' },
           ],
         })
         .mockResolvedValueOnce({
@@ -190,6 +195,16 @@ describe('donationController', () => {
       const res = { json: jest.fn() } as any;
       await updateDonation(req, res, jest.fn());
       await flushPromises();
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        2,
+        'SELECT id, first_name AS "firstName", last_name AS "lastName", email, phone FROM donors WHERE id = $1',
+        [2],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        3,
+        'UPDATE donations SET date = $1, donor_id = $2, weight = $3 WHERE id = $4 RETURNING id, date, weight',
+        ['2024-05-02', 2, 15, '1'],
+      );
       expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 5);
       expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 4);
       expect(res.json).toHaveBeenCalledWith({
@@ -200,6 +215,7 @@ describe('donationController', () => {
         firstName: 'Alice',
         lastName: 'Smith',
         email: 'a@example.com',
+        phone: '555-1111',
       });
     });
   });
@@ -224,17 +240,12 @@ describe('donationController', () => {
     it('saves manual donor aggregation', async () => {
       (mockDb.query as jest.Mock).mockResolvedValueOnce({});
       const req = {
-        body: { year: 2024, month: 5, donorEmail: 'a@example.com', total: 100 },
+        body: { year: 2024, month: 5, donorId: 2, total: 100 },
       } as any;
       const res = { json: jest.fn() } as any;
       await manualDonorAggregation(req, res, jest.fn());
       await flushPromises();
-      expect(mockDb.query).toHaveBeenCalledWith(expect.any(String), [
-        2024,
-        5,
-        'a@example.com',
-        100,
-      ]);
+      expect(mockDb.query).toHaveBeenCalledWith(expect.any(String), [2024, 5, 2, 100]);
       expect(res.json).toHaveBeenCalledWith({ message: 'Saved' });
     });
 
@@ -244,7 +255,7 @@ describe('donationController', () => {
       await manualDonorAggregation(req, res, jest.fn());
       await flushPromises();
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Year, month, and donorEmail required' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Year, month, and donorId required' });
     });
   });
 
@@ -253,12 +264,21 @@ describe('donationController', () => {
       const months = Array.from({ length: 12 }, (_, i) => i + 1);
       const rows = [
         ...months.map(month => ({
+          donorId: 1,
           donor: 'Alice',
           email: 'alice@example.com',
+          phone: '555-1111',
           month,
           total: month === 1 ? 100 : month === 2 ? 50 : 0,
         })),
-        ...months.map(month => ({ donor: 'Bob', email: 'bob@example.com', month, total: 0 })),
+        ...months.map(month => ({
+          donorId: 2,
+          donor: 'Bob',
+          email: 'bob@example.com',
+          phone: null,
+          month,
+          total: 0,
+        })),
       ];
       (mockDb.query as jest.Mock).mockResolvedValueOnce({ rows });
       const req = { query: { year: '2024' } } as any;
@@ -268,14 +288,18 @@ describe('donationController', () => {
       expect(mockDb.query).toHaveBeenCalledWith(expect.any(String), [2024]);
       expect(res.json).toHaveBeenCalledWith([
         {
+          donorId: 1,
           donor: 'Alice',
           email: 'alice@example.com',
+          phone: '555-1111',
           monthlyTotals: [100, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           total: 150,
         },
         {
+          donorId: 2,
           donor: 'Bob',
           email: 'bob@example.com',
+          phone: null,
           monthlyTotals: Array(12).fill(0),
           total: 0,
         },

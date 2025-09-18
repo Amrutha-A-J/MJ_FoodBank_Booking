@@ -32,11 +32,11 @@ export async function refreshWarehouseOverall(year: number, month: number) {
       [year, month],
     ),
     pool.query(
-      `SELECT o.email AS "donorEmail", COALESCE(SUM(d.weight)::int, 0) AS total
+      `SELECT o.id AS "donorId", COALESCE(SUM(d.weight)::int, 0) AS total
          FROM donations d
-         JOIN donors o ON d.donor_email = o.email
+         JOIN donors o ON d.donor_id = o.id
          WHERE EXTRACT(YEAR FROM d.date) = $1 AND EXTRACT(MONTH FROM d.date) = $2
-         GROUP BY o.email`,
+         GROUP BY o.id`,
       [year, month],
     ),
   ]);
@@ -58,15 +58,15 @@ export async function refreshWarehouseOverall(year: number, month: number) {
   );
 
   // Refresh donor aggregations for the given month
-  const donorRows = donorAggRes.rows as { donorEmail: string; total: number }[];
+  const donorRows = donorAggRes.rows as { donorId: number; total: number }[];
   await pool.query('DELETE FROM donor_aggregations WHERE year = $1 AND month = $2', [year, month]);
   if (donorRows.length > 0) {
     const valueClauses = donorRows
       .map((_, i) => `($1, $2, $${i * 2 + 3}, $${i * 2 + 4})`)
       .join(',');
-    const params = [year, month, ...donorRows.flatMap(r => [r.donorEmail, r.total])];
+    const params = [year, month, ...donorRows.flatMap(r => [r.donorId, r.total])];
     await pool.query(
-      `INSERT INTO donor_aggregations (year, month, donor_email, total) VALUES ${valueClauses}`,
+      `INSERT INTO donor_aggregations (year, month, donor_id, total) VALUES ${valueClauses}`,
       params,
     );
   }

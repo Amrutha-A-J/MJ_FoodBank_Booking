@@ -52,7 +52,7 @@ describe('GET /donors/:id/donations', () => {
       2,
       `SELECT n.id, n.date, n.weight
        FROM donations n
-       JOIN donors d ON n.donor_email = d.email
+       JOIN donors d ON n.donor_id = d.id
        WHERE d.id = $1
        ORDER BY n.date DESC, n.id DESC`,
       ['5'],

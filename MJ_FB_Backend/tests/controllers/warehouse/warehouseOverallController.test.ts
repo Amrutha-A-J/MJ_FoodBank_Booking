@@ -20,7 +20,7 @@ describe('warehouseOverallController', () => {
         .mockResolvedValueOnce({ rows: [{ total: 15 }] })
         .mockResolvedValueOnce({ rows: [{ total: 8 }] })
         .mockResolvedValueOnce({
-          rows: [{ donorEmail: 'donor@example.com', total: 60 }],
+          rows: [{ donorId: 42, total: 60 }],
         })
         .mockResolvedValueOnce({})
         .mockResolvedValueOnce({})
@@ -66,7 +66,7 @@ describe('warehouseOverallController', () => {
       expect(mockDb.query).toHaveBeenNthCalledWith(
         8,
         expect.stringContaining('INSERT INTO donor_aggregations'),
-        [2024, 5, 'donor@example.com', 60],
+        [2024, 5, 42, 60],
       );
     });
 

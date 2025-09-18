@@ -12,7 +12,7 @@ export const updateDonationSchema = donationSchema;
 export const manualDonorAggregationSchema = z.object({
   year: z.number().int(),
   month: z.number().int(),
-  donorEmail: z.string().email(),
+  donorId: z.number().int(),
   total: z.number().int().optional(),
 });
 

@@ -33,12 +33,21 @@ describe('GET /donations/aggregations', () => {
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
     const rows = [
       ...months.map(month => ({
+        donorId: 1,
         donor: 'Alice',
         email: 'alice@example.com',
+        phone: '306-555-1000',
         month,
         total: month === 1 ? 100 : month === 2 ? 50 : 0,
       })),
-      ...months.map(month => ({ donor: 'Bob', email: 'bob@example.com', month, total: 0 })),
+      ...months.map(month => ({
+        donorId: 2,
+        donor: 'Bob',
+        email: 'bob@example.com',
+        phone: null,
+        month,
+        total: 0,
+      })),
     ];
 
     (pool.query as jest.Mock)
@@ -57,14 +66,18 @@ describe('GET /donations/aggregations', () => {
     );
     expect(res.body).toEqual([
       {
+        donorId: 1,
         donor: 'Alice',
         email: 'alice@example.com',
+        phone: '306-555-1000',
         monthlyTotals: [100, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         total: 150,
       },
       {
+        donorId: 2,
         donor: 'Bob',
         email: 'bob@example.com',
+        phone: null,
         monthlyTotals: Array(12).fill(0),
         total: 0,
       },
