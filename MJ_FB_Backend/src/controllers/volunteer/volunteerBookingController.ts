@@ -1320,7 +1320,7 @@ export async function createRecurringVolunteerBooking(
         await client.query('BEGIN');
         const params: any[] = [roleId, user.id, recurringId];
         const values = inserts
-          .map((_, i) => `($${i * 2 + 4}, $${i * 2 + 5})`)
+          .map((_, i) => `($${i * 2 + 4}::date, $${i * 2 + 5})`)
           .join(', ');
         params.push(...inserts.flatMap((i) => [i.date, i.token]));
         const sql = `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, recurring_id)
