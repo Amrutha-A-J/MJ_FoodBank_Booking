@@ -12,6 +12,8 @@ import { getClientBookingsThisMonth } from './clientVisitController';
 
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
+  const normalizedEmail =
+    typeof email === 'string' ? email.trim().toLowerCase() : email;
 
   if (!password) {
     return res.status(400).json({ message: 'Password required' });
@@ -28,7 +30,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
          FROM volunteers v
          LEFT JOIN clients u ON v.user_id = u.client_id
          WHERE v.email = $1`,
-        [email],
+        [normalizedEmail],
       );
       if ((volunteerQuery.rowCount ?? 0) > 0) {
         const volunteer = volunteerQuery.rows[0];
@@ -84,7 +86,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
 
       const staffQuery = await pool.query(
         `SELECT id, first_name, last_name, email, password, role, access, consent FROM staff WHERE email = $1`,
-        [email],
+        [normalizedEmail],
       );
       if ((staffQuery.rowCount ?? 0) > 0) {
         const staff = staffQuery.rows[0];
@@ -116,7 +118,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
 
       const clientEmailQuery = await pool.query(
         `SELECT client_id, first_name, last_name, role, password FROM clients WHERE email = $1 AND online_access = true`,
-        [email],
+        [normalizedEmail],
       );
       if ((clientEmailQuery.rowCount ?? 0) > 0) {
         const userRow = clientEmailQuery.rows[0];

@@ -281,6 +281,51 @@ describe('userController', () => {
       );
     });
 
+    it('logs in staff when email casing differs', async () => {
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] }) // maintenance
+        .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // volunteer lookup
+        .mockResolvedValueOnce({
+          rowCount: 1,
+          rows: [
+            {
+              id: 7,
+              first_name: 'Case',
+              last_name: 'Insensitive',
+              email: 'case@example.com',
+              password: 'hashed',
+              role: 'staff',
+              access: ['reports'],
+              consent: false,
+            },
+          ],
+        });
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      const req: any = {
+        body: { email: '  CASE@EXAMPLE.COM  ', password: 'pw' },
+      };
+      const res: any = {
+        cookie: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      await loginUser(req, res, jest.fn());
+
+      expect(res.json).toHaveBeenCalledWith({
+        role: 'staff',
+        name: 'Case Insensitive',
+        access: ['reports'],
+        id: 7,
+        consent: false,
+      });
+      const volunteerCall = (pool.query as jest.Mock).mock.calls[1];
+      expect(volunteerCall[1]).toEqual(['case@example.com']);
+      const staffCall = (pool.query as jest.Mock).mock.calls[2];
+      expect(staffCall[1]).toEqual(['case@example.com']);
+    });
+
     it('rejects invalid password', async () => {
       (pool.query as jest.Mock)
         .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
