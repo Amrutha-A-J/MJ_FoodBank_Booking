@@ -4,7 +4,8 @@ export interface Donor {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
+  phone: string | null;
 }
 
 export interface TopDonor {
@@ -49,6 +50,23 @@ export async function createDonor(data: {
 export async function getDonor(id: number): Promise<DonorDetail> {
   const res = await apiFetch(`${API_BASE}/donors/${id}`);
   return handleResponse(res);
+}
+
+export async function updateDonor(
+  id: number,
+  data: {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+  },
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/donors/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  await handleResponse(res);
 }
 
 export async function getDonorDonations(

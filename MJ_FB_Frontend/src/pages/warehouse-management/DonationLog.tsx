@@ -69,7 +69,8 @@ export default function DonationLog() {
     {
       field: 'donor' as keyof DonationRow & string,
       header: 'Donor',
-      render: d => `${d.donor.firstName} ${d.donor.lastName} (${d.donor.email})`,
+      render: d =>
+        `${d.donor.firstName} ${d.donor.lastName} (${d.donor.email || 'No email'})`,
     },
     {
       field: 'weight',
