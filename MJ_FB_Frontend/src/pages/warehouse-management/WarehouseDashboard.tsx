@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Card,
@@ -15,6 +15,14 @@ import {
   MenuItem,
   Alert,
   Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import TrendingUp from '@mui/icons-material/TrendingUp';
@@ -58,6 +66,15 @@ interface MonthlyTotal {
   outgoingLbs: number;
 }
 
+type CompositionDatum = {
+  month: string;
+  incoming: number;
+  outgoing: number;
+  donations: number;
+  surplus: number;
+  pigPound: number;
+};
+
 
 function monthName(m: number) {
   return formatLocaleDate(`${2000}-${String(m).padStart(2, '0')}-01`, { month: 'short' });
@@ -91,6 +108,13 @@ export default function WarehouseDashboard() {
     message: string;
     severity?: AlertColor;
   }>({ open: false, message: '', severity: 'success' });
+  const [selectedComposition, setSelectedComposition] = useState<{
+    month: string;
+    donations: number;
+    surplus: number;
+    pigPound: number;
+    outgoing: number;
+  } | null>(null);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -199,7 +223,7 @@ export default function WarehouseDashboard() {
   const anomalyRatio = totalIncoming ? outgoing / totalIncoming : 0;
   const showAnomaly = totalIncoming > 0 && anomalyRatio > 1.25;
 
-  const chartData = useMemo(
+  const chartData = useMemo<CompositionDatum[]>(
     () =>
       Array.from({ length: 12 }, (_, i) => {
         const m = i + 1;
@@ -243,6 +267,17 @@ export default function WarehouseDashboard() {
   function go(path: string) {
     navigate(path);
   }
+
+  const handleCompositionClick = useCallback((data: { payload?: CompositionDatum } | undefined) => {
+    if (!data?.payload) return;
+    setSelectedComposition({
+      month: data.payload.month,
+      donations: data.payload.donations ?? 0,
+      surplus: data.payload.surplus ?? 0,
+      pigPound: data.payload.pigPound ?? 0,
+      outgoing: data.payload.outgoing ?? 0,
+    });
+  }, []);
 
 
   const kpis = [
@@ -434,30 +469,67 @@ export default function WarehouseDashboard() {
                   name="Donations"
                   stackId="a"
                   fill={theme.palette.primary.main}
+                  onClick={handleCompositionClick}
                 />
                 <Bar
                   dataKey="surplus"
                   name="Surplus"
                   stackId="a"
                   fill={theme.palette.warning.main}
+                  onClick={handleCompositionClick}
                 />
                 <Bar
                   dataKey="pigPound"
                   name="Pig Pound"
                   stackId="a"
                   fill={theme.palette.info.main}
+                  onClick={handleCompositionClick}
                 />
                 <Bar
                   dataKey="outgoing"
                   name="Outgoing"
                   stackId="a"
                   fill={theme.palette.error.main}
+                  onClick={handleCompositionClick}
                 />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </Box>
+
+      <Dialog
+        open={Boolean(selectedComposition)}
+        onClose={() => setSelectedComposition(null)}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>
+          Composition for {selectedComposition?.month} {year}
+        </DialogTitle>
+        <DialogContent dividers>
+          <List disablePadding>
+            <ListItem>
+              <ListItemText primary="Donations" secondary={fmtLbs(selectedComposition?.donations)} />
+            </ListItem>
+            <Divider component="li" />
+            <ListItem>
+              <ListItemText primary="Surplus" secondary={fmtLbs(selectedComposition?.surplus)} />
+            </ListItem>
+            <Divider component="li" />
+            <ListItem>
+              <ListItemText primary="Pig Pound" secondary={fmtLbs(selectedComposition?.pigPound)} />
+            </ListItem>
+            <Divider component="li" />
+            <ListItem>
+              <ListItemText primary="Outgoing" secondary={fmtLbs(selectedComposition?.outgoing)} />
+            </ListItem>
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSelectedComposition(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       <Box
         display="grid"
