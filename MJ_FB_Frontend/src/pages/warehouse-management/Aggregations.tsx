@@ -57,7 +57,7 @@ export default function Aggregations() {
   const [insertLoading, setInsertLoading] = useState(false);
   const [donorInsertOpen, setDonorInsertOpen] = useState(false);
   const [donorInsertMonth, setDonorInsertMonth] = useState('');
-  const [donorInsertEmail, setDonorInsertEmail] = useState('');
+  const [donorInsertDonorId, setDonorInsertDonorId] = useState('');
   const [donorInsertTotal, setDonorInsertTotal] = useState('');
   const [donorInsertLoading, setDonorInsertLoading] = useState(false);
   useEffect(() => {
@@ -213,7 +213,7 @@ export default function Aggregations() {
           variant="contained"
           onClick={() => {
             setDonorInsertMonth('');
-            setDonorInsertEmail('');
+            setDonorInsertDonorId('');
             setDonorInsertTotal('');
             setDonorInsertOpen(true);
           }}
@@ -381,9 +381,10 @@ export default function Aggregations() {
               size="medium"
             />
             <TextField
-              label="Donor Email"
-              value={donorInsertEmail}
-              onChange={e => setDonorInsertEmail(e.target.value)}
+              label="Donor ID"
+              type="number"
+              value={donorInsertDonorId}
+              onChange={e => setDonorInsertDonorId(e.target.value)}
               size="medium"
             />
             <TextField
@@ -402,13 +403,16 @@ export default function Aggregations() {
           <Button
             variant="contained"
             onClick={async () => {
-              if (donorInsertMonth === '' || donorInsertEmail === '') return;
+              const donorIdValue = donorInsertDonorId.trim();
+              if (donorInsertMonth === '' || donorIdValue === '') return;
+              const parsedDonorId = Number(donorIdValue);
+              if (Number.isNaN(parsedDonorId)) return;
               setDonorInsertLoading(true);
               try {
                 await postManualDonorAggregation({
                   year: donorYear,
                   month: Number(donorInsertMonth),
-                  donorEmail: donorInsertEmail,
+                  donorId: parsedDonorId,
                   total: Number(donorInsertTotal) || 0,
                 });
                 setSnackbar({ open: true, message: 'Aggregate saved', severity: 'success' });
@@ -431,7 +435,9 @@ export default function Aggregations() {
                 setDonorInsertLoading(false);
               }
             }}
-            disabled={donorInsertLoading || donorInsertMonth === '' || donorInsertEmail === ''}
+            disabled={
+              donorInsertLoading || donorInsertMonth === '' || donorInsertDonorId.trim() === ''
+            }
             sx={{ textTransform: 'none' }}
           >
             {donorInsertLoading ? <CircularProgress size={20} /> : 'Save'}

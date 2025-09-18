@@ -7,7 +7,8 @@ export interface Donation {
   donor: {
     firstName: string;
     lastName: string;
-    email: string;
+    email?: string | null;
+    phone?: string | null;
   };
   weight: number;
 }
@@ -65,7 +66,7 @@ export async function exportDonorAggregations(year: number): Promise<Blob> {
 export async function postManualDonorAggregation(data: {
   year: number;
   month: number;
-  donorEmail: string;
+  donorId: number;
   total: number;
 }): Promise<void> {
   const res = await apiFetch(`${API_BASE}/donations/aggregations/manual`, {
