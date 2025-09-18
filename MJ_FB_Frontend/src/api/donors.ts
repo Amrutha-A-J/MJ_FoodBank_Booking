@@ -4,14 +4,16 @@ export interface Donor {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
+  phone: string | null;
 }
 
 export interface TopDonor {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
+  phone: string | null;
   totalLbs: number;
   lastDonationISO: string;
 }
@@ -36,7 +38,8 @@ export async function getDonors(search?: string): Promise<Donor[]> {
 export async function createDonor(data: {
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
+  phone: string | null;
 }): Promise<Donor> {
   const res = await apiFetch(`${API_BASE}/donors`, {
     method: 'POST',

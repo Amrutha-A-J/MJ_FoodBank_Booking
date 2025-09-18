@@ -56,7 +56,22 @@ export default function DonationLog() {
     donorId: null,
     weight: '',
   });
-  const [newDonor, setNewDonor] = useState({ firstName: '', lastName: '', email: '' });
+  const [newDonor, setNewDonor] = useState({ firstName: '', lastName: '', email: '', phone: '' });
+
+  function formatDonorLabel({
+    firstName,
+    lastName,
+    id,
+    phone,
+  }: {
+    firstName: string;
+    lastName: string;
+    id: number;
+    phone: string | null;
+  }) {
+    const base = `${firstName} ${lastName} (ID ${id})`;
+    return phone ? `${base} • ${phone}` : base;
+  }
 
   type DonationRow = Donation & { actions?: string };
 
@@ -69,7 +84,13 @@ export default function DonationLog() {
     {
       field: 'donor' as keyof DonationRow & string,
       header: 'Donor',
-      render: d => `${d.donor.firstName} ${d.donor.lastName} (${d.donor.email})`,
+      render: d =>
+        formatDonorLabel({
+          firstName: d.donor.firstName,
+          lastName: d.donor.lastName,
+          id: d.donor.id ?? d.donorId,
+          phone: d.donor.phone ?? null,
+        }),
     },
     {
       field: 'weight',
@@ -157,21 +178,32 @@ export default function DonationLog() {
   }
 
   function handleAddDonor() {
-    if (newDonor.firstName && newDonor.lastName && newDonor.email) {
-      createDonor(newDonor)
-        .then(d => {
-          setDonorOptions(prev =>
-            [...prev, d].sort((a, b) =>
-              `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
-            ),
-          );
-          showSnackbar('Donor added');
-        })
-        .catch(err => {
-          showSnackbar(err.message || 'Failed to add donor', 'error');
-        });
-    }
-    setNewDonor({ firstName: '', lastName: '', email: '' });
+    const firstName = newDonor.firstName.trim();
+    const lastName = newDonor.lastName.trim();
+    if (!firstName || !lastName) return;
+
+    const email = newDonor.email.trim();
+    const phone = newDonor.phone.trim();
+
+    createDonor({
+      firstName,
+      lastName,
+      email: email ? email : null,
+      phone: phone ? phone : null,
+    })
+      .then(d => {
+        setDonorOptions(prev =>
+          [...prev, d].sort((a, b) =>
+            `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
+          ),
+        );
+        showSnackbar('Donor added');
+      })
+      .catch(err => {
+        showSnackbar(err.message || 'Failed to add donor', 'error');
+      });
+
+    setNewDonor({ firstName: '', lastName: '', email: '', phone: '' });
     setNewDonorOpen(false);
   }
 
@@ -246,7 +278,14 @@ export default function DonationLog() {
               onChange={(_e, v) => setForm({ ...form, donorId: v ? v.id : null })}
               renderInput={params => <TextField {...params} label="Donor" />}
               isOptionEqualToValue={(option, value) => option.id === value.id}
-              getOptionLabel={o => `${o.firstName} ${o.lastName} (${o.email})`}
+              getOptionLabel={o =>
+                formatDonorLabel({
+                  firstName: o.firstName,
+                  lastName: o.lastName,
+                  id: o.id,
+                  phone: o.phone,
+                })
+              }
             />
           </Stack>
         </DialogContent>
@@ -313,10 +352,21 @@ export default function DonationLog() {
               onChange={e => setNewDonor({ ...newDonor, email: e.target.value })}
               fullWidth
             />
+            <TextField
+              label="Phone"
+              value={newDonor.phone}
+              onChange={e => setNewDonor({ ...newDonor, phone: e.target.value })}
+              fullWidth
+            />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleAddDonor} disabled={!newDonor.firstName || !newDonor.lastName || !newDonor.email}>Save</Button>
+          <Button
+            onClick={handleAddDonor}
+            disabled={!newDonor.firstName.trim() || !newDonor.lastName.trim()}
+          >
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
 
