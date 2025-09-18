@@ -81,9 +81,11 @@ export default function VolunteerCoverageCard({
               );
               const volunteers = todayBookings
                 .map((b: any) => b.volunteer_name)
-                .filter(Boolean);
+                .filter(Boolean) as string[];
               const startTime = s.start_time;
               const hour = Number.parseInt(startTime?.split(':')[0] ?? '', 10);
+              const period: CoverageItem['period'] =
+                Number.isFinite(hour) && hour < 12 ? 'morning' : 'afternoon';
               return {
                 roleName: `${r.name} ${formatTime(s.start_time)}–${formatTime(
                   s.end_time,
@@ -93,8 +95,8 @@ export default function VolunteerCoverageCard({
                 total: r.max_volunteers,
                 volunteers,
                 startTime,
-                period: Number.isFinite(hour) && hour < 12 ? 'morning' : 'afternoon',
-              };
+                period,
+              } satisfies CoverageItem;
             }),
           ),
         );

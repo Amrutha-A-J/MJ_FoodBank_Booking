@@ -223,9 +223,6 @@ export default function BookingUI<T = Slot>({
 }: BookingUIProps<T>) {
   const location = useLocation();
   const { role, name: authName, userRole } = useAuth();
-  const isVolunteerSchedule = location.pathname.startsWith('/volunteer/schedule');
-  const historyPath = isVolunteerSchedule ? '/volunteer/history' : '/booking-history';
-  const historyButtonLabel = isVolunteerSchedule ? 'View shift history' : 'View booking history';
   const pageTitle =
     location.pathname.startsWith('/book-appointment') && userRole === 'shopper'
       ? 'Book shopping appointment'
@@ -237,6 +234,8 @@ export default function BookingUI<T = Slot>({
     : location.pathname.startsWith('/book-appointment')
       ? '/booking-history'
       : null;
+  const historyButtonLabel =
+    historyPath === '/volunteer/history' ? 'View shift history' : 'View booking history';
   const historyLabel =
     historyPath === '/volunteer/history' ? 'View volunteer history' : 'View booking history';
   const displayName = shopperName ?? authName ?? 'John Shopper';
@@ -431,9 +430,13 @@ export default function BookingUI<T = Slot>({
                 </Typography>
                 <Typography>
                   If you need to reschedule, please do so from your bookings{' '}
-                  <Link component={RouterLink} to={historyPath} underline="hover">
-                    page
-                  </Link>
+                  {historyPath ? (
+                    <Link component={RouterLink} to={historyPath} underline="hover">
+                      page
+                    </Link>
+                  ) : (
+                    'page'
+                  )}
                   .
                 </Typography>
                 <Typography>
@@ -511,18 +514,20 @@ export default function BookingUI<T = Slot>({
         <Typography variant="h5" sx={{ flexGrow: 1 }}>
           {`Booking for ${displayName}`}
         </Typography>
-        <Button
-          component={RouterLink}
-          to={historyPath}
-          variant="outlined"
-          size="medium"
-          sx={{
-            minHeight: 48,
-            width: { xs: '100%', sm: 'auto' },
-          }}
-        >
-          {historyButtonLabel}
-        </Button>
+        {embedded && historyPath && (
+          <Button
+            component={RouterLink}
+            to={historyPath}
+            variant="outlined"
+            size="medium"
+            sx={{
+              minHeight: 48,
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
+            {historyButtonLabel}
+          </Button>
+        )}
       </Stack>
       <Typography
         variant="subtitle1"
