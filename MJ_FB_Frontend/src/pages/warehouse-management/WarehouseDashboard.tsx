@@ -41,6 +41,7 @@ import {
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { formatLocaleDate, toDate } from '../../utils/date';
+import { normalizeContactSearchValue, normalizeContactValue } from '../../utils/contact';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import VolunteerCoverageCard from '../../components/dashboard/VolunteerCoverageCard';
 import EventList from '../../components/EventList';
@@ -91,18 +92,16 @@ function kpiDelta(curr: number, prev?: number) {
 }
 
 function formatDonorDisplay(donor: {
+  id: number;
   firstName: string;
   lastName: string;
-  email?: string | null;
   phone?: string | null;
 }) {
-  const contact = [donor.email, donor.phone]
-    .map(value => value?.trim())
-    .filter((value): value is string => Boolean(value))
-    .join(' • ');
-  return contact
-    ? `${donor.firstName} ${donor.lastName} (${contact})`
-    : `${donor.firstName} ${donor.lastName}`;
+  const name = `${donor.firstName} ${donor.lastName}`.trim();
+  const phone = normalizeContactValue(donor.phone);
+  const identifier = `ID ${donor.id}`;
+  const suffix = phone ? `${identifier} • ${phone}` : identifier;
+  return `${name} (${suffix})`;
 }
 
 export default function WarehouseDashboard() {
@@ -257,21 +256,23 @@ export default function WarehouseDashboard() {
     [totals],
   );
 
-  const filteredDonors = useMemo(
-    () =>
-      donors.filter(d => {
-        const term = search.toLowerCase();
-        const email = (d.email ?? '').toLowerCase();
-        const phone = (d.phone ?? '').toLowerCase();
-        return (
-          d.id.toString().includes(term) ||
-          `${d.firstName} ${d.lastName}`.toLowerCase().includes(term) ||
-          email.includes(term) ||
-          phone.includes(term)
-        );
-      }),
-    [donors, search],
-  );
+  const filteredDonors = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return donors;
+
+    return donors.filter(d => {
+      const name = `${d.firstName} ${d.lastName}`.toLowerCase();
+      const email = normalizeContactSearchValue(d.email);
+      const phone = normalizeContactSearchValue(d.phone);
+
+      return (
+        d.id.toString().includes(term) ||
+        name.includes(term) ||
+        email.includes(term) ||
+        phone.includes(term)
+      );
+    });
+  }, [donors, search]);
   const filteredReceivers = useMemo(
     () => receivers.filter(r => r.name.toLowerCase().includes(search.toLowerCase())),
     [receivers, search],
