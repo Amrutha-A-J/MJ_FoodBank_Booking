@@ -13,6 +13,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Autocomplete,
 } from '@mui/material';
 import Page from '../../components/Page';
 import {
@@ -27,6 +28,7 @@ import {
   postManualDonorAggregation,
   type DonorAggregation,
 } from '../../api/donations';
+import { getDonors, type Donor } from '../../api/donors';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
 import { toDate } from '../../utils/date';
@@ -57,9 +59,47 @@ export default function Aggregations() {
   const [insertLoading, setInsertLoading] = useState(false);
   const [donorInsertOpen, setDonorInsertOpen] = useState(false);
   const [donorInsertMonth, setDonorInsertMonth] = useState('');
-  const [donorInsertDonorId, setDonorInsertDonorId] = useState('');
+  const [donorInsertDonor, setDonorInsertDonor] = useState<Donor | null>(null);
   const [donorInsertTotal, setDonorInsertTotal] = useState('');
   const [donorInsertLoading, setDonorInsertLoading] = useState(false);
+  const [donorOptions, setDonorOptions] = useState<Donor[]>([]);
+  const [donorSearch, setDonorSearch] = useState('');
+  const [donorInputValue, setDonorInputValue] = useState('');
+  const [donorOptionsLoading, setDonorOptionsLoading] = useState(false);
+
+  function formatDonorDisplay(donor: Donor) {
+    const contact = [donor.email, donor.phone]
+      .map(value => value?.trim())
+      .filter((value): value is string => Boolean(value))
+      .join(' • ');
+    return contact
+      ? `${donor.firstName} ${donor.lastName} (${contact})`
+      : `${donor.firstName} ${donor.lastName}`;
+  }
+
+  useEffect(() => {
+    if (!donorInsertOpen) return;
+    let active = true;
+    setDonorOptionsLoading(true);
+    getDonors(donorSearch)
+      .then(donors => {
+        if (!active) return;
+        setDonorOptions(
+          donors.sort((a, b) =>
+            `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
+          ),
+        );
+      })
+      .catch(() => {
+        if (active) setDonorOptions([]);
+      })
+      .finally(() => {
+        if (active) setDonorOptionsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [donorInsertOpen, donorSearch]);
   useEffect(() => {
     async function loadYears() {
       try {
@@ -213,8 +253,11 @@ export default function Aggregations() {
           variant="contained"
           onClick={() => {
             setDonorInsertMonth('');
-            setDonorInsertDonorId('');
+            setDonorInsertDonor(null);
             setDonorInsertTotal('');
+            setDonorOptions([]);
+            setDonorInputValue('');
+            setDonorSearch('');
             setDonorInsertOpen(true);
           }}
         >
@@ -380,12 +423,28 @@ export default function Aggregations() {
               onChange={e => setDonorInsertMonth(e.target.value)}
               size="medium"
             />
-            <TextField
-              label="Donor ID"
-              type="number"
-              value={donorInsertDonorId}
-              onChange={e => setDonorInsertDonorId(e.target.value)}
-              size="medium"
+            <Autocomplete
+              options={donorOptions}
+              value={donorInsertDonor}
+              onChange={(_, value) => setDonorInsertDonor(value)}
+              inputValue={donorInputValue}
+              onInputChange={(_, value, reason) => {
+                setDonorInputValue(value);
+                if (reason === 'input') {
+                  setDonorSearch(value);
+                }
+              }}
+              loading={donorOptionsLoading}
+              getOptionLabel={formatDonorDisplay}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  label="Donor"
+                  size="medium"
+                  helperText="Search by name, email, or phone"
+                />
+              )}
             />
             <TextField
               label="Total"
@@ -403,20 +462,20 @@ export default function Aggregations() {
           <Button
             variant="contained"
             onClick={async () => {
-              const donorIdValue = donorInsertDonorId.trim();
-              if (donorInsertMonth === '' || donorIdValue === '') return;
-              const parsedDonorId = Number(donorIdValue);
-              if (Number.isNaN(parsedDonorId)) return;
+              if (donorInsertMonth === '' || !donorInsertDonor) return;
+              const parsedMonth = Number(donorInsertMonth);
+              if (Number.isNaN(parsedMonth)) return;
               setDonorInsertLoading(true);
               try {
                 await postManualDonorAggregation({
                   year: donorYear,
-                  month: Number(donorInsertMonth),
-                  donorId: parsedDonorId,
+                  month: parsedMonth,
+                  donorId: donorInsertDonor.id,
                   total: Number(donorInsertTotal) || 0,
                 });
                 setSnackbar({ open: true, message: 'Aggregate saved', severity: 'success' });
                 setDonorInsertOpen(false);
+                setDonorInsertDonor(null);
                 setDonorLoading(true);
                 getDonorAggregations(donorYear)
                   .then(setDonorRows)
@@ -436,7 +495,7 @@ export default function Aggregations() {
               }
             }}
             disabled={
-              donorInsertLoading || donorInsertMonth === '' || donorInsertDonorId.trim() === ''
+              donorInsertLoading || donorInsertMonth === '' || !donorInsertDonor
             }
             sx={{ textTransform: 'none' }}
           >
@@ -449,76 +508,76 @@ export default function Aggregations() {
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
-                label="Month"
-                type="number"
-                value={insertMonth}
-                onChange={e => setInsertMonth(e.target.value)}
-                size="medium"
-              />
-              <TextField
-                label="Total Donations"
-                type="number"
-                value={insertDonations}
-                onChange={e => setInsertDonations(e.target.value)}
-                size="medium"
-              />
-              <TextField
-                label="Surplus"
-                type="number"
-                value={insertSurplus}
-                onChange={e => setInsertSurplus(e.target.value)}
-                size="medium"
-              />
-              <TextField
-                label="Pig Pound"
-                type="number"
-                value={insertPigPound}
-                onChange={e => setInsertPigPound(e.target.value)}
-                size="medium"
-              />
-              <TextField
-                label="Outgoing Donations"
-                type="number"
-                value={insertOutgoing}
-                onChange={e => setInsertOutgoing(e.target.value)}
-                size="medium"
-              />
-            </Stack>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setInsertOpen(false)} sx={{ textTransform: 'none' }}>
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              onClick={async () => {
-                if (insertMonth === '') return;
-                setInsertLoading(true);
-                try {
-                  await postManualWarehouseOverall({
-                    year: overallYear,
-                    month: Number(insertMonth),
-                    donations: Number(insertDonations) || 0,
-                    surplus: Number(insertSurplus) || 0,
-                    pigPound: Number(insertPigPound) || 0,
-                    outgoingDonations: Number(insertOutgoing) || 0,
-                  });
-                  setSnackbar({ open: true, message: 'Aggregate saved', severity: 'success' });
-                  setInsertOpen(false);
-                  loadOverall();
-                } catch {
-                  setSnackbar({ open: true, message: 'Failed to save', severity: 'error' });
-                } finally {
-                  setInsertLoading(false);
-                }
-              }}
-              disabled={insertLoading || insertMonth === ''}
-              sx={{ textTransform: 'none' }}
-            >
-              {insertLoading ? <CircularProgress size={20} /> : 'Save'}
-            </Button>
-          </DialogActions>
-        </Dialog>
+              label="Month"
+              type="number"
+              value={insertMonth}
+              onChange={e => setInsertMonth(e.target.value)}
+              size="medium"
+            />
+            <TextField
+              label="Total Donations"
+              type="number"
+              value={insertDonations}
+              onChange={e => setInsertDonations(e.target.value)}
+              size="medium"
+            />
+            <TextField
+              label="Surplus"
+              type="number"
+              value={insertSurplus}
+              onChange={e => setInsertSurplus(e.target.value)}
+              size="medium"
+            />
+            <TextField
+              label="Pig Pound"
+              type="number"
+              value={insertPigPound}
+              onChange={e => setInsertPigPound(e.target.value)}
+              size="medium"
+            />
+            <TextField
+              label="Outgoing Donations"
+              type="number"
+              value={insertOutgoing}
+              onChange={e => setInsertOutgoing(e.target.value)}
+              size="medium"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setInsertOpen(false)} sx={{ textTransform: 'none' }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              if (insertMonth === '') return;
+              setInsertLoading(true);
+              try {
+                await postManualWarehouseOverall({
+                  year: overallYear,
+                  month: Number(insertMonth),
+                  donations: Number(insertDonations) || 0,
+                  surplus: Number(insertSurplus) || 0,
+                  pigPound: Number(insertPigPound) || 0,
+                  outgoingDonations: Number(insertOutgoing) || 0,
+                });
+                setSnackbar({ open: true, message: 'Aggregate saved', severity: 'success' });
+                setInsertOpen(false);
+                loadOverall();
+              } catch {
+                setSnackbar({ open: true, message: 'Failed to save', severity: 'error' });
+              } finally {
+                setInsertLoading(false);
+              }
+            }}
+            disabled={insertLoading || insertMonth === ''}
+            sx={{ textTransform: 'none' }}
+          >
+            {insertLoading ? <CircularProgress size={20} /> : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
         <FeedbackSnackbar
           open={snackbar.open}
           onClose={() => setSnackbar({ ...snackbar, open: false })}
