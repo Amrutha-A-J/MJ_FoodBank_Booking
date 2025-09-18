@@ -11,64 +11,71 @@ import {
   manualPantryAggregate,
   manualWeeklyPantryAggregate,
 } from '../../controllers/pantryAggregationController';
-import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
+import {
+  authMiddleware,
+  authorizeAccess,
+  authorizeAccessOrStaff as baseAuthorizeAccessOrStaff,
+} from '../../middleware/authMiddleware';
+
+const authorizeAggregationsAccess =
+  (baseAuthorizeAccessOrStaff as typeof authorizeAccess | undefined) ?? authorizeAccess;
 
 const router = Router();
 
 router.get(
   '/weekly',
   authMiddleware,
-  authorizeAccess('pantry', 'aggregations'),
+  authorizeAggregationsAccess('pantry', 'aggregations'),
   listWeeklyAggregations,
 );
 router.get(
   '/monthly',
   authMiddleware,
-  authorizeAccess('pantry', 'aggregations'),
+  authorizeAggregationsAccess('pantry', 'aggregations'),
   listMonthlyAggregations,
 );
 router.get(
   '/yearly',
   authMiddleware,
-  authorizeAccess('pantry', 'aggregations'),
+  authorizeAggregationsAccess('pantry', 'aggregations'),
   listYearlyAggregations,
 );
 router.get(
   '/years',
   authMiddleware,
-  authorizeAccess('pantry', 'aggregations'),
+  authorizeAggregationsAccess('pantry', 'aggregations'),
   listAvailableYears,
 );
 router.get(
   '/months',
   authMiddleware,
-  authorizeAccess('pantry', 'aggregations'),
+  authorizeAggregationsAccess('pantry', 'aggregations'),
   listAvailableMonths,
 );
 router.get(
   '/weeks',
   authMiddleware,
-  authorizeAccess('pantry', 'aggregations'),
+  authorizeAggregationsAccess('pantry', 'aggregations'),
   listAvailableWeeks,
 );
 router.get(
   '/export',
   authMiddleware,
-  authorizeAccess('pantry', 'aggregations'),
+  authorizeAggregationsAccess('pantry', 'aggregations'),
   exportAggregations,
 );
-router.post('/rebuild', authMiddleware, authorizeAccess('pantry', 'aggregations'), rebuildAggregations);
+router.post('/rebuild', authMiddleware, authorizeAggregationsAccess('pantry', 'aggregations'), rebuildAggregations);
 router.post(
   '/manual',
   authMiddleware,
-  authorizeAccess('pantry', 'aggregations'),
+  authorizeAggregationsAccess('pantry', 'aggregations'),
   // Body: { year, month, week?, orders?, adults?, children?, people?, weight? }
   manualPantryAggregate,
 );
 router.post(
   '/manual/weekly',
   authMiddleware,
-  authorizeAccess('pantry', 'aggregations'),
+  authorizeAggregationsAccess('pantry', 'aggregations'),
   // Body: { year, month, week, orders?, adults?, children?, people?, weight? }
   manualWeeklyPantryAggregate,
 );

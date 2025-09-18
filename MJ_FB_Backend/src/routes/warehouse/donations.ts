@@ -8,7 +8,11 @@ import {
   exportDonorAggregations,
   manualDonorAggregation,
 } from '../../controllers/warehouse/donationController';
-import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
+import {
+  authMiddleware,
+  authorizeAccess,
+  authorizeAccessOrStaff as baseAuthorizeAccessOrStaff,
+} from '../../middleware/authMiddleware';
 import { validate } from '../../middleware/validate';
 import {
   addDonationSchema,
@@ -18,23 +22,26 @@ import {
 
 const router = Router();
 
+const authorizeWarehouseAccess =
+  (baseAuthorizeAccessOrStaff as typeof authorizeAccess | undefined) ?? authorizeAccess;
+
 router.get('/', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), listDonations);
 router.get(
   '/aggregations',
   authMiddleware,
-  authorizeAccess('warehouse', 'donation_entry', 'aggregations'),
+  authorizeWarehouseAccess('warehouse', 'donation_entry', 'aggregations'),
   donorAggregations,
 );
 router.get(
   '/aggregations/export',
   authMiddleware,
-  authorizeAccess('warehouse', 'donation_entry', 'aggregations'),
+  authorizeWarehouseAccess('warehouse', 'donation_entry', 'aggregations'),
   exportDonorAggregations,
 );
 router.post(
   '/aggregations/manual',
   authMiddleware,
-  authorizeAccess('warehouse', 'aggregations'),
+  authorizeWarehouseAccess('warehouse', 'aggregations'),
   validate(manualDonorAggregationSchema),
   manualDonorAggregation,
 );

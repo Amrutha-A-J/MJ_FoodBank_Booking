@@ -6,38 +6,45 @@ import {
   listAvailableYears,
   manualWarehouseOverall,
 } from '../../controllers/warehouse/warehouseOverallController';
-import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
+import {
+  authMiddleware,
+  authorizeAccess,
+  authorizeAccessOrStaff as baseAuthorizeAccessOrStaff,
+} from '../../middleware/authMiddleware';
+
+const authorizeWarehouseAggregations =
+  (baseAuthorizeAccessOrStaff as typeof authorizeAccess | undefined) ?? authorizeAccess;
 
 const router = Router();
 
 router.get(
   '/',
   authMiddleware,
-  authorizeAccess('warehouse', 'aggregations'),
+  authorizeWarehouseAggregations('warehouse', 'aggregations'),
   listWarehouseOverall,
 );
 router.post(
   '/manual',
   authMiddleware,
-  authorizeAccess('warehouse', 'aggregations'),
+  authorizeWarehouseAggregations('warehouse', 'aggregations'),
   manualWarehouseOverall,
 );
 router.post(
   '/rebuild',
   authMiddleware,
-  authorizeAccess('warehouse', 'aggregations'),
+  authorizeWarehouseAggregations('warehouse', 'aggregations'),
   rebuildWarehouseOverall,
 );
 router.get(
   '/export',
   authMiddleware,
-  authorizeAccess('warehouse', 'aggregations'),
+  authorizeWarehouseAggregations('warehouse', 'aggregations'),
   exportWarehouseOverall,
 );
 router.get(
   '/years',
   authMiddleware,
-  authorizeAccess('warehouse', 'aggregations'),
+  authorizeWarehouseAggregations('warehouse', 'aggregations'),
   listAvailableYears,
 );
 

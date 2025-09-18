@@ -201,3 +201,18 @@ export function authorizeAccess(...allowed: string[]) {
     next();
   };
 }
+
+export function authorizeAccessOrStaff(...allowed: string[]) {
+  const accessCheck = authorizeAccess(...allowed);
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    if (req.user.type === 'staff') {
+      return next();
+    }
+
+    return accessCheck(req, res, next);
+  };
+}
