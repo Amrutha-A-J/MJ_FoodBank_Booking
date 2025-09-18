@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
 import { useLocation } from 'react-router-dom';
+import FormDialog from './FormDialog';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -83,7 +83,7 @@ export default function InstallAppButton() {
   return (
     <>
       {showOnboarding && (
-        <Dialog open onClose={() => setShowOnboarding(false)}>
+        <FormDialog open onClose={() => setShowOnboarding(false)} maxWidth="xs">
           <DialogTitle sx={{ textTransform: 'none' }}>Install App</DialogTitle>
           <DialogContent>
             <Typography>
@@ -110,10 +110,10 @@ export default function InstallAppButton() {
               Install App
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
       )}
       {showIosInstructions && (
-        <Dialog open onClose={() => setShowIosInstructions(false)}>
+        <FormDialog open onClose={() => setShowIosInstructions(false)} maxWidth="xs">
           <DialogTitle sx={{ textTransform: 'none' }}>Install App</DialogTitle>
           <DialogContent>
             <Typography>
@@ -125,7 +125,7 @@ export default function InstallAppButton() {
               Close
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
       )}
       <Box sx={{ position: 'fixed', bottom: 16, right: 16 }}>
         <Button

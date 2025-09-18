@@ -22,7 +22,6 @@ import {
   TextField,
   Typography,
   Stack,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -36,6 +35,7 @@ import {
 import ManageBookingDialog from "../../components/ManageBookingDialog";
 import PantryQuickLinks from "../../components/PantryQuickLinks";
 import Page from "../../components/Page";
+import FormDialog from "../../components/FormDialog";
 import {
   LocalizationProvider,
   DatePicker,
@@ -450,10 +450,9 @@ export default function PantrySchedule({
       )}
 
       {assignSlot && (
-        <Dialog
+        <FormDialog
           open={!!assignSlot}
           onClose={handleAssignClose}
-          fullWidth
           maxWidth="xs"
           sx={{ zIndex: (t) => t.zIndex.modal }}
           PaperProps={{ sx: { p: 2, borderRadius: 2 } }}
@@ -547,7 +546,7 @@ export default function PantrySchedule({
               </Button>
             )}
           </DialogActions>
-        </Dialog>
+        </FormDialog>
       )}
 
       {manageBooking && (

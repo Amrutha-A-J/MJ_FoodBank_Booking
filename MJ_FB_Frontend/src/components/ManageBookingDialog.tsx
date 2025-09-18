@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -14,6 +13,7 @@ import {
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import FormDialog from './FormDialog';
 import {
   getSlots,
   rescheduleBookingByToken,
@@ -173,7 +173,7 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
   }
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+    <FormDialog open={open} onClose={onClose} maxWidth="md">
       <DialogCloseButton onClose={onClose} />
       <DialogTitle>Manage Booking</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>
@@ -303,7 +303,6 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
           Submit
         </Button>
       </DialogActions>
-    </Dialog>
+    </FormDialog>
   );
 }
-

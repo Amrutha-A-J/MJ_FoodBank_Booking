@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
+import { DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
+import FormDialog from './FormDialog';
 
 interface OnboardingModalProps {
   storageKey: string;
@@ -23,7 +24,7 @@ export default function OnboardingModal({ storageKey, title, body }: OnboardingM
   };
 
   return (
-    <Dialog open={open} onClose={handleClose}>
+    <FormDialog open={open} onClose={handleClose} maxWidth="xs">
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <Typography>{body}</Typography>
@@ -31,7 +32,7 @@ export default function OnboardingModal({ storageKey, title, body }: OnboardingM
       <DialogActions>
         <Button onClick={handleClose}>Close</Button>
       </DialogActions>
-    </Dialog>
+    </FormDialog>
   );
 }
 

@@ -2,7 +2,6 @@ import { useState, useCallback, type ReactNode } from 'react';
 import {
   Box,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -17,6 +16,7 @@ import BookingHistoryTable, {
 import RescheduleDialog from '../../components/RescheduleDialog';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import FormDialog from '../../components/FormDialog';
 
 interface Option {
   id: string;
@@ -209,7 +209,7 @@ export default function BookingManagementBase<
           )}
         </Box>
       )}
-      <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
+      <FormDialog open={cancelId !== null} onClose={() => setCancelId(null)} maxWidth="xs">
         <DialogCloseButton onClose={() => setCancelId(null)} />
         <DialogTitle>Cancel booking</DialogTitle>
         <DialogContent>
@@ -220,7 +220,7 @@ export default function BookingManagementBase<
             Cancel booking
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
       {reschedule && (
         <RescheduleDialog
           open={!!reschedule}

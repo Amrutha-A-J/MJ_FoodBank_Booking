@@ -15,7 +15,6 @@ import {
   MenuItem,
   Alert,
   Stack,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -57,6 +56,7 @@ import { getEvents, type EventGroups } from '../../api/events';
 import type { AlertColor } from '@mui/material';
 import Page from '../../components/Page';
 import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
+import FormDialog from '../../components/FormDialog';
 
 interface MonthlyTotal {
   year: number;
@@ -579,10 +579,9 @@ export default function WarehouseDashboard() {
         </Card>
       </Box>
 
-      <Dialog
+      <FormDialog
         open={Boolean(selectedComposition)}
         onClose={() => setSelectedComposition(null)}
-        fullWidth
         maxWidth="xs"
       >
         <DialogTitle>
@@ -610,7 +609,7 @@ export default function WarehouseDashboard() {
         <DialogActions>
           <Button onClick={() => setSelectedComposition(null)}>Close</Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
       </Box>
       <FeedbackSnackbar

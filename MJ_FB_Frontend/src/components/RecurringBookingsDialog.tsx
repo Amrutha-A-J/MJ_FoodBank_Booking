@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -31,7 +30,7 @@ export default function RecurringBookingsDialog({ open, roles, onClose, onSubmit
   }
 
   return (
-    <Dialog open={open} onClose={onClose} data-testid="recurring-bookings-dialog">
+    <FormDialog open={open} onClose={onClose} data-testid="recurring-bookings-dialog">
       <DialogTitle>Recurring Booking</DialogTitle>
       <DialogContent>
         <FormControl fullWidth>
@@ -59,7 +58,8 @@ export default function RecurringBookingsDialog({ open, roles, onClose, onSubmit
           Submit
         </Button>
       </DialogActions>
-    </Dialog>
+    </FormDialog>
   );
 }
 
+import FormDialog from './FormDialog';

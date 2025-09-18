@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   Box,
   Button,
-  Dialog,
   DialogTitle,
   Link,
   Typography,
@@ -10,6 +9,7 @@ import {
 } from "@mui/material";
 import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
 import DialogCloseButton from "../../../components/DialogCloseButton";
+import FormDialog from "../../../components/FormDialog";
 import {
   getIncompleteUsers,
   updateUserInfo,
@@ -179,7 +179,7 @@ export default function UpdateClientData() {
         />
       </TableContainer>
 
-      <Dialog open={!!selected} onClose={() => setSelected(null)}>
+      <FormDialog open={!!selected} onClose={() => setSelected(null)}>
         <DialogCloseButton onClose={() => setSelected(null)} />
         <DialogTitle>
           Edit Client -{" "}
@@ -199,7 +199,7 @@ export default function UpdateClientData() {
           onSave={handleSave}
           onSendReset={handleSendReset}
         />
-      </Dialog>
+      </FormDialog>
 
       <FeedbackSnackbar
         open={!!snackbar}

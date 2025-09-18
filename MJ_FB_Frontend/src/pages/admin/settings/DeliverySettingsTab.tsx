@@ -10,7 +10,6 @@ import {
   Stack,
   Typography,
   IconButton,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -25,6 +24,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import type { AlertColor } from '@mui/material';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
+import FormDialog from '../../../components/FormDialog';
 import {
   getDeliveryCategories,
   createDeliveryCategory,
@@ -335,7 +335,7 @@ export default function DeliverySettingsTab() {
           </Card>
         </Grid>
       </Grid>
-      <Dialog open={categoryDialog.open} onClose={closeCategoryDialog} fullWidth>
+      <FormDialog open={categoryDialog.open} onClose={closeCategoryDialog}>
         <DialogTitle>
           {categoryDialog.id !== null ? 'Edit category' : 'Add category'}
         </DialogTitle>
@@ -380,8 +380,8 @@ export default function DeliverySettingsTab() {
             {categoryDialog.id !== null ? 'Save changes' : 'Create category'}
           </Button>
         </DialogActions>
-      </Dialog>
-      <Dialog open={itemDialog.open} onClose={closeItemDialog} fullWidth>
+      </FormDialog>
+      <FormDialog open={itemDialog.open} onClose={closeItemDialog}>
         <DialogTitle>{itemDialog.itemId !== null ? 'Edit item' : 'Add item'}</DialogTitle>
         <DialogContent>
           <TextField
@@ -406,8 +406,12 @@ export default function DeliverySettingsTab() {
             {itemDialog.itemId !== null ? 'Save changes' : 'Add item'}
           </Button>
         </DialogActions>
-      </Dialog>
-      <Dialog open={categoryToDelete !== null} onClose={() => setCategoryToDelete(null)} fullWidth>
+      </FormDialog>
+      <FormDialog
+        open={categoryToDelete !== null}
+        onClose={() => setCategoryToDelete(null)}
+        maxWidth="xs"
+      >
         <DialogTitle>Delete category</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -429,8 +433,12 @@ export default function DeliverySettingsTab() {
             Delete category
           </Button>
         </DialogActions>
-      </Dialog>
-      <Dialog open={itemToDelete !== null} onClose={() => setItemToDelete(null)} fullWidth>
+      </FormDialog>
+      <FormDialog
+        open={itemToDelete !== null}
+        onClose={() => setItemToDelete(null)}
+        maxWidth="xs"
+      >
         <DialogTitle>Delete item</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -451,7 +459,7 @@ export default function DeliverySettingsTab() {
             Delete item
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
       <FeedbackSnackbar
         open={!!snackbar}
         onClose={() => setSnackbar(null)}

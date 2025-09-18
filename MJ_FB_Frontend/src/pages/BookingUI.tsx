@@ -26,7 +26,6 @@ import {
   Skeleton,
   Link,
   TextField,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -44,6 +43,7 @@ import useHolidays from '../hooks/useHolidays';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
 import DialogCloseButton from '../components/DialogCloseButton';
+import FormDialog from '../components/FormDialog';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import Page from '../components/Page';
 import ClientBottomNav from '../components/ClientBottomNav';
@@ -648,7 +648,7 @@ export default function BookingUI<T = Slot>({
           </Paper>
         </Grid>
       </Grid>
-      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+      <FormDialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogCloseButton onClose={() => setConfirmOpen(false)} />
         <DialogTitle>Confirm booking</DialogTitle>
         <DialogContent>
@@ -683,7 +683,7 @@ export default function BookingUI<T = Slot>({
             Confirm
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
       <FeedbackSnackbar
         open={snackbar.open}
         onClose={() => setSnackbar(s => ({ ...s, open: false }))}

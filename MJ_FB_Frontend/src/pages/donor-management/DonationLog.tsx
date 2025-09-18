@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   Button,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -16,6 +15,7 @@ import { Edit, Delete } from '@mui/icons-material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import FormDialog from '../../components/FormDialog';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import DonorQuickLinks from '../../components/DonorQuickLinks';
 import {
@@ -345,7 +345,7 @@ export default function DonationLog() {
 
         {table}
 
-        <Dialog
+        <FormDialog
           open={recordOpen}
           onClose={() => {
             setRecordOpen(false);
@@ -389,14 +389,15 @@ export default function DonationLog() {
             Save
           </Button>
         </DialogActions>
-        </Dialog>
+        </FormDialog>
 
-        <Dialog
+        <FormDialog
           open={deleteOpen}
           onClose={() => {
             setDeleteOpen(false);
             setToDelete(null);
           }}
+          maxWidth="xs"
         >
           <DialogCloseButton
             onClose={() => {
@@ -415,9 +416,9 @@ export default function DonationLog() {
               Delete
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
 
-        <Dialog open={newDonorOpen} onClose={() => setNewDonorOpen(false)}>
+        <FormDialog open={newDonorOpen} onClose={() => setNewDonorOpen(false)}>
           <DialogCloseButton onClose={() => setNewDonorOpen(false)} />
           <DialogTitle>Add Donor</DialogTitle>
           <DialogContent sx={{ pt: 2 }}>
@@ -448,7 +449,7 @@ export default function DonationLog() {
               Save
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
 
         <FeedbackSnackbar
           open={snackbar.open}

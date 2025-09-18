@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -18,6 +17,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import FormDialog from '../../components/FormDialog';
 import useSnackbar from '../../hooks/useSnackbar';
 import {
   getSurplus,
@@ -173,7 +173,13 @@ export default function TrackSurplus() {
         </Button>
         <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
-      <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
+      <FormDialog
+        open={recordOpen}
+        onClose={() => {
+          setRecordOpen(false);
+          setEditing(null);
+        }}
+      >
         <DialogCloseButton onClose={() => { setRecordOpen(false); setEditing(null); }} />
         <DialogTitle>{editing ? 'Edit Surplus' : 'Record Surplus'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
@@ -206,9 +212,16 @@ export default function TrackSurplus() {
         <DialogActions>
           <Button onClick={handleSave} disabled={!form.date || !form.count}>Save</Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
-      <Dialog open={deleteOpen} onClose={() => { setDeleteOpen(false); setToDelete(null); }}>
+      <FormDialog
+        open={deleteOpen}
+        onClose={() => {
+          setDeleteOpen(false);
+          setToDelete(null);
+        }}
+        maxWidth="xs"
+      >
         <DialogCloseButton onClose={() => { setDeleteOpen(false); setToDelete(null); }} />
         <DialogTitle>Delete Surplus</DialogTitle>
         <DialogContent>Are you sure you want to delete this surplus record?</DialogContent>
@@ -236,7 +249,7 @@ export default function TrackSurplus() {
             Delete
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
         <FeedbackSnackbar
           open={open}

@@ -1,5 +1,6 @@
 import { memo, useEffect, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, TextField, DialogActions, Button } from '@mui/material';
+import { DialogTitle, DialogContent, TextField, DialogActions, Button } from '@mui/material';
+import FormDialog from '../../../components/FormDialog';
 
 export type MasterRole = { id: number; name: string };
 
@@ -20,7 +21,7 @@ function MasterRoleDialog({ open, role, onClose, onSave }: MasterRoleDialogProps
   }, [open, role]);
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+    <FormDialog open={open} onClose={onClose}>
       <DialogTitle>{role ? 'Edit Master Role' : 'Add Master Role'}</DialogTitle>
       <DialogContent>
         <TextField
@@ -40,7 +41,7 @@ function MasterRoleDialog({ open, role, onClose, onSave }: MasterRoleDialogProps
           Save
         </Button>
       </DialogActions>
-    </Dialog>
+    </FormDialog>
   );
 }
 

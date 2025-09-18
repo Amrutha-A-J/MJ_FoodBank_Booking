@@ -12,7 +12,6 @@ import {
   TableBody,
   Paper,
   IconButton,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -23,6 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useQuery } from '@tanstack/react-query';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import FormDialog from '../../components/FormDialog';
 import DonorQuickLinks from '../../components/DonorQuickLinks';
 import {
   getMonetaryDonor,
@@ -244,7 +244,7 @@ export default function DonorProfile() {
           </Table>
         </TableContainer>
 
-        <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
+        <FormDialog open={editOpen} onClose={() => setEditOpen(false)}>
           <DialogTitle>Edit Donor</DialogTitle>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
@@ -276,9 +276,9 @@ export default function DonorProfile() {
               Save
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
 
-        <Dialog open={formOpen} onClose={() => setFormOpen(false)}>
+        <FormDialog open={formOpen} onClose={() => setFormOpen(false)}>
           <DialogTitle>{form.id ? 'Edit Donation' : 'Add Donation'}</DialogTitle>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
@@ -301,9 +301,9 @@ export default function DonorProfile() {
               Save
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
 
-        <Dialog open={deleteId !== null} onClose={() => setDeleteId(null)}>
+        <FormDialog open={deleteId !== null} onClose={() => setDeleteId(null)} maxWidth="xs">
           <DialogTitle>Delete Donation?</DialogTitle>
           <DialogActions>
             <Button onClick={() => setDeleteId(null)}>Cancel</Button>
@@ -311,7 +311,7 @@ export default function DonorProfile() {
               Delete
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
 
         <FeedbackSnackbar
           open={snackbar.open}

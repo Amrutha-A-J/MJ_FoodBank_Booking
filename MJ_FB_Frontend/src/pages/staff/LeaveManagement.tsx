@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -21,6 +20,7 @@ import {
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import { formatLocaleDate } from '../../utils/date';
 import { useState } from 'react';
+import FormDialog from '../../components/FormDialog';
 
 export default function LeaveManagement() {
   const { timesheets } = useTimesheets();
@@ -79,7 +79,7 @@ export default function LeaveManagement() {
           >
             Request Vacation
           </Button>
-          <Dialog open={open} onClose={() => setOpen(false)}>
+          <FormDialog open={open} onClose={() => setOpen(false)}>
             <Box
               component="form"
               onSubmit={e => {
@@ -140,7 +140,7 @@ export default function LeaveManagement() {
                 </Button>
               </DialogActions>
             </Box>
-          </Dialog>
+          </FormDialog>
 
           <ResponsiveTable
             columns={columns}

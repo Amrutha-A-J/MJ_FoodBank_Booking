@@ -5,7 +5,6 @@ import {
   AccordionSummary,
   Box,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -26,6 +25,7 @@ import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import MasterRoleDialog, { type MasterRole } from '../components/MasterRoleDialog';
 import SubRoleDialog from '../components/SubRoleDialog';
 import ShiftDialog from '../components/ShiftDialog';
+import FormDialog from '../../../components/FormDialog';
 import {
   getVolunteerMasterRoles,
   getVolunteerRoles,
@@ -524,7 +524,7 @@ export default function VolunteerSettingsTab() {
         onSave={handleShiftSave}
       />
 
-      <Dialog open={roleToDelete !== null} onClose={() => setRoleToDelete(null)}>
+      <FormDialog open={roleToDelete !== null} onClose={() => setRoleToDelete(null)} maxWidth="xs">
         <DialogTitle>Delete role</DialogTitle>
         <DialogContent>
           <Typography>Deleting this role will remove all shifts. Are you sure?</Typography>
@@ -537,9 +537,9 @@ export default function VolunteerSettingsTab() {
             Delete
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
-      <Dialog open={shiftToDelete !== null} onClose={() => setShiftToDelete(null)}>
+      <FormDialog open={shiftToDelete !== null} onClose={() => setShiftToDelete(null)} maxWidth="xs">
         <DialogTitle>Delete shift</DialogTitle>
         <DialogContent>
           <Typography>Are you sure you want to delete this shift?</Typography>
@@ -552,9 +552,9 @@ export default function VolunteerSettingsTab() {
             Delete
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
-      <Dialog open={deleteMasterId !== null} onClose={() => setDeleteMasterId(null)}>
+      <FormDialog open={deleteMasterId !== null} onClose={() => setDeleteMasterId(null)} maxWidth="xs">
         <DialogTitle>Delete master role</DialogTitle>
         <DialogContent>
           <Typography>Deleting this master role will remove all sub roles and shifts. Are you sure?</Typography>
@@ -567,9 +567,9 @@ export default function VolunteerSettingsTab() {
             Delete
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
-      <Dialog open={restoreDialog} onClose={() => setRestoreDialog(false)}>
+      <FormDialog open={restoreDialog} onClose={() => setRestoreDialog(false)} maxWidth="xs">
         <DialogTitle>Restore roles?</DialogTitle>
         <DialogContent>
           <Typography>
@@ -584,7 +584,7 @@ export default function VolunteerSettingsTab() {
             Restore
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
 
       <FeedbackSnackbar
         open={snack.open}

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogTitle, Button, TextField, Typography } from '@mui/material';
+import { DialogContent, DialogTitle, Button, TextField, Typography } from '@mui/material';
 import { requestPasswordReset } from '../api/users';
 import type { PasswordResetBody } from '../types';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
+import FormDialog from './FormDialog';
 
 export default function PasswordResetDialog({
   open,
@@ -40,7 +41,7 @@ export default function PasswordResetDialog({
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} aria-labelledby="password-reset-dialog-title">
+      <FormDialog open={open} onClose={onClose} aria-labelledby="password-reset-dialog-title">
         <DialogCloseButton onClose={onClose} />
         <DialogTitle id="password-reset-dialog-title" sx={{ display: 'none' }}>
           {formTitle}
@@ -68,7 +69,7 @@ export default function PasswordResetDialog({
             />
           </FormCard>
         </DialogContent>
-      </Dialog>
+      </FormDialog>
       <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={snackbarSeverity} />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </>

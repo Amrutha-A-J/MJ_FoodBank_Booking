@@ -5,7 +5,6 @@ import {
   ListItemText,
   Chip,
   ListItemButton,
-  Dialog,
   DialogTitle,
   DialogContent,
   ListSubheader,
@@ -18,6 +17,7 @@ import { formatReginaDate, formatTime } from '../../utils/time';
 import { toDate, toDayjs } from '../../utils/date';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import DialogCloseButton from '../DialogCloseButton';
+import FormDialog from '../FormDialog';
 
 interface CoverageItem {
   roleName: string;
@@ -146,7 +146,7 @@ export default function VolunteerCoverageCard({
           ))}
         </List>
       </SectionCard>
-      <Dialog open={!!selected} onClose={() => setSelected(null)}>
+      <FormDialog open={!!selected} onClose={() => setSelected(null)}>
         <DialogTitle sx={{ position: 'relative' }}>
           {`Volunteers – ${selected?.roleName ?? ''}`}
           <DialogCloseButton onClose={() => setSelected(null)} />
@@ -164,7 +164,7 @@ export default function VolunteerCoverageCard({
             'No volunteer is available'
           )}
         </DialogContent>
-      </Dialog>
+      </FormDialog>
       <FeedbackSnackbar
         open={!!error}
         onClose={() => setError('')}

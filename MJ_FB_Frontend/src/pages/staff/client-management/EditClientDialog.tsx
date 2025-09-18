@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  Dialog,
   DialogTitle,
   FormControlLabel,
   Switch,
@@ -11,6 +10,7 @@ import {
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from '../../../components/DialogCloseButton';
+import FormDialog from '../../../components/FormDialog';
 import { getUserByClientId, updateUserInfo, requestPasswordReset } from '../../../api/users';
 import getApiErrorMessage from '../../../utils/getApiErrorMessage';
 import EditClientForm, {
@@ -108,7 +108,7 @@ export default function EditClientDialog({
   }, [open, clientId, onUpdated]);
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <FormDialog open={open} onClose={onClose}>
       <DialogCloseButton onClose={onClose} />
       <DialogTitle>Edit Client</DialogTitle>
       <Stack spacing={2} sx={{ px: 3, pt: 1 }}>
@@ -146,7 +146,7 @@ export default function EditClientDialog({
         onSendReset={data => handleSendReset(clientId, data, onClientUpdated, onUpdated, onClose)}
         showOnlineAccessToggle={false}
       />
-    </Dialog>
+    </FormDialog>
   );
 }
 

@@ -8,7 +8,6 @@ import {
   Stack,
   Button,
   CircularProgress,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -19,6 +18,7 @@ import Page from '../../components/Page';
 import StyledTabs from '../../components/StyledTabs';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import FormDialog from '../../components/FormDialog';
 import {
   getPantryWeekly,
   getPantryMonthly,
@@ -612,7 +612,7 @@ export default function PantryAggregations() {
   return (
     <Page title="Pantry Aggregations">
       <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
-      <Dialog open={insertOpen} onClose={() => setInsertOpen(false)}>
+      <FormDialog open={insertOpen} onClose={() => setInsertOpen(false)}>
         <DialogTitle>Insert Aggregate</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
@@ -717,7 +717,7 @@ export default function PantryAggregations() {
             {insertLoading ? <CircularProgress size={20} /> : 'Save'}
           </Button>
         </DialogActions>
-      </Dialog>
+      </FormDialog>
       <FeedbackSnackbar
         open={snackbar.open}
         onClose={() => setSnackbar({ ...snackbar, open: false })}

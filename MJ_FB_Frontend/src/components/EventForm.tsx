@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -17,6 +16,7 @@ import type { Dayjs } from 'dayjs';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import { createEvent, updateEvent, type Event } from '../api/events';
 import DialogCloseButton from './DialogCloseButton';
+import FormDialog from './FormDialog';
 
 interface EventFormProps {
   open: boolean;
@@ -106,7 +106,7 @@ export default function EventForm({ open, onClose, onSaved, event }: EventFormPr
 
   return (
     <>
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+        <FormDialog open={open} onClose={onClose}>
           <DialogCloseButton onClose={onClose} />
           <DialogTitle>{event ? 'Edit Event' : 'Create Event'}</DialogTitle>
         <DialogContent>
@@ -178,7 +178,7 @@ export default function EventForm({ open, onClose, onSaved, event }: EventFormPr
               {event ? 'Save' : 'Create'}
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
       <FeedbackSnackbar
         open={!!success}
         message={success}

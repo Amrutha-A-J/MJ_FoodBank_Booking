@@ -1,7 +1,8 @@
 import type { AlertColor } from '@mui/material';
-import { Dialog, DialogContent, Alert } from '@mui/material';
+import { DialogContent, Alert } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
 import type { ReactNode } from 'react';
+import FormDialog from './FormDialog';
 
 interface FeedbackModalProps {
   open: boolean;
@@ -12,11 +13,11 @@ interface FeedbackModalProps {
 
 export default function FeedbackModal({ open, onClose, message, severity = 'success' }: FeedbackModalProps) {
   return (
-    <Dialog open={open} onClose={onClose}>
+    <FormDialog open={open} onClose={onClose} maxWidth="xs">
       <DialogCloseButton onClose={onClose} />
       <DialogContent>
         <Alert severity={severity}>{message}</Alert>
       </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

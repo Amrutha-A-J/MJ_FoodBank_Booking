@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, Typography, Link } from '@mui/material';
+import { DialogTitle, DialogContent, Typography, Link } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
+import FormDialog from './FormDialog';
 
 const STORAGE_KEY = 'privacy_consent';
 
@@ -44,11 +45,12 @@ export default function PrivacyNoticeModal() {
   }, []);
 
   return (
-    <Dialog
+    <FormDialog
       open={open}
       onClose={() => {
         void handleClose();
       }}
+      maxWidth="xs"
     >
       <DialogTitle sx={{ pr: 6 }}>
         Privacy notice
@@ -63,7 +65,7 @@ export default function PrivacyNoticeModal() {
           By using this app, you agree to our <Link href="/privacy">privacy policy</Link>.
         </Typography>
       </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }
 

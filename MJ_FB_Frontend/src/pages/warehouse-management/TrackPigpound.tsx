@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Button,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -18,6 +17,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import FormDialog from '../../components/FormDialog';
 import useSnackbar from '../../hooks/useSnackbar';
 import {
   getPigPounds,
@@ -151,7 +151,7 @@ export default function TrackPigpound() {
         </Button>
         <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
-        <Dialog
+        <FormDialog
           open={recordOpen}
           onClose={() => {
             setRecordOpen(false);
@@ -185,14 +185,15 @@ export default function TrackPigpound() {
               Save
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
 
-        <Dialog
+        <FormDialog
           open={deleteOpen}
           onClose={() => {
             setDeleteOpen(false);
             setToDelete(null);
           }}
+          maxWidth="xs"
         >
           <DialogCloseButton onClose={() => {
             setDeleteOpen(false);
@@ -228,7 +229,7 @@ export default function TrackPigpound() {
               Delete
             </Button>
           </DialogActions>
-        </Dialog>
+        </FormDialog>
 
         <FeedbackSnackbar
           open={open}

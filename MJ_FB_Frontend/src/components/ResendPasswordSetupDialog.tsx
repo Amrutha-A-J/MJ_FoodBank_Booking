@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogTitle, Button, TextField, Typography } from '@mui/material';
+import { DialogContent, DialogTitle, Button, TextField, Typography } from '@mui/material';
 import { resendPasswordSetup } from '../api/users';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
 import DialogCloseButton from './DialogCloseButton';
+import FormDialog from './FormDialog';
 
 export default function ResendPasswordSetupDialog({
   open,
@@ -33,7 +34,7 @@ export default function ResendPasswordSetupDialog({
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} aria-labelledby="resend-setup-dialog-title">
+      <FormDialog open={open} onClose={onClose} aria-labelledby="resend-setup-dialog-title">
         <DialogCloseButton onClose={onClose} />
         <DialogTitle id="resend-setup-dialog-title" sx={{ display: 'none' }}>
           Resend password setup link
@@ -60,7 +61,7 @@ export default function ResendPasswordSetupDialog({
             />
           </FormCard>
         </DialogContent>
-      </Dialog>
+      </FormDialog>
       <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="success" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </>

@@ -1,5 +1,4 @@
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -10,6 +9,7 @@ import {
 import { formatTime } from '../utils/time';
 import { formatReginaDate } from '../utils/date';
 import type { VolunteerBookingInfo } from '../types';
+import FormDialog from './FormDialog';
 
 interface Props {
   open: boolean;
@@ -27,7 +27,7 @@ export default function OverlapBookingDialog({
   onResolve,
 }: Props) {
   return (
-    <Dialog open={open} onClose={onClose}>
+    <FormDialog open={open} onClose={onClose}>
       <DialogTitle>Shift Conflict</DialogTitle>
       <DialogContent dividers>
         <Typography sx={{ mb: 2 }}>
@@ -64,6 +64,6 @@ export default function OverlapBookingDialog({
           Replace with New Shift
         </Button>
       </DialogActions>
-    </Dialog>
+    </FormDialog>
   );
 }
