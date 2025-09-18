@@ -29,6 +29,28 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
   pgm.alterColumn('donations', 'donor_id', { notNull: true });
   pgm.alterColumn('donor_aggregations', 'donor_id', { notNull: true });
 
+  pgm.dropConstraint('donor_aggregations', 'donor_aggregations_pkey');
+  pgm.dropConstraint('donations', 'donations_donor_email_fkey');
+  pgm.dropConstraint('donor_aggregations', 'donor_aggregations_donor_email_fkey');
+  pgm.dropIndex('donations', ['donor_email'], { name: 'donations_donor_email_idx' });
+
+  pgm.dropColumn('donations', 'donor_email');
+  pgm.dropColumn('donor_aggregations', 'donor_email');
+
+  pgm.addConstraint('donor_aggregations', 'donor_aggregations_pkey', {
+    primaryKey: ['year', 'month', 'donor_id'],
+  });
+
+  pgm.dropConstraint('donors', 'donors_pkey');
+  pgm.addConstraint('donors', 'donors_pkey', { primaryKey: 'id' });
+  pgm.dropConstraint('donors', 'donors_id_unique');
+  pgm.alterColumn('donors', 'email', { notNull: false });
+  pgm.createIndex('donors', ['email'], {
+    name: 'donors_email_unique_idx',
+    unique: true,
+    where: 'email IS NOT NULL',
+  });
+
   pgm.addConstraint('donations', 'donations_donor_id_fkey', {
     foreignKeys: {
       columns: 'donor_id',
@@ -44,28 +66,6 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
   });
 
   pgm.createIndex('donations', ['donor_id'], { name: 'donations_donor_id_idx' });
-
-  pgm.dropConstraint('donor_aggregations', 'donor_aggregations_pkey');
-  pgm.dropConstraint('donations', 'donations_donor_email_fkey');
-  pgm.dropConstraint('donor_aggregations', 'donor_aggregations_donor_email_fkey');
-  pgm.dropIndex('donations', ['donor_email'], { name: 'donations_donor_email_idx' });
-
-  pgm.dropColumn('donations', 'donor_email');
-  pgm.dropColumn('donor_aggregations', 'donor_email');
-
-  pgm.addConstraint('donor_aggregations', 'donor_aggregations_pkey', {
-    primaryKey: ['year', 'month', 'donor_id'],
-  });
-
-  pgm.dropConstraint('donors', 'donors_pkey');
-  pgm.dropConstraint('donors', 'donors_id_unique');
-  pgm.alterColumn('donors', 'email', { notNull: false });
-  pgm.addConstraint('donors', 'donors_pkey', { primaryKey: 'id' });
-  pgm.createIndex('donors', ['email'], {
-    name: 'donors_email_unique_idx',
-    unique: true,
-    where: 'email IS NOT NULL',
-  });
 
   pgm.sql(`
     UPDATE donors

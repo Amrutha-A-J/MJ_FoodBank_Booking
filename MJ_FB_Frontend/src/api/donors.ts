@@ -35,13 +35,28 @@ export async function getDonors(search?: string): Promise<Donor[]> {
   return handleResponse(res);
 }
 
-export async function createDonor(data: {
+interface DonorPayload {
   firstName: string;
   lastName: string;
-  email: string;
-}): Promise<Donor> {
+  email?: string | null;
+  phone?: string | null;
+}
+
+export async function createDonor(data: DonorPayload): Promise<Donor> {
   const res = await apiFetch(`${API_BASE}/donors`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function updateDonor(
+  id: number,
+  data: DonorPayload,
+): Promise<Donor> {
+  const res = await apiFetch(`${API_BASE}/donors/${id}`, {
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
