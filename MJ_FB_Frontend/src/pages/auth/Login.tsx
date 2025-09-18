@@ -93,6 +93,26 @@ export default function Login({
 
   useEffect(() => {
     if (hasStaff !== true) return;
+    const base64UrlToUint8Array = (value: string) => {
+      const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+      const str = atob(padded);
+      const bytes = new Uint8Array(str.length);
+      for (let i = 0; i < str.length; i += 1) {
+        bytes[i] = str.charCodeAt(i);
+      }
+      return bytes;
+    };
+
+    const bufferToBase64Url = (buffer: ArrayBuffer) => {
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      bytes.forEach(byte => {
+        binary += String.fromCharCode(byte);
+      });
+      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/u, '');
+    };
+
     async function attemptPasskey() {
       if (!('credentials' in navigator)) return;
       try {
@@ -103,16 +123,32 @@ export default function Login({
         const { challenge } = await resp.json();
         const cred = (await navigator.credentials.get({
           publicKey: {
-            challenge: Uint8Array.from(atob(challenge), c => c.charCodeAt(0)),
+            challenge: base64UrlToUint8Array(challenge),
           },
           mediation: 'conditional',
         })) as PublicKeyCredential | null;
         if (!cred) return;
-        const credId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+        const rawId = bufferToBase64Url(cred.rawId);
+        const clientDataJSON = bufferToBase64Url(cred.response.clientDataJSON);
+        const authenticatorData = bufferToBase64Url((cred.response as AuthenticatorAssertionResponse).authenticatorData);
+        const signature = bufferToBase64Url((cred.response as AuthenticatorAssertionResponse).signature);
+        const userHandle = (cred.response as AuthenticatorAssertionResponse).userHandle;
+        const userHandleEncoded = userHandle ? bufferToBase64Url(userHandle) : null;
         const verifyRes = await fetch('/api/v1/webauthn/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ credentialId: credId }),
+          body: JSON.stringify({
+            id: cred.id,
+            rawId,
+            type: cred.type,
+            clientExtensionResults: cred.getClientExtensionResults(),
+            response: {
+              clientDataJSON,
+              authenticatorData,
+              signature,
+              userHandle: userHandleEncoded,
+            },
+          }),
         });
         if (!verifyRes.ok) {
           const err = await verifyRes.json();

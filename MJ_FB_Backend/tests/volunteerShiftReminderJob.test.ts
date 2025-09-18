@@ -110,9 +110,11 @@ describe('startVolunteerShiftReminderJob/stopVolunteerShiftReminderJob', () => {
   let scheduleMock: jest.Mock;
   let stopMock: jest.Mock;
   let querySpy: jest.SpyInstance;
+  const originalEnv = process.env.NODE_ENV;
 
   beforeEach(() => {
     jest.useFakeTimers();
+    process.env.NODE_ENV = 'development';
     scheduleMock = require('node-cron').schedule as jest.Mock;
     stopMock = jest.fn();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
@@ -124,6 +126,7 @@ describe('startVolunteerShiftReminderJob/stopVolunteerShiftReminderJob', () => {
     jest.useRealTimers();
     scheduleMock.mockReset();
     querySpy.mockRestore();
+    process.env.NODE_ENV = originalEnv;
   });
 
   it('schedules and stops the cron job without querying the database', () => {

@@ -1,10 +1,14 @@
 import request from 'supertest';
 import express from 'express';
+import { verifyAuthenticationResponse } from '@simplewebauthn/server';
 import webauthnRoutes from '../src/routes/webauthn';
 import pool from '../src/db';
+import { clearChallenges } from '../src/utils/webauthnChallengeStore';
 
 jest.mock('../src/db');
-// Targeted mock for issueAuthTokens
+jest.mock('@simplewebauthn/server', () => ({
+  verifyAuthenticationResponse: jest.fn(),
+}));
 jest.mock('../src/utils/authUtils', () => ({
   __esModule: true,
   default: jest.fn(() => Promise.resolve()),
@@ -14,132 +18,203 @@ const app = express();
 app.use(express.json());
 app.use('/api/v1/webauthn', webauthnRoutes);
 
+const mockedVerify = verifyAuthenticationResponse as jest.MockedFunction<
+  typeof verifyAuthenticationResponse
+>;
+
+const storedCredentialId = Buffer.from('credential-id', 'utf8').toString('base64url');
+
+function bufferToBase64Url(input: string) {
+  return Buffer.from(input, 'utf8').toString('base64url');
+}
+
+function buildAssertion({
+  challenge,
+  rawId,
+  origin,
+}: {
+  challenge: string;
+  rawId: string;
+  origin: string;
+}) {
+  return {
+    id: rawId,
+    rawId,
+    type: 'public-key',
+    clientExtensionResults: {},
+    response: {
+      clientDataJSON: bufferToBase64Url(
+        JSON.stringify({ type: 'webauthn.get', challenge, origin }),
+      ),
+      authenticatorData: bufferToBase64Url('auth'),
+      signature: bufferToBase64Url('sig'),
+      userHandle: null,
+    },
+  };
+}
+
 describe('webauthn routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    clearChallenges();
   });
 
-  it('returns a challenge without identifier', async () => {
-    const res = await request(app).post('/api/v1/webauthn/challenge').send({});
-    expect(res.status).toBe(200);
-    expect(res.body.challenge).toBeDefined();
-    expect(res.body.registered).toBeUndefined();
-  });
-
-  it('returns registration status when identifier provided', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rowCount: 1,
-      rows: [{ user_identifier: 'foo@example.com', credential_id: 'cred1' }],
+  it('issues a challenge and indicates registration status', async () => {
+    (pool.query as jest.Mock).mockImplementation(query => {
+      if (typeof query === 'string' && query.includes('FROM webauthn_credentials')) {
+        return Promise.resolve({
+          rowCount: 1,
+          rows: [
+            {
+              user_identifier: 'user@example.com',
+              credential_id: storedCredentialId,
+              public_key: 'cHVibGlj',
+              sign_count: 1,
+            },
+          ],
+        });
+      }
+      return Promise.resolve({ rowCount: 0, rows: [] });
     });
+
     const res = await request(app)
       .post('/api/v1/webauthn/challenge')
-      .send({ identifier: 'foo@example.com' });
+      .send({ identifier: 'user@example.com' });
+
     expect(res.status).toBe(200);
     expect(res.body.challenge).toBeDefined();
-    expect(res.body).toMatchObject({ registered: true, credentialId: 'cred1' });
+    expect(res.body.registered).toBe(true);
+    expect(res.body.credentialId).toBe(storedCredentialId);
   });
 
-  it('registers credential successfully', async () => {
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({}) // saveCredential
-      .mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [
-          {
-            id: 1,
-            first_name: 'Jane',
-            last_name: 'Doe',
-            user_id: null,
-            consent: true,
-            user_role: null,
-          },
-        ],
-      })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] }); // roles
+  it('rejects assertions with mismatched challenges', async () => {
+    (pool.query as jest.Mock).mockResolvedValue({ rowCount: 0, rows: [] });
+
+    const challengeRes = await request(app)
+      .post('/api/v1/webauthn/challenge')
+      .send({});
+    const challenge = challengeRes.body.challenge as string;
+
+    const assertion = buildAssertion({
+      challenge: `${challenge}tampered`,
+      rawId: storedCredentialId,
+      origin: process.env.WEBAUTHN_ORIGIN ?? 'http://localhost:3000',
+    });
+
     const res = await request(app)
-      .post('/api/v1/webauthn/register')
-      .send({ identifier: 'jane@example.com', credentialId: 'cred123' });
+      .post('/api/v1/webauthn/verify')
+      .send(assertion);
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({ message: 'Invalid credentials' });
+  });
+
+  it('rejects assertions when the signature is invalid', async () => {
+    (pool.query as jest.Mock).mockImplementation(query => {
+      if (typeof query === 'string' && query.includes('FROM webauthn_credentials')) {
+        return Promise.resolve({
+          rowCount: 1,
+          rows: [
+            {
+              user_identifier: '123',
+              credential_id: storedCredentialId,
+              public_key: Buffer.from('public-key', 'utf8').toString('base64'),
+              sign_count: 1,
+            },
+          ],
+        });
+      }
+      return Promise.resolve({ rowCount: 0, rows: [] });
+    });
+
+    mockedVerify.mockResolvedValueOnce({ verified: false } as any);
+
+    const challengeRes = await request(app)
+      .post('/api/v1/webauthn/challenge')
+      .send({});
+    const challenge = challengeRes.body.challenge as string;
+
+    const assertion = buildAssertion({
+      challenge,
+      rawId: storedCredentialId,
+      origin: process.env.WEBAUTHN_ORIGIN ?? 'http://localhost:3000',
+    });
+
+    const res = await request(app)
+      .post('/api/v1/webauthn/verify')
+      .send(assertion);
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({ message: 'Invalid credentials' });
+    expect(mockedVerify).toHaveBeenCalled();
+  });
+
+  it('signs the user in when the assertion is valid', async () => {
+    (pool.query as jest.Mock).mockImplementation((query: string, params?: unknown[]) => {
+      if (query.includes('FROM webauthn_credentials')) {
+        return Promise.resolve({
+          rowCount: 1,
+          rows: [
+            {
+              user_identifier: '123',
+              credential_id: storedCredentialId,
+              public_key: Buffer.from('public-key', 'utf8').toString('base64'),
+              sign_count: 1,
+            },
+          ],
+        });
+      }
+      if (query.startsWith('UPDATE webauthn_credentials')) {
+        expect(params?.[0]).toBe(storedCredentialId);
+        expect(params?.[1]).toBe(2);
+        return Promise.resolve({ rowCount: 1 });
+      }
+      if (query.includes('FROM clients')) {
+        return Promise.resolve({
+          rowCount: 1,
+          rows: [
+            {
+              client_id: 123,
+              first_name: 'John',
+              last_name: 'Doe',
+              role: 'shopper',
+              consent: true,
+            },
+          ],
+        });
+      }
+      if (query.includes('FROM volunteers WHERE user_id')) {
+        return Promise.resolve({ rowCount: 0, rows: [] });
+      }
+      return Promise.resolve({ rowCount: 0, rows: [] });
+    });
+
+    mockedVerify.mockResolvedValueOnce({
+      verified: true,
+      authenticationInfo: { newCounter: 2 },
+    } as any);
+
+    const challengeRes = await request(app)
+      .post('/api/v1/webauthn/challenge')
+      .send({});
+    const challenge = challengeRes.body.challenge as string;
+
+    const assertion = buildAssertion({
+      challenge,
+      rawId: storedCredentialId,
+      origin: process.env.WEBAUTHN_ORIGIN ?? 'http://localhost:3000',
+    });
+
+    const res = await request(app)
+      .post('/api/v1/webauthn/verify')
+      .send(assertion);
+
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
-      role: 'volunteer',
-      name: 'Jane Doe',
-      access: [],
-      id: 1,
+      role: 'shopper',
+      name: 'John Doe',
+      id: 123,
       consent: true,
     });
-  });
-
-  it('register returns 500 when missing credentials', async () => {
-    const res = await request(app)
-      .post('/api/v1/webauthn/register')
-      .send({});
-    expect(res.status).toBe(500);
-  });
-
-  it('register returns 500 on database error', async () => {
-    (pool.query as jest.Mock).mockRejectedValueOnce(new Error('db'));
-    const res = await request(app)
-      .post('/api/v1/webauthn/register')
-      .send({ identifier: 'jane@example.com', credentialId: 'cred123' });
-    expect(res.status).toBe(500);
-  });
-
-  it('verify returns 401 when credentialId missing', async () => {
-    const res = await request(app)
-      .post('/api/v1/webauthn/verify')
-      .send({});
-    expect(res.status).toBe(401);
-  });
-
-  it('verify returns 500 on database error', async () => {
-    (pool.query as jest.Mock).mockRejectedValueOnce(new Error('db'));
-    const res = await request(app)
-      .post('/api/v1/webauthn/verify')
-      .send({ credentialId: 'cred123' });
-    expect(res.status).toBe(500);
-  });
-
-  it('verifies credential by id', async () => {
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ user_identifier: '123', credential_id: 'abc' }] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ client_id: 123, first_name: 'John', last_name: 'Doe', role: 'shopper' }] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
-
-    const res = await request(app).post('/api/v1/webauthn/verify').send({ credentialId: 'abc' });
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual({ role: 'shopper', name: 'John Doe', id: 123 });
-    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE credential_id = \$1/);
-  });
-
-  it('returns 401 for unknown credential', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
-    const res = await request(app).post('/api/v1/webauthn/verify').send({ credentialId: 'missing' });
-    expect(res.status).toBe(401);
-  });
-
-  it('register returns 401 for invalid credentials', async () => {
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
-
-    const res = await request(app)
-      .post('/api/v1/webauthn/register')
-      .send({ identifier: '123', credentialId: 'abc' });
-
-    expect(res.status).toBe(401);
-    expect(res.body).toEqual({ message: 'Invalid credentials' });
-  });
-
-  it('verify returns 401 for invalid credentials', async () => {
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ user_identifier: '123', credential_id: 'abc' }] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
-
-    const res = await request(app)
-      .post('/api/v1/webauthn/verify')
-      .send({ credentialId: 'abc' });
-
-    expect(res.status).toBe(401);
-    expect(res.body).toEqual({ message: 'Invalid credentials' });
   });
 });

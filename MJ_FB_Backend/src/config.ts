@@ -41,6 +41,8 @@ const envSchema = z.object({
   VACUUM_ALERT_DEAD_ROWS_THRESHOLD: z.coerce.number().default(5000),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_ALERT_CHAT_ID: z.string().optional(),
+  WEBAUTHN_RP_ID: z.string(),
+  WEBAUTHN_ORIGIN: z.string(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -91,4 +93,6 @@ export default {
   vacuumAlertDeadRowsThreshold: env.VACUUM_ALERT_DEAD_ROWS_THRESHOLD,
   telegramBotToken: env.TELEGRAM_BOT_TOKEN ?? '',
   telegramAlertChatId: env.TELEGRAM_ALERT_CHAT_ID ?? '',
+  webauthnRpId: env.WEBAUTHN_RP_ID,
+  webauthnOrigin: env.WEBAUTHN_ORIGIN,
 };

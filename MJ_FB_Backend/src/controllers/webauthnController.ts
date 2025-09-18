@@ -1,13 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomBytes } from 'crypto';
+import { verifyAuthenticationResponse } from '@simplewebauthn/server';
+import type { AuthenticationResponseJSON } from '@simplewebauthn/types';
 import pool from '../db';
-import { getCredential, saveCredential, getCredentialById } from '../models/webauthn';
+import {
+  getCredential,
+  saveCredential,
+  getCredentialById,
+  updateCredentialSignCount,
+} from '../models/webauthn';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
 import UnauthorizedError from '../utils/UnauthorizedError';
+import config from '../config';
+import { consumeChallenge, persistChallenge } from '../utils/webauthnChallengeStore';
 
 export async function generateChallenge(req: Request, res: Response) {
   const { identifier } = req.body as { identifier?: string };
-  const challenge = randomBytes(32).toString('base64');
+  const challenge = randomBytes(32).toString('base64url');
+  persistChallenge(challenge, identifier);
   if (identifier) {
     const credential = await getCredential(identifier);
     return res.json({ challenge, registered: !!credential, credentialId: credential?.credentialId });
@@ -20,12 +30,17 @@ export async function registerCredential(
   res: Response,
   next: NextFunction,
 ) {
-  const { identifier, credentialId } = req.body as {
+  const { identifier, credentialId, publicKey, signCount } = req.body as {
     identifier: string;
     credentialId: string;
+    publicKey: string;
+    signCount: number;
   };
+  if (!identifier || !credentialId || !publicKey) {
+    return res.status(400).json({ message: 'Missing credential details' });
+  }
   try {
-    await saveCredential(identifier, credentialId);
+    await saveCredential(identifier, credentialId, publicKey, signCount ?? 0);
     const data = await loginByIdentifier(identifier, res);
     res.json(data);
   } catch (error) {
@@ -42,12 +57,81 @@ export async function verifyCredential(
   res: Response,
   next: NextFunction,
 ) {
-  const { credentialId } = req.body as { credentialId: string };
+  const credential = req.body as AuthenticationResponseJSON;
+  if (
+    !credential?.rawId ||
+    !credential?.response?.clientDataJSON ||
+    !credential?.response?.authenticatorData ||
+    !credential?.response?.signature
+  ) {
+    return res.status(400).json({ message: 'Missing credential response' });
+  }
+
   try {
-    const stored = await getCredentialById(credentialId);
-    if (!stored) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    const clientDataJson = Buffer.from(credential.response.clientDataJSON, 'base64url').toString('utf8');
+    let clientData: {
+      challenge?: string;
+      origin?: string;
+      type?: string;
+    };
+    try {
+      clientData = JSON.parse(clientDataJson);
+    } catch {
+      throw new UnauthorizedError('Invalid credentials');
     }
+
+    if (clientData.type !== 'webauthn.get') {
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    const { challenge, origin } = clientData;
+    if (!challenge || !origin) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    if (origin !== config.webauthnOrigin) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    const storedChallenge = consumeChallenge(challenge);
+    if (!storedChallenge) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    const stored = await getCredentialById(credential.rawId);
+    if (!stored?.publicKey) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    let verification;
+    try {
+      verification = await verifyAuthenticationResponse({
+        response: credential,
+        expectedChallenge: challenge,
+        expectedOrigin: config.webauthnOrigin,
+        expectedRPID: config.webauthnRpId,
+        authenticator: {
+          credentialID: Buffer.from(stored.credentialId, 'base64url'),
+          credentialPublicKey: Buffer.from(stored.publicKey, 'base64'),
+          counter: stored.signCount,
+        },
+        requireUserVerification: true,
+      });
+    } catch {
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    if (!verification.verified) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    const newCounter = verification.authenticationInfo?.newCounter ?? stored.signCount;
+    if (newCounter <= stored.signCount) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    await updateCredentialSignCount(stored.credentialId, newCounter);
+
     const data = await loginByIdentifier(stored.userIdentifier, res);
     res.json(data);
   } catch (error) {
