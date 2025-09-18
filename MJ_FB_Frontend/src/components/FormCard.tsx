@@ -23,15 +23,24 @@ export default function FormCard({
   elevation = 1,
   ...paperProps
 }: FormCardProps) {
+  const { sx: boxSx, ...restBoxProps } = boxProps ?? {};
+
   return (
     <Box
       display="flex"
-      justifyContent="center"
-      alignItems={centered ? 'center' : 'flex-start'}
-      minHeight="80vh"
+      flexDirection="column"
+      justifyContent={
+        centered ? { xs: 'flex-start', sm: 'center' } : 'flex-start'
+      }
+      alignItems="center"
+      minHeight={{ xs: 'auto', sm: '80vh' }}
       px={2}
-      py={centered ? 0 : 4}
-      {...boxProps}
+      sx={{
+        pt: { xs: centered ? 6 : 4, sm: centered ? 0 : 4 },
+        pb: { xs: centered ? 6 : 4, sm: centered ? 0 : 4 },
+        ...(boxSx ?? {}),
+      }}
+      {...restBoxProps}
     >
       <Paper
         component="form"
