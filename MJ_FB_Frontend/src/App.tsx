@@ -76,6 +76,9 @@ const TrackOutgoingDonations = React.lazy(() =>
 const TrackSurplus = React.lazy(() =>
   import('./pages/warehouse-management/TrackSurplus')
 );
+const FoodBankTrends = React.lazy(() =>
+  import('./pages/aggregations/FoodBankTrends')
+);
 const Aggregations = React.lazy(() =>
   import('./pages/warehouse-management/Aggregations')
 );
@@ -214,6 +217,7 @@ export default function App() {
       navGroups.push({
         label: 'Aggregations',
         links: [
+          { label: 'Food Bank Trends', to: '/aggregations/trends' },
           { label: 'Pantry Aggregations', to: '/aggregations/pantry' },
           { label: 'Warehouse Aggregations', to: '/aggregations/warehouse' },
         ],
@@ -360,6 +364,12 @@ export default function App() {
                   )}
                   {showStaff && (
                     <Route path="/pantry/visits" element={<PantryVisits />} />
+                  )}
+                  {showAggregations && (
+                    <Route
+                      path="/aggregations/trends"
+                      element={<FoodBankTrends />}
+                    />
                   )}
                   {showAggregations && (
                     <Route path="/aggregations/pantry" element={<PantryAggregations />} />
