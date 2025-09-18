@@ -81,7 +81,38 @@ describe('POST /api/v1/auth/login', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('role', 'staff');
-    expect((pool.query as jest.Mock).mock.calls[2][0]).toMatch(/WHERE email = \$1/);
+    expect((pool.query as jest.Mock).mock.calls[2][0]).toMatch(/WHERE LOWER\(email\) = \$1/);
+  });
+
+  it('normalizes mixed-case emails before lookup', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 1,
+            first_name: 'John',
+            last_name: 'Doe',
+            email: 'john@example.com',
+            password: 'hashed',
+            role: 'staff',
+            access: [],
+            consent: false,
+          },
+        ],
+      });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (jwt.sign as jest.Mock).mockReturnValue('token');
+
+    const res = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'JoHn@Example.COM', password: 'secret' });
+
+    expect(res.status).toBe(200);
+    expect((pool.query as jest.Mock).mock.calls[1][1][0]).toBe('john@example.com');
+    expect((pool.query as jest.Mock).mock.calls[2][1][0]).toBe('john@example.com');
   });
 
   it('logs in volunteer with shopper profile and returns both roles', async () => {
@@ -104,7 +135,7 @@ describe('POST /api/v1/auth/login', () => {
       id: 1,
       consent: false,
     });
-    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/WHERE v.email = \$1/);
+    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/WHERE LOWER\(v.email\) = \$1/);
     expect((jwt.sign as jest.Mock).mock.calls[0][0]).toMatchObject({
       id: 1,
       role: 'volunteer',

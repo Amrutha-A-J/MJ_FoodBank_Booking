@@ -10,10 +10,20 @@ import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../ut
 import config from '../config';
 import { getClientBookingsThisMonth } from './clientVisitController';
 
+function normalizeEmail(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  return trimmed.toLowerCase();
+}
+
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
-  const normalizedEmail =
-    typeof email === 'string' ? email.trim().toLowerCase() : email;
+  const normalizedEmail = normalizeEmail(email);
 
   if (!password) {
     return res.status(400).json({ message: 'Password required' });
@@ -24,7 +34,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       "SELECT value FROM app_config WHERE key = 'maintenance_mode'",
     );
     const maintenanceMode = maintenanceRes.rows[0]?.value === 'true';
-    if (email) {
+    if (normalizedEmail) {
       let foundAccount = false;
       let pendingSetup = false;
       let invalidCredentials = false;
@@ -33,7 +43,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         `SELECT v.id, v.first_name, v.last_name, v.password, v.consent, v.user_id, u.role AS user_role
          FROM volunteers v
          LEFT JOIN clients u ON v.user_id = u.client_id
-         WHERE v.email = $1`,
+         WHERE LOWER(v.email) = $1`,
         [normalizedEmail],
       );
       if ((volunteerQuery.rowCount ?? 0) > 0) {
@@ -91,7 +101,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       }
 
       const staffQuery = await pool.query(
-        `SELECT id, first_name, last_name, email, password, role, access, consent FROM staff WHERE email = $1`,
+        `SELECT id, first_name, last_name, email, password, role, access, consent FROM staff WHERE LOWER(email) = $1`,
         [normalizedEmail],
       );
       if ((staffQuery.rowCount ?? 0) > 0) {
@@ -123,7 +133,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       }
 
       const clientEmailQuery = await pool.query(
-        `SELECT client_id, first_name, last_name, role, password FROM clients WHERE email = $1 AND online_access = true`,
+        `SELECT client_id, first_name, last_name, role, password FROM clients WHERE LOWER(email) = $1 AND online_access = true`,
         [normalizedEmail],
       );
       if ((clientEmailQuery.rowCount ?? 0) > 0) {
@@ -269,7 +279,7 @@ export async function createUser(req: Request, res: Response, next: NextFunction
   } = req.body as {
     firstName?: string;
     lastName?: string;
-    email?: string;
+    email?: string | null;
     phone?: string;
     address?: string;
     clientId: number;
@@ -279,11 +289,13 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     sendPasswordLink?: boolean;
   };
 
+  const normalizedEmail = normalizeEmail(email);
+
   if (!clientId || !role) {
     return res.status(400).json({ message: 'Client ID and role required' });
   }
 
-  if (onlineAccess && (!firstName || !lastName || !email)) {
+  if (onlineAccess && (!firstName || !lastName || !normalizedEmail)) {
     return res.status(400).json({ message: 'Missing fields for online account' });
   }
 
@@ -303,8 +315,8 @@ export async function createUser(req: Request, res: Response, next: NextFunction
       return res.status(400).json({ message: 'Client ID already exists' });
     }
 
-    if (email) {
-      const emailCheck = await pool.query('SELECT client_id FROM clients WHERE email = $1', [email]);
+    if (normalizedEmail) {
+      const emailCheck = await pool.query('SELECT client_id FROM clients WHERE LOWER(email) = $1', [normalizedEmail]);
       if ((emailCheck.rowCount ?? 0) > 0) {
         return res.status(400).json({ message: 'Email already exists' });
       }
@@ -318,7 +330,7 @@ export async function createUser(req: Request, res: Response, next: NextFunction
       [
         firstName || null,
         lastName || null,
-        email || null,
+        normalizedEmail ?? null,
         phone || null,
         address || null,
         clientId,
@@ -329,11 +341,11 @@ export async function createUser(req: Request, res: Response, next: NextFunction
       ],
     );
 
-    if (sendPasswordLink && email) {
+    if (sendPasswordLink && normalizedEmail) {
       const token = await generatePasswordSetupToken('clients', clientId);
       const params = buildPasswordSetupEmailParams('clients', token, clientId);
       await sendTemplatedEmail({
-        to: email,
+        to: normalizedEmail,
         templateId: config.passwordSetupTemplateId,
         params,
       });
@@ -500,17 +512,18 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   const { email, phone, address } = req.body as {
-    email?: string;
+    email?: string | null;
     phone?: string;
     address?: string;
   };
+  const normalizedEmail = normalizeEmail(email);
   try {
     if (user.type === 'staff') {
       const result = await pool.query(
         `UPDATE staff SET email = COALESCE($1, email)
          WHERE id = $2
          RETURNING id, first_name, last_name, email, access, consent`,
-        [email, user.id],
+        [normalizedEmail ?? null, user.id],
       );
       if ((result.rowCount ?? 0) === 0) {
         return res.status(404).json({ message: 'User not found' });
@@ -536,7 +549,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
              phone = COALESCE($2, phone)
          WHERE id = $3
          RETURNING id, first_name, last_name, email, phone, consent`,
-        [email, phone, user.id],
+        [normalizedEmail ?? null, phone, user.id],
       );
       if ((result.rowCount ?? 0) === 0) {
         return res.status(404).json({ message: 'User not found' });
@@ -569,7 +582,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
            address = COALESCE($3, address)
        WHERE client_id = $4
        RETURNING client_id, first_name, last_name, email, phone, address, role, consent`,
-      [email, phone, address, user.id],
+      [normalizedEmail ?? null, phone, address, user.id],
     );
     if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'User not found' });
@@ -633,12 +646,13 @@ export async function updateUserByClientId(
     req.body as {
       firstName: string;
       lastName: string;
-      email?: string;
+      email?: string | null;
       phone?: string;
       address?: string;
       onlineAccess?: boolean;
       password?: string;
     };
+  const normalizedEmail = normalizeEmail(email);
   try {
     if (onlineAccess) {
       if (!firstName || !lastName) {
@@ -647,10 +661,10 @@ export async function updateUserByClientId(
           .json({ message: 'Missing fields for online access' });
       }
 
-      if (email) {
+      if (normalizedEmail) {
         const emailCheck = await pool.query(
-          'SELECT client_id FROM clients WHERE email = $1 AND client_id <> $2',
-          [email, clientId],
+          'SELECT client_id FROM clients WHERE LOWER(email) = $1 AND client_id <> $2',
+          [normalizedEmail, clientId],
         );
         if ((emailCheck.rowCount ?? 0) > 0) {
           return res.status(400).json({ message: 'Email already exists' });
@@ -664,15 +678,15 @@ export async function updateUserByClientId(
              address = $5, online_access = true, password = COALESCE($6, password)
          WHERE client_id = $7
          RETURNING client_id, first_name, last_name, email, phone, address, profile_link, consent`,
-        [
-          firstName,
-          lastName,
-          email || null,
-          phone || null,
-          address || null,
-          hashedPassword,
-          clientId,
-        ],
+          [
+            firstName,
+            lastName,
+            normalizedEmail ?? null,
+            phone || null,
+            address || null,
+            hashedPassword,
+            clientId,
+          ],
       );
       if ((result.rowCount ?? 0) === 0) {
         return res.status(404).json({ message: 'User not found' });
@@ -695,7 +709,7 @@ export async function updateUserByClientId(
        SET first_name = $1, last_name = $2, email = $3, phone = $4, address = $5
        WHERE client_id = $6
        RETURNING client_id, first_name, last_name, email, phone, address, profile_link, consent`,
-      [firstName, lastName, email || null, phone || null, address || null, clientId],
+      [firstName, lastName, normalizedEmail ?? null, phone || null, address || null, clientId],
     );
     if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'User not found' });
