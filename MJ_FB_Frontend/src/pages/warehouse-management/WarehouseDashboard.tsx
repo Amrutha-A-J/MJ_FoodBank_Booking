@@ -283,7 +283,7 @@ export default function WarehouseDashboard() {
     navigate(path);
   }
 
-  const handleCompositionClick = useCallback((data: { payload?: CompositionDatum } | undefined) => {
+  const handleCompositionClick = useCallback((data: { payload?: WarehouseCompositionDatum } | undefined) => {
     if (!data?.payload) return;
     setSelectedComposition({
       month: data.payload.month,
