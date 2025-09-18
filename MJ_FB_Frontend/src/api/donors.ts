@@ -51,6 +51,11 @@ export async function createDonor(data: DonorPayload): Promise<Donor> {
   return handleResponse(res);
 }
 
+export async function getDonor(id: number): Promise<DonorDetail> {
+  const res = await apiFetch(`${API_BASE}/donors/${id}`);
+  return handleResponse(res);
+}
+
 export async function updateDonor(
   id: number,
   data: DonorPayload,
@@ -61,28 +66,6 @@ export async function updateDonor(
     body: JSON.stringify(data),
   });
   return handleResponse(res);
-}
-
-export async function getDonor(id: number): Promise<DonorDetail> {
-  const res = await apiFetch(`${API_BASE}/donors/${id}`);
-  return handleResponse(res);
-}
-
-export async function updateDonor(
-  id: number,
-  data: {
-    firstName: string;
-    lastName: string;
-    email?: string;
-    phone?: string;
-  },
-): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/donors/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  await handleResponse(res);
 }
 
 export async function getDonorDonations(
