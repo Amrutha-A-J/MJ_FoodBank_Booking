@@ -5,12 +5,14 @@ import {
   getVolunteerBookingsByRoles,
   searchVolunteers,
   getVolunteerById,
+  getVolunteerStatsById,
   createVolunteer,
   updateVolunteerTrainedAreas,
   createVolunteerBookingForVolunteer,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
   type VolunteerSearchResult,
+  type VolunteerStatsByIdResponse,
 } from '../../api/volunteers';
 import type { VolunteerBookingDetail } from '../../types';
 import { formatTime } from '../../utils/time';
@@ -109,6 +111,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
 
+  const [volunteerStats, setVolunteerStats] =
+    useState<VolunteerStatsByIdResponse | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
   const [selectedVolunteer, setSelectedVolunteer] =
     useState<VolunteerResult | null>(null);
   const [editVolunteer, setEditVolunteer] =
@@ -131,6 +138,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     if (tab !== 'search') {
       setSelectedVolunteer(null);
       setSearchParams({});
+      resetVolunteerStats();
     }
   }, [tab, setSearchParams]);
 
@@ -153,11 +161,42 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
 
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const statsRequestIdRef = useRef(0);
 
   function toggleCreateRole(name: string, checked: boolean) {
     setSelectedCreateRoles(prev =>
       checked ? [...prev, name] : prev.filter(r => r !== name)
     );
+  }
+
+  function resetVolunteerStats() {
+    statsRequestIdRef.current += 1;
+    setVolunteerStats(null);
+    setStatsLoading(false);
+    setStatsError(null);
+  }
+
+  async function loadVolunteerStats(volunteerId: number) {
+    const requestId = statsRequestIdRef.current + 1;
+    statsRequestIdRef.current = requestId;
+    setVolunteerStats(null);
+    setStatsLoading(true);
+    setStatsError(null);
+    try {
+      const stats = await getVolunteerStatsById(volunteerId);
+      if (statsRequestIdRef.current === requestId) {
+        setVolunteerStats(stats);
+      }
+    } catch {
+      if (statsRequestIdRef.current === requestId) {
+        setVolunteerStats(null);
+        setStatsError('Unable to load volunteer totals.');
+      }
+    } finally {
+      if (statsRequestIdRef.current === requestId) {
+        setStatsLoading(false);
+      }
+    }
   }
 
   const [assignSlot, setAssignSlot] = useState<RoleOption | null>(null);
@@ -170,6 +209,17 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     vol: VolunteerResult;
     addTraining: boolean;
   } | null>(null);
+
+  const hoursFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat('en-CA', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 1,
+      }),
+    [],
+  );
+  const formatHours = (hours: number) => hoursFormatter.format(hours);
+  const formatShiftLabel = (count: number) => (count === 1 ? 'shift' : 'shifts');
 
   const reginaTimeZone = 'America/Regina';
   const [currentDate, setCurrentDate] = useState(() => {
@@ -353,6 +403,9 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         // ignore
       }
     }
+    if (selectedVolunteer) {
+      void loadVolunteerStats(selectedVolunteer.id);
+    }
   }
 
   async function loadVolunteer(
@@ -392,9 +445,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         )
       )
     );
+    await loadVolunteerStats(vol.id);
   }
 
   function selectVolunteer(u: VolunteerResult) {
+    resetVolunteerStats();
     loadVolunteer(u.id, u)
       .then(vol => {
         setSelectedVolunteer(vol);
@@ -407,6 +462,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
             )
           )
         );
+        void loadVolunteerStats(vol.id);
       });
   }
 
@@ -942,6 +998,42 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                     >
                       Edit
                     </Button>
+                  </PageCard>
+                  <PageCard sx={{ width: 1 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Service Totals
+                    </Typography>
+                    {statsLoading ? (
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <CircularProgress size={20} aria-label="Loading volunteer totals" />
+                        <Typography variant="body2" color="text.secondary">
+                          Loading totals…
+                        </Typography>
+                      </Stack>
+                    ) : statsError ? (
+                      <Typography variant="body2" color="text.secondary">
+                        {statsError}
+                      </Typography>
+                    ) : volunteerStats ? (
+                      <Stack spacing={1}>
+                        <Typography variant="body2">
+                          <strong>Lifetime:</strong> {formatHours(volunteerStats.lifetime.hours)} hours ·{' '}
+                          {volunteerStats.lifetime.shifts} {formatShiftLabel(volunteerStats.lifetime.shifts)}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong>Year to date:</strong> {formatHours(volunteerStats.yearToDate.hours)} hours ·{' '}
+                          {volunteerStats.yearToDate.shifts} {formatShiftLabel(volunteerStats.yearToDate.shifts)}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong>Month to date:</strong> {formatHours(volunteerStats.monthToDate.hours)} hours ·{' '}
+                          {volunteerStats.monthToDate.shifts} {formatShiftLabel(volunteerStats.monthToDate.shifts)}
+                        </Typography>
+                      </Stack>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No stats available yet.
+                      </Typography>
+                    )}
                   </PageCard>
                   <PageCard sx={{ width: 1 }}>
                     <Typography variant="h6" gutterBottom>

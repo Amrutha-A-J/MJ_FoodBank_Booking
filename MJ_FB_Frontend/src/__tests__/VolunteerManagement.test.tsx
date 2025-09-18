@@ -8,6 +8,7 @@ import {
   getVolunteerRoles,
   searchVolunteers,
   getVolunteerById,
+  getVolunteerStatsById,
   getVolunteerBookingHistory,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
@@ -22,6 +23,7 @@ jest.mock('../api/volunteers', () => ({
   getVolunteerRoles: jest.fn(),
   searchVolunteers: jest.fn(),
   getVolunteerById: jest.fn(),
+  getVolunteerStatsById: jest.fn(),
   getVolunteerBookingHistory: jest.fn(),
   createVolunteerShopperProfile: jest.fn(),
   removeVolunteerShopperProfile: jest.fn(),
@@ -59,6 +61,12 @@ beforeEach(() => {
   (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([]);
   (createVolunteer as jest.Mock).mockResolvedValue(undefined);
   (getVolunteerById as jest.Mock).mockResolvedValue(mockVolunteer);
+  (getVolunteerStatsById as jest.Mock).mockResolvedValue({
+    volunteerId: 1,
+    lifetime: { hours: 0, shifts: 0 },
+    yearToDate: { hours: 0, shifts: 0 },
+    monthToDate: { hours: 0, shifts: 0 },
+  });
 });
 
 describe('VolunteerManagement create volunteer', () => {
@@ -265,6 +273,37 @@ describe('VolunteerManagement shopper profile', () => {
     await waitFor(() =>
       expect(screen.getByLabelText(/shopper profile/i)).not.toBeChecked()
     );
+  });
+});
+
+describe('VolunteerManagement volunteer stats', () => {
+  it('loads stats when a volunteer is selected', async () => {
+    (getVolunteerStatsById as jest.Mock).mockResolvedValueOnce({
+      volunteerId: 1,
+      lifetime: { hours: 12.5, shifts: 8 },
+      yearToDate: { hours: 4, shifts: 3 },
+      monthToDate: { hours: 1.5, shifts: 1 },
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/volunteers/search']}>
+        <Routes>
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+
+    await waitFor(() => expect(getVolunteerStatsById).toHaveBeenCalledWith(1));
+
+    const totalsHeading = await screen.findByText('Service Totals');
+    const totalsCard = totalsHeading.parentElement as HTMLElement;
+    await waitFor(() =>
+      expect(totalsCard).toHaveTextContent('Lifetime: 12.5 hours · 8 shifts'),
+    );
+    expect(totalsCard).toHaveTextContent('Year to date: 4 hours · 3 shifts');
+    expect(totalsCard).toHaveTextContent('Month to date: 1.5 hours · 1 shift');
   });
 });
 

@@ -85,6 +85,89 @@ export async function getVolunteerProfile(
   }
 }
 
+export async function getVolunteerStatsById(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { id } = req.params;
+  const volunteerId = Number(id);
+  if (!Number.isInteger(volunteerId) || volunteerId <= 0) {
+    return res.status(400).json({ message: 'Invalid volunteer ID' });
+  }
+  try {
+    const statsRes = await pool.query<{
+      lifetime_hours: string;
+      lifetime_shifts: string;
+      ytd_hours: string;
+      ytd_shifts: string;
+      mtd_hours: string;
+      mtd_shifts: string;
+    }>(
+      `SELECT
+         v.archived_hours + COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600), 0) AS lifetime_hours,
+         v.archived_shifts + COALESCE(COUNT(*) FILTER (WHERE vb.status = 'completed'), 0) AS lifetime_shifts,
+         COALESCE(SUM(
+           CASE
+             WHEN date_trunc('year', vb.date) = date_trunc('year', CURRENT_DATE)
+             THEN EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600
+             ELSE 0
+           END
+         ), 0) AS ytd_hours,
+         COALESCE(COUNT(*) FILTER (
+           WHERE vb.status = 'completed'
+             AND date_trunc('year', vb.date) = date_trunc('year', CURRENT_DATE)
+         ), 0) AS ytd_shifts,
+         COALESCE(SUM(
+           CASE
+             WHEN date_trunc('month', vb.date) = date_trunc('month', CURRENT_DATE)
+             THEN EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600
+             ELSE 0
+           END
+         ), 0) AS mtd_hours,
+         COALESCE(COUNT(*) FILTER (
+           WHERE vb.status = 'completed'
+             AND date_trunc('month', vb.date) = date_trunc('month', CURRENT_DATE)
+         ), 0) AS mtd_shifts
+       FROM volunteers v
+       LEFT JOIN volunteer_bookings vb
+         ON vb.volunteer_id = v.id
+        AND vb.status = 'completed'
+        AND vb.date <= CURRENT_DATE
+       LEFT JOIN volunteer_slots vs ON vs.slot_id = vb.slot_id
+       WHERE v.id = $1
+       GROUP BY v.archived_hours, v.archived_shifts`,
+      [volunteerId],
+    );
+
+    if ((statsRes.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Volunteer not found' });
+    }
+
+    const row = statsRes.rows[0];
+    const response = {
+      volunteerId,
+      lifetime: {
+        hours: Number(row?.lifetime_hours ?? 0),
+        shifts: Number(row?.lifetime_shifts ?? 0),
+      },
+      yearToDate: {
+        hours: Number(row?.ytd_hours ?? 0),
+        shifts: Number(row?.ytd_shifts ?? 0),
+      },
+      monthToDate: {
+        hours: Number(row?.mtd_hours ?? 0),
+        shifts: Number(row?.mtd_shifts ?? 0),
+      },
+    };
+
+    res.json(response);
+  } catch (error) {
+    logger.error('Error fetching volunteer stats by id:', error);
+    next(error);
+  }
+}
+
 export async function createVolunteer(
   req: Request,
   res: Response,
