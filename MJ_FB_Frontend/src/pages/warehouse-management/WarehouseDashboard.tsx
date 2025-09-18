@@ -35,8 +35,6 @@ import {
   YAxis,
   CartesianGrid,
   Legend,
-  BarChart,
-  Bar,
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { formatLocaleDate, toDate } from '../../utils/date';
@@ -57,6 +55,9 @@ import type { AlertColor } from '@mui/material';
 import Page from '../../components/Page';
 import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import FormDialog from '../../components/FormDialog';
+import WarehouseCompositionChart, {
+  type WarehouseCompositionDatum,
+} from '../../components/dashboard/WarehouseCompositionChart';
 
 interface MonthlyTotal {
   year: number;
@@ -67,13 +68,8 @@ interface MonthlyTotal {
   outgoingLbs: number;
 }
 
-type CompositionDatum = {
-  month: string;
+type CompositionDatum = WarehouseCompositionDatum & {
   incoming: number;
-  outgoing: number;
-  donations: number;
-  surplus: number;
-  pigPound: number;
 };
 
 
@@ -461,47 +457,15 @@ export default function WarehouseDashboard() {
                 </Stack>
               </CardContent>
             </Card>
-            <Card variant="outlined">
-              <CardHeader title="Composition (This Year)" />
-              <CardContent sx={{ height: 300 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Legend />
-                    <Bar
-                      dataKey="donations"
-                      name="Donations"
-                      stackId="a"
-                      fill={theme.palette.primary.main}
-                      onClick={handleCompositionClick}
-                    />
-                    <Bar
-                      dataKey="surplus"
-                      name="Surplus"
-                      stackId="a"
-                      fill={theme.palette.warning.main}
-                      onClick={handleCompositionClick}
-                    />
-                    <Bar
-                      dataKey="pigPound"
-                      name="Pig Pound"
-                      stackId="a"
-                      fill={theme.palette.info.main}
-                      onClick={handleCompositionClick}
-                    />
-                    <Bar
-                      dataKey="outgoing"
-                      name="Outgoing"
-                      stackId="a"
-                      fill={theme.palette.error.main}
-                      onClick={handleCompositionClick}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+          <Card variant="outlined">
+            <CardHeader title="Composition (This Year)" />
+            <CardContent sx={{ height: 300 }}>
+              <WarehouseCompositionChart
+                data={chartData}
+                onBarClick={handleCompositionClick}
+              />
+            </CardContent>
+          </Card>
           </Box>
           <Box display="grid" gridTemplateColumns={{ xs: '1fr', lg: 'repeat(3, 1fr)' }} gap={2}>
             <Card variant="outlined">

@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import FoodBankTrends from '../pages/aggregations/FoodBankTrends';
 import '../../tests/mockUrl';
@@ -29,6 +30,32 @@ jest.mock('../api/donors', () => ({
 
 jest.mock('../api/outgoingReceivers', () => ({
   getTopReceivers: (...args: unknown[]) => mockGetTopReceivers(...args),
+}));
+
+jest.mock('../components/dashboard/WarehouseCompositionChart', () => ({
+  __esModule: true,
+  default: ({
+    onBarClick,
+  }: {
+    onBarClick?: (data: { payload?: Record<string, unknown> }) => void;
+  }) => (
+    <button
+      type="button"
+      onClick={() =>
+        onBarClick?.({
+          payload: {
+            month: 'Jan',
+            donations: 1200,
+            surplus: 300,
+            pigPound: 150,
+            outgoing: 800,
+          },
+        })
+      }
+    >
+      Open Composition
+    </button>
+  ),
 }));
 
 describe('FoodBankTrends page', () => {
@@ -120,10 +147,35 @@ describe('FoodBankTrends page', () => {
     expect(await screen.findByText('Community Food Drive')).toBeInTheDocument();
     expect(screen.getByText(/Warehouse Overview/i)).toBeInTheDocument();
     expect(screen.getByText(/Monthly Trend/i)).toBeInTheDocument();
-    expect(screen.getByText(/Composition/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Composition$/i)).toBeInTheDocument();
     expect(screen.getByText(/Top Donors/i)).toBeInTheDocument();
     expect(await screen.findByText(/Donor One/)).toBeInTheDocument();
     expect(screen.getByText(/Top Receivers/i)).toBeInTheDocument();
     expect(await screen.findByText(/Community Partner/)).toBeInTheDocument();
+  });
+
+  it('surfaces the warehouse composition breakdown when a bar is clicked', async () => {
+    const currentYear = new Date().getFullYear();
+
+    render(
+      <MemoryRouter>
+        <FoodBankTrends />
+      </MemoryRouter>,
+    );
+
+    const openButton = await screen.findByRole('button', { name: /open composition/i });
+    await userEvent.click(openButton);
+
+    expect(
+      await screen.findByText(`Composition for Jan ${currentYear}`),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Donations')).toBeInTheDocument();
+    expect(screen.getByText('1,200 lbs')).toBeInTheDocument();
+    expect(screen.getByText('Surplus')).toBeInTheDocument();
+    expect(screen.getByText('300 lbs')).toBeInTheDocument();
+    expect(screen.getByText('Pig Pound')).toBeInTheDocument();
+    expect(screen.getByText('150 lbs')).toBeInTheDocument();
+    expect(screen.getByText('Outgoing')).toBeInTheDocument();
+    expect(screen.getByText('800 lbs')).toBeInTheDocument();
   });
 });
