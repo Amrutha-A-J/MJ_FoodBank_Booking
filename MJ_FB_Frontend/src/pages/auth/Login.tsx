@@ -133,9 +133,11 @@ export default function Login({
           display="flex"
           flexDirection="column"
           alignItems="center"
-          justifyContent="center"
-          minHeight="80vh"
+          justifyContent={{ xs: 'flex-start', sm: 'center' }}
+          minHeight={{ xs: 'auto', sm: '80vh' }}
           px={2}
+          pt={{ xs: 6, sm: 0 }}
+          pb={{ xs: 6, sm: 0 }}
         >
           <CircularProgress color="primary" />
         </Box>
@@ -144,9 +146,11 @@ export default function Login({
           display="flex"
           flexDirection="column"
           alignItems="center"
-          justifyContent="center"
-          minHeight="80vh"
+          justifyContent={{ xs: 'flex-start', sm: 'center' }}
+          minHeight={{ xs: 'auto', sm: '80vh' }}
           px={2}
+          pt={{ xs: 6, sm: 0 }}
+          pb={{ xs: 6, sm: 0 }}
         >
           <FormCard
             onSubmit={handleSubmit}
@@ -175,8 +179,6 @@ export default function Login({
                 </MuiLink>
               </Stack>
             }
-            centered={false}
-            boxProps={{ minHeight: 0, px: 0, py: 0 }}
           >
             <TextField
               value={identifier}
