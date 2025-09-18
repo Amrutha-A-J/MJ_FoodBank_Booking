@@ -335,7 +335,8 @@ describe('userController', () => {
           rows: [
             { id: 1, first_name: 'A', last_name: 'B', email: 'a', password: 'hashed', role: 'staff', access: [], consent: false },
           ],
-        });
+        })
+        .mockResolvedValueOnce({ rowCount: 0, rows: [] });
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       const req: any = { body: { email: 'a', password: 'pw' } };
@@ -350,6 +351,160 @@ describe('userController', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({ message: 'Invalid credentials' });
       expect(issueAuthTokens).not.toHaveBeenCalled();
+    });
+
+    it('falls through volunteer mismatch and logs in matching client', async () => {
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
+        .mockResolvedValueOnce({
+          rowCount: 1,
+          rows: [
+            {
+              id: 9,
+              first_name: 'V',
+              last_name: 'Olunteer',
+              password: 'vol-hash',
+              consent: true,
+              user_id: null,
+              user_role: null,
+            },
+          ],
+        })
+        .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+        .mockResolvedValueOnce({
+          rowCount: 1,
+          rows: [
+            {
+              client_id: 42,
+              first_name: 'Client',
+              last_name: 'User',
+              role: 'shopper',
+              password: 'client-hash',
+            },
+          ],
+        });
+      (bcrypt.compare as jest.Mock)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
+
+      const req: any = { body: { email: 'client@example.com', password: 'pw' } };
+      const res: any = {
+        cookie: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      await loginUser(req, res, jest.fn());
+
+      expect(issueAuthTokens).toHaveBeenCalledWith(
+        res,
+        { id: 42, role: 'shopper', type: 'user' },
+        'user:42',
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        role: 'shopper',
+        name: 'Client User',
+        id: 42,
+      });
+    });
+
+    it('allows client login when volunteer password is pending setup', async () => {
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
+        .mockResolvedValueOnce({
+          rowCount: 1,
+          rows: [
+            {
+              id: 7,
+              first_name: 'Pending',
+              last_name: 'Volunteer',
+              password: null,
+              consent: false,
+              user_id: null,
+              user_role: null,
+            },
+          ],
+        })
+        .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+        .mockResolvedValueOnce({
+          rowCount: 1,
+          rows: [
+            {
+              client_id: 88,
+              first_name: 'Ready',
+              last_name: 'Client',
+              role: 'delivery',
+              password: 'client-hash',
+            },
+          ],
+        });
+      (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
+
+      const req: any = { body: { email: 'ready@example.com', password: 'secret' } };
+      const res: any = {
+        cookie: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      await loginUser(req, res, jest.fn());
+
+      expect(issueAuthTokens).toHaveBeenCalledWith(
+        res,
+        { id: 88, role: 'delivery', type: 'user' },
+        'user:88',
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        role: 'delivery',
+        name: 'Ready Client',
+        id: 88,
+      });
+    });
+
+    it('continues to allow volunteer-only logins', async () => {
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
+        .mockResolvedValueOnce({
+          rowCount: 1,
+          rows: [
+            {
+              id: 17,
+              first_name: 'Active',
+              last_name: 'Volunteer',
+              password: 'vol-hash',
+              consent: true,
+              user_id: null,
+              user_role: null,
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          rowCount: 0,
+          rows: [],
+        });
+      (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
+
+      const req: any = { body: { email: 'vol@example.com', password: 'pw' } };
+      const res: any = {
+        cookie: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      await loginUser(req, res, jest.fn());
+
+      expect(issueAuthTokens).toHaveBeenCalledWith(
+        res,
+        { id: 17, role: 'volunteer', type: 'volunteer' },
+        'volunteer:17',
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        role: 'volunteer',
+        name: 'Active Volunteer',
+        access: [],
+        id: 17,
+        consent: true,
+      });
     });
   });
 
