@@ -68,6 +68,23 @@ export async function getDonor(id: number): Promise<DonorDetail> {
   return handleResponse(res);
 }
 
+export async function updateDonor(
+  id: number,
+  data: {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+  },
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/donors/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  await handleResponse(res);
+}
+
 export async function getDonorDonations(
   id: number,
 ): Promise<DonorDonation[]> {
