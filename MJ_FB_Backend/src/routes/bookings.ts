@@ -23,10 +23,16 @@ const router = express.Router();
 
 // Wrapper to handle bookings created by staff or regular users (supports optional note)
 const handleCreateBooking = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user?.role === 'staff') {
+  if (req.user?.type === 'staff') {
     // Allow staff to create a booking for themselves or another user
     if (!req.body.userId) {
-      req.body.userId = req.user.id;
+      const fallbackId = req.user.userId ?? req.user.id;
+      if (fallbackId !== undefined && fallbackId !== null) {
+        const parsedId = Number(fallbackId);
+        if (!Number.isNaN(parsedId)) {
+          req.body.userId = parsedId;
+        }
+      }
     }
     return createBookingForUser(req, res, next);
   }

@@ -930,6 +930,10 @@ export async function createBookingForUser(
       .status(400)
       .json({ message: 'Please select a valid time slot' });
   }
+  const userIdNum = Number(userId);
+  if (!Number.isInteger(userIdNum)) {
+    return res.status(400).json({ message: 'Please provide a valid user' });
+  }
   if (!isTodayOrFutureDate(date)) {
     return res.status(400).json({ message: 'Invalid date' });
   }
@@ -942,8 +946,8 @@ export async function createBookingForUser(
     let bookingId: number;
     try {
       await client.query('BEGIN');
-      await lockClientRow(userId, client);
-      const upcoming = await findUpcomingBooking(userId, client);
+      await lockClientRow(userIdNum, client);
+      const upcoming = await findUpcomingBooking(userIdNum, client);
       if (upcoming) {
         await client.query('ROLLBACK');
         return res.status(409).json({
@@ -951,7 +955,7 @@ export async function createBookingForUser(
           existingBooking: upcoming,
         });
       }
-      const usage = await countVisitsAndBookingsForMonth(userId, date, client, true);
+      const usage = await countVisitsAndBookingsForMonth(userIdNum, date, client, true);
       if (usage === false) {
         await client.query('ROLLBACK');
         return res.status(400).json({ message: 'Please choose a valid date' });
@@ -992,7 +996,7 @@ export async function createBookingForUser(
       }
       token = randomUUID();
       bookingId = await insertBooking(
-        userId,
+        userIdNum,
         slotIdNum,
         status,
         '',
@@ -1022,7 +1026,7 @@ export async function createBookingForUser(
     const uid = `booking-${bookingId}@mjfb`;
     const emailRes = await pool.query(
       'SELECT email, first_name, last_name FROM clients WHERE client_id=$1',
-      [userId],
+      [userIdNum],
     );
     const { email: clientEmail, first_name, last_name } = emailRes.rows[0] || {};
     const slotRes = await pool.query(
@@ -1076,7 +1080,7 @@ export async function createBookingForUser(
     } else {
       logger.warn(
         'Booking approved email not sent. User %s has no email.',
-        userId,
+        userIdNum,
       );
     }
     res
