@@ -952,7 +952,7 @@ describe('userController', () => {
 
       expect(pool.query).toHaveBeenCalledWith(
         expect.stringContaining('address = COALESCE($3, address)'),
-        [undefined, undefined, '456 Oak Ave', 7],
+        [null, undefined, '456 Oak Ave', 7],
       );
       expect(mockGetClientBookingsThisMonth).toHaveBeenCalledWith(7);
       expect(res.json).toHaveBeenCalledWith({
