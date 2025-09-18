@@ -16,6 +16,10 @@ jest.mock('../../../api/volunteers', () => ({
   getVolunteerBookingHistory: jest.fn(),
 }));
 
+jest.mock('../../../api/users', () => ({
+  requestPasswordReset: jest.fn(),
+}));
+
 const mockVolunteer: any = {
   id: 1,
   name: 'John Doe',

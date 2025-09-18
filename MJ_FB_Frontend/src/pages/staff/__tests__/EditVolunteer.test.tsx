@@ -9,6 +9,7 @@ import {
   updateVolunteer,
   getVolunteerBookingHistory,
 } from '../../../api/volunteers';
+import { requestPasswordReset } from '../../../api/users';
 
 jest.mock('../../../api/volunteers', () => {
   const actual = jest.requireActual('../../../api/volunteers');
@@ -23,6 +24,10 @@ jest.mock('../../../api/volunteers', () => {
     getVolunteerBookingHistory: jest.fn(),
   };
 });
+
+jest.mock('../../../api/users', () => ({
+  requestPasswordReset: jest.fn(),
+}));
 
 const mockVolunteer: any = {
   id: 1,
@@ -55,6 +60,7 @@ beforeEach(() => {
   (getVolunteerById as jest.Mock).mockReset();
   (updateVolunteer as jest.Mock).mockReset();
   (getVolunteerBookingHistory as jest.Mock).mockReset();
+  (requestPasswordReset as jest.Mock).mockReset();
 
   (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
   (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([]);
@@ -291,15 +297,17 @@ describe('EditVolunteer role selection', () => {
 describe('EditVolunteer profile editing', () => {
   beforeEach(async () => {
     (updateVolunteer as jest.Mock).mockResolvedValue(undefined);
-    (getVolunteerById as jest.Mock).mockResolvedValue({
-      ...mockVolunteer,
-      email: 'new@example.com',
-    });
+    (getVolunteerById as jest.Mock).mockResolvedValue(mockVolunteer);
     renderEditVolunteer();
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
   });
 
   it('saves updated email', async () => {
+    (getVolunteerById as jest.Mock).mockResolvedValue({
+      ...mockVolunteer,
+      email: 'new@example.com',
+      hasPassword: mockVolunteer.hasPassword,
+    });
     fireEvent.click(
       await screen.findByRole('button', { name: 'Select Volunteer' }),
     );
@@ -316,12 +324,86 @@ describe('EditVolunteer profile editing', () => {
         lastName: 'Doe',
         email: 'new@example.com',
         phone: undefined,
+        onlineAccess: false,
       });
       expect(getVolunteerById).toHaveBeenCalledWith(1);
     });
     await waitFor(() =>
       expect(screen.getByLabelText(/email/i)).toHaveValue('new@example.com'),
     );
+  });
+
+  it('saves password when enabling online access', async () => {
+    mockVolunteer.email = 'volunteer@example.com';
+    (getVolunteerById as jest.Mock).mockResolvedValue({
+      ...mockVolunteer,
+      email: 'volunteer@example.com',
+      hasPassword: true,
+    });
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Select Volunteer' }),
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit Profile' }));
+
+    const toggle = await screen.findByTestId('online-access-toggle');
+    fireEvent.click(toggle);
+
+    const passwordInput = await screen.findByLabelText('Password');
+    fireEvent.change(passwordInput, { target: { value: 'Strong!Pass1' } });
+
+    fireEvent.click(await screen.findByTestId('save-profile-button'));
+
+    await waitFor(() => {
+      expect(updateVolunteer).toHaveBeenCalledWith(1, {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'volunteer@example.com',
+        phone: undefined,
+        onlineAccess: true,
+        password: 'Strong!Pass1',
+      });
+    });
+    expect(requestPasswordReset).not.toHaveBeenCalled();
+    await waitFor(() => expect(getVolunteerById).toHaveBeenCalledWith(1));
+  });
+
+  it('sends password reset link after saving profile changes', async () => {
+    mockVolunteer.email = 'volunteer@example.com';
+    (getVolunteerById as jest.Mock).mockResolvedValue({
+      ...mockVolunteer,
+      email: 'volunteer@example.com',
+      hasPassword: false,
+    });
+    (requestPasswordReset as jest.Mock).mockResolvedValue(undefined);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Select Volunteer' }),
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit Profile' }));
+
+    const toggle = await screen.findByTestId('online-access-toggle');
+    fireEvent.click(toggle);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /send password reset link/i }),
+    );
+
+    await waitFor(() => {
+      expect(updateVolunteer).toHaveBeenCalledWith(1, {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'volunteer@example.com',
+        phone: undefined,
+        onlineAccess: true,
+      });
+    });
+    await waitFor(() =>
+      expect(requestPasswordReset).toHaveBeenCalledWith({
+        email: 'volunteer@example.com',
+      }),
+    );
+    await waitFor(() => expect(getVolunteerById).toHaveBeenCalledWith(1));
   });
 });
 

@@ -10,6 +10,7 @@ import {
   getVolunteerBookingHistory,
   type VolunteerSearchResult,
 } from '../../../api/volunteers';
+import { requestPasswordReset } from '../../../api/users';
 import { getApiErrorMessage } from '../../../api/helpers';
 import type { VolunteerRoleWithShifts, VolunteerBooking } from '../../../types';
 import {
@@ -36,6 +37,7 @@ import {
   Stack,
   Switch,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -46,6 +48,7 @@ import BookingHistoryTable from '../../../components/BookingHistoryTable';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import DialogCloseButton from '../../../components/DialogCloseButton';
+import PasswordField from '../../../components/PasswordField';
 
 export default function EditVolunteer() {
   const [volunteer, setVolunteer] =
@@ -57,6 +60,8 @@ export default function EditVolunteer() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [onlineAccess, setOnlineAccess] = useState(false);
+  const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -117,6 +122,8 @@ export default function EditVolunteer() {
     setLastName(v.lastName);
     setEmail(v.email || '');
     setPhone(v.phone || '');
+    setOnlineAccess(v.hasPassword);
+    setPassword('');
     const names = v.trainedAreas
       .map(id => idToName.get(id))
       .filter((n): n is string => !!n);
@@ -149,9 +156,11 @@ export default function EditVolunteer() {
       firstName !== volunteer.firstName ||
       lastName !== volunteer.lastName ||
       email !== (volunteer.email || '') ||
-      phone !== (volunteer.phone || '')
+      phone !== (volunteer.phone || '') ||
+      onlineAccess !== volunteer.hasPassword ||
+      (!!password && password.length > 0)
     );
-  }, [volunteer, firstName, lastName, email, phone]);
+  }, [volunteer, firstName, lastName, email, phone, onlineAccess, password]);
 
   async function handleSave() {
     if (!volunteer || !hasChanges) return;
@@ -170,23 +179,100 @@ export default function EditVolunteer() {
     }
   }
 
-  async function handleProfileSave() {
-    if (!volunteer || !profileChanged) return;
+  interface SaveProfileOptions {
+    sendResetLink?: boolean;
+    skipRefresh?: boolean;
+  }
+
+  async function saveProfile({
+    sendResetLink = false,
+    skipRefresh = false,
+  }: SaveProfileOptions = {}): Promise<boolean> {
+    if (!volunteer) return false;
+    if (!profileChanged && !sendResetLink) return false;
+
+    if (onlineAccess && !email) {
+      setMessage('Email required for online access');
+      setSeverity('error');
+      return false;
+    }
+
+    if (
+      onlineAccess &&
+      !volunteer.hasPassword &&
+      !sendResetLink &&
+      !password
+    ) {
+      setMessage('Password required');
+      setSeverity('error');
+      return false;
+    }
+
     setProfileSaving(true);
     try {
-      await updateVolunteer(volunteer.id, {
+      const payload: {
+        firstName: string;
+        lastName: string;
+        email?: string;
+        phone?: string;
+        onlineAccess?: boolean;
+        password?: string;
+      } = {
         firstName,
         lastName,
         email: email || undefined,
         phone: phone || undefined,
-      });
-      setMessage('Volunteer updated');
-      setSeverity('success');
-      await refreshVolunteer(volunteer.id);
+        onlineAccess,
+      };
+
+      if (
+        onlineAccess &&
+        !volunteer.hasPassword &&
+        !sendResetLink &&
+        password
+      ) {
+        payload.password = password;
+      }
+
+      await updateVolunteer(volunteer.id, payload);
+      setPassword('');
+      if (!skipRefresh) {
+        await refreshVolunteer(volunteer.id);
+      }
+      if (!sendResetLink) {
+        setMessage('Volunteer updated');
+        setSeverity('success');
+      }
+      return true;
     } catch (err: unknown) {
       setMessage(getApiErrorMessage(err, 'Unable to update volunteer'));
       setSeverity('error');
+      return false;
     } finally {
+      setProfileSaving(false);
+    }
+  }
+
+  async function handleProfileSave() {
+    await saveProfile();
+  }
+
+  async function handleSendReset() {
+    if (!volunteer) return;
+    const saved = await saveProfile({ sendResetLink: true, skipRefresh: true });
+    if (!saved) return;
+    setProfileSaving(true);
+    try {
+      await requestPasswordReset({ email });
+      setMessage('Password reset link sent');
+      setSeverity('success');
+    } catch (err: unknown) {
+      setMessage(
+        getApiErrorMessage(err, 'Unable to send password reset link'),
+      );
+      setSeverity('error');
+    } finally {
+      await refreshVolunteer(volunteer.id);
       setProfileSaving(false);
     }
   }
@@ -199,6 +285,8 @@ export default function EditVolunteer() {
       setLastName(v.lastName);
       setEmail(v.email || '');
       setPhone(v.phone || '');
+      setOnlineAccess(v.hasPassword);
+      setPassword('');
       const names = v.trainedAreas
         .map(rid => idToName.get(rid))
         .filter((n): n is string => !!n);
@@ -325,37 +413,91 @@ export default function EditVolunteer() {
                         <Typography>Edit Profile</Typography>
                       </AccordionSummary>
                       <AccordionDetails>
-                        <Stack spacing={2}>
-                          <TextField
-                            label="First Name"
-                            value={firstName}
-                            onChange={e => setFirstName(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                          />
-                          <TextField
-                            label="Last Name"
-                            value={lastName}
-                            onChange={e => setLastName(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                          />
-                          <TextField
-                            label="Email"
-                            type="email"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                          />
-                          <TextField
-                            label="Phone"
-                            type="tel"
-                            value={phone}
-                            onChange={e => setPhone(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                          />
+                        <Stack spacing={3}>
+                          <Stack spacing={2}>
+                            <Typography variant="subtitle1">Account</Typography>
+                            <Tooltip
+                              title="Volunteer already has a password"
+                              disableHoverListener={!volunteer.hasPassword}
+                            >
+                              <span>
+                                <FormControl>
+                                  <FormControlLabel
+                                    control={
+                                      <Switch
+                                        checked={onlineAccess}
+                                        onChange={e => {
+                                          setOnlineAccess(e.target.checked);
+                                          if (!e.target.checked) {
+                                            setPassword('');
+                                          }
+                                        }}
+                                        color="primary"
+                                        disabled={volunteer.hasPassword}
+                                        data-testid="online-access-toggle"
+                                      />
+                                    }
+                                    label="Online Access"
+                                  />
+                                  <FormHelperText>
+                                    Allow the volunteer to sign in online.
+                                  </FormHelperText>
+                                </FormControl>
+                              </span>
+                            </Tooltip>
+                            {onlineAccess && !volunteer.hasPassword && (
+                              <PasswordField
+                                fullWidth
+                                label="Password"
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                inputProps={{ 'data-testid': 'volunteer-password-input' }}
+                              />
+                            )}
+                            {onlineAccess && (
+                              <Button
+                                variant="outlined"
+                                onClick={handleSendReset}
+                                disabled={profileSaving}
+                                sx={{ alignSelf: { sm: 'flex-start' } }}
+                              >
+                                Send password reset link
+                              </Button>
+                            )}
+                          </Stack>
+                          <Stack spacing={2}>
+                            <Typography variant="subtitle1">Contact</Typography>
+                            <TextField
+                              label="First Name"
+                              value={firstName}
+                              onChange={e => setFirstName(e.target.value)}
+                              fullWidth
+                              margin="normal"
+                            />
+                            <TextField
+                              label="Last Name"
+                              value={lastName}
+                              onChange={e => setLastName(e.target.value)}
+                              fullWidth
+                              margin="normal"
+                            />
+                            <TextField
+                              label="Email"
+                              type="email"
+                              value={email}
+                              onChange={e => setEmail(e.target.value)}
+                              fullWidth
+                              margin="normal"
+                            />
+                            <TextField
+                              label="Phone"
+                              type="tel"
+                              value={phone}
+                              onChange={e => setPhone(e.target.value)}
+                              fullWidth
+                              margin="normal"
+                            />
+                          </Stack>
                           <Button
                             variant="contained"
                             onClick={handleProfileSave}
