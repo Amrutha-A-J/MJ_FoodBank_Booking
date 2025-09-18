@@ -23,19 +23,9 @@ import {
   ListItemText,
   Divider,
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import TrendingUp from '@mui/icons-material/TrendingUp';
 import WarningAmber from '@mui/icons-material/WarningAmber';
 import Announcement from '@mui/icons-material/Announcement';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-} from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { formatLocaleDate, toDate } from '../../utils/date';
 import { normalizeContactSearchValue, normalizeContactValue } from '../../utils/contact';
@@ -58,6 +48,9 @@ import FormDialog from '../../components/FormDialog';
 import WarehouseCompositionChart, {
   type WarehouseCompositionDatum,
 } from '../../components/dashboard/WarehouseCompositionChart';
+import WarehouseTrendChart, {
+  type WarehouseTrendDatum,
+} from '../../components/dashboard/WarehouseTrendChart';
 
 interface MonthlyTotal {
   year: number;
@@ -68,9 +61,7 @@ interface MonthlyTotal {
   outgoingLbs: number;
 }
 
-type CompositionDatum = WarehouseCompositionDatum & {
-  incoming: number;
-};
+type CompositionDatum = WarehouseCompositionDatum & WarehouseTrendDatum;
 
 
 function monthName(m: number) {
@@ -101,7 +92,6 @@ function formatDonorDisplay(donor: {
 }
 
 export default function WarehouseDashboard() {
-  const theme = useTheme();
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
   const [years, setYears] = useState<number[]>([]);
@@ -125,6 +115,7 @@ export default function WarehouseDashboard() {
     pigPound: number;
     outgoing: number;
   } | null>(null);
+  const [selectedTrendPoint, setSelectedTrendPoint] = useState<WarehouseTrendDatum | null>(null);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -251,6 +242,16 @@ export default function WarehouseDashboard() {
       }),
     [totals],
   );
+
+  useEffect(() => {
+    setSelectedTrendPoint(prev => {
+      if (!prev) return null;
+      const match = chartData.find(d => d.month === prev.month);
+      return match
+        ? { month: match.month, incoming: match.incoming, outgoing: match.outgoing }
+        : null;
+    });
+  }, [chartData]);
 
   const filteredDonors = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -406,31 +407,50 @@ export default function WarehouseDashboard() {
         <Stack spacing={2} sx={{ width: '100%' }}>
           <Card variant="outlined">
             <CardHeader title="Monthly Trend" />
-            <CardContent sx={{ height: 300 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="incoming"
-                    name="Incoming"
-                    stroke={theme.palette.success.main}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="outgoing"
-                    name="Outgoing"
-                    stroke={theme.palette.error.main}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <CardContent sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                <WarehouseTrendChart
+                  data={chartData}
+                  onPointSelect={datum =>
+                    setSelectedTrendPoint({
+                      month: datum.month,
+                      incoming: datum.incoming,
+                      outgoing: datum.outgoing,
+                    })
+                  }
+                />
+              </Box>
+              {selectedTrendPoint ? (
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1.5}
+                  alignItems={{ xs: 'flex-start', sm: 'center' }}
+                  sx={{ mt: 2 }}
+                >
+                  <Typography variant="subtitle2">
+                    {selectedTrendPoint.month}
+                    {year ? ` ${year}` : ''}
+                  </Typography>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                    <Chip
+                      label={`Incoming: ${fmtLbs(selectedTrendPoint.incoming)}`}
+                      color="success"
+                      variant="outlined"
+                      data-testid="warehouse-trend-incoming"
+                    />
+                    <Chip
+                      label={`Outgoing: ${fmtLbs(selectedTrendPoint.outgoing)}`}
+                      color="error"
+                      variant="outlined"
+                      data-testid="warehouse-trend-outgoing"
+                    />
+                  </Stack>
+                </Stack>
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  Click a point to view totals for that month.
+                </Typography>
+              )}
             </CardContent>
           </Card>
           <Box display="grid" gridTemplateColumns={{ xs: '1fr', lg: '1fr 2fr' }} gap={2}>
