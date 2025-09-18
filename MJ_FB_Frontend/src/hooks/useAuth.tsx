@@ -1,12 +1,10 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Link } from '@mui/material';
 import type { Role, UserRole, StaffAccess } from '../types';
 import type { LoginResponse } from '../api/users';
 import { logout as apiLogout } from '../api/users';
 import { API_BASE, apiFetch } from '../api/client';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
-import { getRandomAppreciation } from '../utils/appreciationMessages';
 
 interface AuthContextValue {
   isAuthenticated: boolean;
@@ -162,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       else localStorage.removeItem('id');
       localStorage.removeItem('encouragementOrder');
       localStorage.removeItem('encouragementIndex');
-      setSessionMessage(role === 'volunteer' ? getRandomAppreciation() : '');
+      setSessionMessage('');
       try {
         const statsRes = await apiFetch(`${API_BASE}/stats`);
         if (statsRes.ok) {
@@ -210,15 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       <FeedbackSnackbar
         open={!!sessionMessage}
         onClose={() => setSessionMessage('')}
-        message={
-          cardUrl ? (
-            <>
-              {sessionMessage} <Link href={cardUrl} download>Download card</Link>
-            </>
-          ) : (
-            sessionMessage
-          )
-        }
+        message={sessionMessage}
         severity="info"
       />
     </AuthContext.Provider>

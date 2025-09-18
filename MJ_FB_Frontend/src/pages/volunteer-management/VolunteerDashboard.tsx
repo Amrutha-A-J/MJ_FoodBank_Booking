@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import Announcement from '@mui/icons-material/Announcement';
 import Add from '@mui/icons-material/Add';
+import Download from '@mui/icons-material/Download';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   getMyVolunteerBookings,
@@ -87,7 +88,7 @@ export default function VolunteerDashboard() {
   const stopLoading = () => setLoadingCount(c => Math.max(c - 1, 0));
   const loading = loadingCount > 0;
   const navigate = useNavigate();
-  const { userRole } = useAuth();
+  const { userRole, cardUrl } = useAuth();
 
   useEffect(() => {
     startLoading();
@@ -334,6 +335,21 @@ export default function VolunteerDashboard() {
         title="Welcome to the Volunteer Dashboard"
         body="See your upcoming shifts, track stats, and stay informed."
       />
+      {cardUrl && (
+        <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
+          <Button
+            size="large"
+            variant="outlined"
+            sx={{ textTransform: 'none' }}
+            component="a"
+            href={cardUrl}
+            download
+            startIcon={<Download />}
+          >
+            Download volunteer card
+          </Button>
+        </Stack>
+      )}
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <CircularProgress />

@@ -1,7 +1,6 @@
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { useAuth } from '../hooks/useAuth';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
-import { APPRECIATION_MESSAGES } from '../utils/appreciationMessages';
 import type { Role } from '../types';
 
 jest.mock('../api/client', () => ({
@@ -18,7 +17,7 @@ function Trigger({ role }: { role: Role }) {
   );
 }
 
-describe('appreciation message on login', () => {
+describe('login feedback', () => {
   beforeEach(() => {
     (apiFetch as jest.Mock)
       .mockResolvedValueOnce({ ok: true, status: 200 })
@@ -31,17 +30,33 @@ describe('appreciation message on login', () => {
     localStorage.clear();
   });
 
-  it('shows appreciation message and card link for volunteers', async () => {
-    renderWithProviders(<Trigger role="volunteer" />);
+function CardProbe() {
+  const { cardUrl } = useAuth();
+  if (!cardUrl) return null;
+  return (
+    <a href={cardUrl} download>
+      Download volunteer card
+    </a>
+  );
+}
+
+  it('shows volunteer card link without triggering snackbar for volunteers', async () => {
+    renderWithProviders(
+      <>
+        <Trigger role="volunteer" />
+        <CardProbe />
+      </>,
+    );
     await waitFor(() => expect(apiFetch).toHaveBeenCalled());
     (apiFetch as jest.Mock).mockClear();
     fireEvent.click(screen.getByText('Login'));
     await waitFor(() => expect(apiFetch).toHaveBeenCalledTimes(2));
-    expect(
-      await screen.findByText(content => APPRECIATION_MESSAGES.includes(content))
-    ).toBeInTheDocument();
-    const link = await screen.findByRole('link', { name: /download card/i });
+    const link = await screen.findByRole('link', { name: /download volunteer card/i });
     expect(link).toHaveAttribute('href', '/card.pdf');
+    expect(link).toHaveAttribute('download');
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).toBeNull();
+    });
   });
 
   it('does not show appreciation message for staff', async () => {
@@ -50,8 +65,8 @@ describe('appreciation message on login', () => {
     (apiFetch as jest.Mock).mockClear();
     fireEvent.click(screen.getByText('Login'));
     await waitFor(() => expect(apiFetch).toHaveBeenCalledTimes(2));
-    expect(
-      screen.queryByText(content => APPRECIATION_MESSAGES.includes(content))
-    ).toBeNull();
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).toBeNull();
+    });
   });
 });
