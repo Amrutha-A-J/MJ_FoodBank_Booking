@@ -125,6 +125,18 @@ let theme = createTheme({
       },
     },
 
+    MuiAccordion: {
+      styleOverrides: {
+        root: ({ theme }: { theme: Theme }) => ({
+          border: `1px solid ${darken(theme.palette.divider, 0.35)}`,
+          borderRadius: theme.shape.borderRadius,
+          boxShadow: 'none',
+          '&::before': { display: 'none' },
+          '& + &': { marginTop: theme.spacing(1.5) },
+        }),
+      },
+    },
+
     // Navbar solid green (like site)
     MuiAppBar: { styleOverrides: { root: { backgroundColor: BRAND_PRIMARY } } },
 
