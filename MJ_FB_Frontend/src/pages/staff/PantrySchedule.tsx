@@ -77,12 +77,10 @@ export default function PantrySchedule({
     action?: ReactNode;
   } | null>(null);
   const [manageBooking, setManageBooking] = useState<Booking | null>(null);
-  const [assignMessage, setAssignMessage] = useState("");
 
   const handleAssignClose = () => {
     setAssignSlot(null);
     setSearchTerm("");
-    setAssignMessage("");
     setIsNewClient(false);
     setNewClientName("");
   };
@@ -175,7 +173,6 @@ export default function PantrySchedule({
   async function assignExistingUser(user: UserSearchResult) {
     if (!assignSlot) return;
     try {
-      setAssignMessage("");
       await createBookingForUser(
         user.client_id,
         parseInt(assignSlot.id),
@@ -188,14 +185,13 @@ export default function PantrySchedule({
     } catch (err) {
       console.error(err);
       const msg = err instanceof Error ? err.message : "Failed to assign user";
-      setAssignMessage(msg);
+      setSnackbar({ message: msg, severity: "error" });
     }
   }
 
   async function addClientAndAssign() {
     if (!assignSlot) return;
     try {
-      setAssignMessage("");
       await addClientById(searchTerm);
       const results = await (searchUsersFn || searchUsers)(searchTerm);
       setUserResults(results.slice(0, 5));
@@ -207,14 +203,13 @@ export default function PantrySchedule({
     } catch (err) {
       console.error(err);
       const msg = err instanceof Error ? err.message : "Failed to add client";
-      setAssignMessage(msg);
+      setSnackbar({ message: msg, severity: "error" });
     }
   }
 
   async function assignNewClient() {
     if (!assignSlot || !newClientName.trim()) return;
     try {
-      setAssignMessage("");
       await createBookingForNewClient(
         newClientName.trim(),
         parseInt(assignSlot.id),
@@ -228,7 +223,7 @@ export default function PantrySchedule({
       console.error(err);
       const msg =
         err instanceof Error ? err.message : "Failed to assign new client";
-      setAssignMessage(msg);
+      setSnackbar({ message: msg, severity: "error" });
     }
   }
 
@@ -330,7 +325,6 @@ export default function PantrySchedule({
           content = "";
           onClick = () => {
             setAssignSlot(slot);
-            setAssignMessage("");
           };
         } else if (!withinCapacity) {
           content = (
@@ -556,12 +550,6 @@ export default function PantrySchedule({
                 margin="dense"
               />
             )}
-            <FeedbackSnackbar
-              open={!!assignMessage}
-              onClose={() => setAssignMessage("")}
-              message={assignMessage}
-              severity="error"
-            />
           </DialogContent>
           <DialogActions>
             <Button onClick={handleAssignClose} variant="outlined" color="primary">
