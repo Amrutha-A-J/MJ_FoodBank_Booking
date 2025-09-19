@@ -413,6 +413,18 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       } catch {
         // ignore
       }
+    } else if (selectedDepartment) {
+      try {
+        const roles =
+          groupedRoles.find(g => g.category === selectedDepartment)?.roles || [];
+        const ids = roles.flatMap(r => nameToSlotIds.get(r.name) || []);
+        const data = await getVolunteerBookingsByRoles(ids);
+        setBookings(data);
+      } catch {
+        // ignore
+      }
+    } else {
+      setBookings([]);
     }
     if (selectedVolunteer) {
       void loadVolunteerStats(selectedVolunteer.id);
