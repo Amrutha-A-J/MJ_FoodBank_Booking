@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
 export interface DeliveryCategoryItem {
   id: number;
@@ -29,10 +29,9 @@ export async function getDeliveryCategories(): Promise<DeliveryCategory[]> {
 export async function createDeliveryCategory(
   payload: DeliveryCategoryPayload,
 ): Promise<DeliveryCategory> {
-  const res = await apiFetch(`${API_BASE}/delivery/categories`, {
+  const res = await jsonApiFetch(`${API_BASE}/delivery/categories`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: payload,
   });
   return handleResponse(res);
 }
@@ -41,10 +40,9 @@ export async function updateDeliveryCategory(
   id: number,
   payload: DeliveryCategoryPayload,
 ): Promise<DeliveryCategory> {
-  const res = await apiFetch(`${API_BASE}/delivery/categories/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/delivery/categories/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: payload,
   });
   return handleResponse(res);
 }
@@ -60,10 +58,9 @@ export async function createDeliveryCategoryItem(
   categoryId: number,
   payload: DeliveryCategoryItemPayload,
 ): Promise<DeliveryCategoryItem> {
-  const res = await apiFetch(`${API_BASE}/delivery/categories/${categoryId}/items`, {
+  const res = await jsonApiFetch(`${API_BASE}/delivery/categories/${categoryId}/items`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: payload,
   });
   return handleResponse(res);
 }
@@ -73,11 +70,13 @@ export async function updateDeliveryCategoryItem(
   itemId: number,
   payload: DeliveryCategoryItemPayload,
 ): Promise<DeliveryCategoryItem> {
-  const res = await apiFetch(`${API_BASE}/delivery/categories/${categoryId}/items/${itemId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  const res = await jsonApiFetch(
+    `${API_BASE}/delivery/categories/${categoryId}/items/${itemId}`,
+    {
+      method: 'PUT',
+      body: payload,
+    },
+  );
   return handleResponse(res);
 }
 

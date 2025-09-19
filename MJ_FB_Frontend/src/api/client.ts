@@ -104,6 +104,27 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   return res;
 }
 
+export function jsonApiFetch(
+  input: RequestInfo | URL,
+  init: RequestInit & { body?: unknown } = {},
+) {
+  const { body, headers, ...rest } = init;
+  const nextHeaders = new Headers(headers);
+  if (!nextHeaders.has('Content-Type')) {
+    nextHeaders.set('Content-Type', 'application/json');
+  }
+  const jsonBody =
+    body === undefined || body === null || typeof body === 'string'
+      ? (body as BodyInit | null | undefined)
+      : JSON.stringify(body);
+
+  return apiFetch(input, {
+    ...rest,
+    headers: nextHeaders,
+    body: jsonBody,
+  });
+}
+
 export function __resetCsrfTokenForTests() {
   csrfToken = null;
 }

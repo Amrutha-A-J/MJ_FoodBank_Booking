@@ -1,5 +1,5 @@
 import type { Staff, StaffAccess } from '../types';
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
 export async function listStaff(): Promise<Staff[]> {
   const res = await apiFetch(`${API_BASE}/admin-staff`);
@@ -24,10 +24,9 @@ export async function createStaff(
   email: string,
   access: StaffAccess[],
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/admin-staff`, {
+  const res = await jsonApiFetch(`${API_BASE}/admin-staff`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ firstName, lastName, email, access }),
+    body: { firstName, lastName, email, access },
   });
   await handleResponse(res);
 }
@@ -39,10 +38,9 @@ export async function updateStaff(
   email: string,
   access: StaffAccess[],
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/admin-staff/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/admin-staff/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ firstName, lastName, email, access }),
+    body: { firstName, lastName, email, access },
   });
   await handleResponse(res);
 }

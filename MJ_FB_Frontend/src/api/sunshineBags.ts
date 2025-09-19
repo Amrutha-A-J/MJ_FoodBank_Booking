@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 import type { SunshineBag } from '../types';
 
 export async function getSunshineBag(date: string): Promise<SunshineBag | null> {
@@ -7,10 +7,9 @@ export async function getSunshineBag(date: string): Promise<SunshineBag | null> 
 }
 
 export async function saveSunshineBag(payload: SunshineBag): Promise<SunshineBag> {
-  const res = await apiFetch(`${API_BASE}/sunshine-bags`, {
+  const res = await jsonApiFetch(`${API_BASE}/sunshine-bags`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: payload,
   });
   return handleResponse(res);
 }

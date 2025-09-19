@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ApiError } from './client';
 
@@ -17,10 +17,9 @@ export interface LeaveRequest {
 export async function createLeaveRequest(
   data: { type: string; startDate: string; endDate: string },
 ): Promise<LeaveRequest> {
-  const res = await apiFetch(`${API_BASE}/leave/requests`, {
+  const res = await jsonApiFetch(`${API_BASE}/leave/requests`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }

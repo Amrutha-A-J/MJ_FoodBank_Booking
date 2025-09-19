@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 import type { Slot } from '../types';
 
 export async function getAllSlots(): Promise<Slot[]> {
@@ -11,10 +11,9 @@ export async function createSlot(data: {
   endTime: string;
   maxCapacity: number;
 }) {
-  const res = await apiFetch(`${API_BASE}/slots`, {
+  const res = await jsonApiFetch(`${API_BASE}/slots`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }
@@ -23,19 +22,17 @@ export async function updateSlot(
   id: number | string,
   data: { startTime: string; endTime: string; maxCapacity: number },
 ) {
-  const res = await apiFetch(`${API_BASE}/slots/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/slots/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }
 
 export async function updateSlotCapacity(newCapacity: number) {
-  const res = await apiFetch(`${API_BASE}/slots/capacity`, {
+  const res = await jsonApiFetch(`${API_BASE}/slots/capacity`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ maxCapacity: newCapacity }),
+    body: { maxCapacity: newCapacity },
   });
   return handleResponse(res);
 }

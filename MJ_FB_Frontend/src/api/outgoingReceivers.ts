@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
 export interface OutgoingReceiver {
   id: number;
@@ -17,10 +17,9 @@ export async function getOutgoingReceivers(): Promise<OutgoingReceiver[]> {
 }
 
 export async function createOutgoingReceiver(name: string): Promise<OutgoingReceiver> {
-  const res = await apiFetch(`${API_BASE}/outgoing-receivers`, {
+  const res = await jsonApiFetch(`${API_BASE}/outgoing-receivers`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
+    body: { name },
   });
   return handleResponse(res);
 }

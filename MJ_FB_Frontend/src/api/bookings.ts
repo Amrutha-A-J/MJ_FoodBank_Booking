@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 import type {
   Slot,
   SlotsByDate,
@@ -91,12 +91,9 @@ export async function createBooking(
   };
   if (note && note.trim()) body.note = note;
   if (userId) body.userId = userId;
-  const res = await apiFetch(`${API_BASE}/bookings`, {
+  const res = await jsonApiFetch(`${API_BASE}/bookings`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
+    body,
   });
   return handleResponse<BookingActionResponse>(res);
 }
@@ -168,12 +165,9 @@ export async function getHolidays() {
 }
 
 export async function addHoliday(date: string, reason: string): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/holidays`, {
+  const res = await jsonApiFetch(`${API_BASE}/holidays`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ date, reason }),
+    body: { date, reason },
   });
   await handleResponse(res);
 }
@@ -198,12 +192,9 @@ export async function addBlockedSlot(
   slotId: number,
   reason: string
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/blocked-slots`, {
+  const res = await jsonApiFetch(`${API_BASE}/blocked-slots`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ date, slotId, reason }),
+    body: { date, slotId, reason },
   });
   await handleResponse<void>(res);
 }
@@ -226,12 +217,9 @@ export async function addRecurringBlockedSlot(
   slotId: number,
   reason: string,
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/recurring-blocked-slots`, {
+  const res = await jsonApiFetch(`${API_BASE}/recurring-blocked-slots`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ dayOfWeek, weekOfMonth, slotId, reason }),
+    body: { dayOfWeek, weekOfMonth, slotId, reason },
   });
   await handleResponse<void>(res);
 }
@@ -253,12 +241,9 @@ export async function addBreak(
   slotId: number,
   reason: string
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/breaks`, {
+  const res = await jsonApiFetch(`${API_BASE}/breaks`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ dayOfWeek, slotId, reason }),
+    body: { dayOfWeek, slotId, reason },
   });
   await handleResponse<void>(res);
 }
@@ -274,14 +259,11 @@ export async function cancelBooking(
   bookingId: string,
   reason?: string
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/cancel`, {
+  const res = await jsonApiFetch(`${API_BASE}/bookings/${bookingId}/cancel`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(
-      reason ? { reason, type: 'Shopping Appointment' } : { type: 'Shopping Appointment' }
-    ),
+    body: reason
+      ? { reason, type: 'Shopping Appointment' }
+      : { type: 'Shopping Appointment' },
   });
   await handleResponse<void>(res);
 }
@@ -290,12 +272,11 @@ export async function markBookingNoShow(
   bookingId: number,
   reason?: string,
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/no-show`, {
+  const res = await jsonApiFetch(`${API_BASE}/bookings/${bookingId}/no-show`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(
-      reason ? { reason, type: 'Shopping Appointment' } : { type: 'Shopping Appointment' }
-    ),
+    body: reason
+      ? { reason, type: 'Shopping Appointment' }
+      : { type: 'Shopping Appointment' },
   });
   await handleResponse<void>(res);
 }
@@ -308,10 +289,9 @@ export async function markBookingVisited(
   const body: Record<string, unknown> = {};
   if (requestData) body.requestData = requestData;
   if (note) body.note = note;
-  const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/visited`, {
+  const res = await jsonApiFetch(`${API_BASE}/bookings/${bookingId}/visited`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body,
   });
   await handleResponse<void>(res);
 }
@@ -322,12 +302,9 @@ export async function createBookingForUser(
   date: string,
   isStaffBooking: boolean
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/bookings/staff`, {
+  const res = await jsonApiFetch(`${API_BASE}/bookings/staff`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ userId, slotId, date, isStaffBooking, type: 'Shopping Appointment' }),
+    body: { userId, slotId, date, isStaffBooking, type: 'Shopping Appointment' },
   });
   await handleResponse<void>(res);
 }
@@ -339,10 +316,9 @@ export async function createBookingForNewClient(
   email?: string,
   phone?: string,
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/bookings/new-client`, {
+  const res = await jsonApiFetch(`${API_BASE}/bookings/new-client`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, phone, slotId, date, type: 'Shopping Appointment' }),
+    body: { name, email, phone, slotId, date, type: 'Shopping Appointment' },
   });
   await handleResponse<void>(res);
 }
@@ -359,21 +335,17 @@ export async function rescheduleBookingByToken(
   slotId: string,
   date: string,
 ): Promise<BookingActionResponse> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  const res = await apiFetch(`${API_BASE}/bookings/reschedule/${rescheduleToken}`, {
+  const res = await jsonApiFetch(`${API_BASE}/bookings/reschedule/${rescheduleToken}`, {
     method: 'POST',
-    headers,
-    body: JSON.stringify({ slotId, date, type: 'Shopping Appointment' }),
+    body: { slotId, date, type: 'Shopping Appointment' },
   });
   return handleResponse<BookingActionResponse>(res);
 }
 
 export async function cancelBookingByToken(token: string): Promise<BookingActionResponse> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  const res = await apiFetch(`${API_BASE}/bookings/cancel/${token}`, {
+  const res = await jsonApiFetch(`${API_BASE}/bookings/cancel/${token}`, {
     method: 'POST',
-    headers,
-    body: JSON.stringify({ type: 'Shopping Appointment' }),
+    body: { type: 'Shopping Appointment' },
   });
   return handleResponse<BookingActionResponse>(res);
 }
