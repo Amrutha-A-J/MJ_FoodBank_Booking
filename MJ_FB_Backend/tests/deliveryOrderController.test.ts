@@ -2,6 +2,15 @@ import mockDb from './utils/mockDb';
 import { createDeliveryOrder, cancelDeliveryOrder } from '../src/controllers/deliveryOrderController';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import { getDeliverySettings } from '../src/utils/deliverySettings';
+import config from '../src/config';
+
+jest.mock('../src/config', () => {
+  const actual = jest.requireActual('../src/config');
+  return {
+    __esModule: true,
+    default: { ...actual.default, deliveryRequestTemplateId: 99 },
+  };
+});
 
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
@@ -22,6 +31,7 @@ describe('deliveryOrderController', () => {
     (mockDb.query as jest.Mock).mockReset();
     (sendTemplatedEmail as jest.Mock).mockReset();
     mockGetDeliverySettings.mockReset();
+    config.deliveryRequestTemplateId = 99;
     mockGetDeliverySettings.mockResolvedValue({
       requestEmail: 'ops@example.com',
     });
@@ -263,7 +273,7 @@ describe('deliveryOrderController', () => {
 
       expect(sendTemplatedEmail).toHaveBeenCalledWith({
         to: 'ops@example.com',
-        templateId: 16,
+        templateId: config.deliveryRequestTemplateId,
         params: {
           orderId: 77,
           clientId: 456,
@@ -395,7 +405,7 @@ describe('deliveryOrderController', () => {
 
       expect(sendTemplatedEmail).toHaveBeenCalledWith({
         to: 'ops@example.com',
-        templateId: 16,
+        templateId: config.deliveryRequestTemplateId,
         params: {
           orderId: 88,
           clientId: 555,
