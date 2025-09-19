@@ -16,7 +16,7 @@ export function parseOptionalPaginationParams(
   }
 
   const { limit, offset } = parsePaginationParams(
-    { query: { limit: limitParam, offset: offsetParam } } as Request,
+    { query: { limit: limitParam, offset: offsetParam } } as unknown as Request,
     1,
     maxLimit,
     0,
