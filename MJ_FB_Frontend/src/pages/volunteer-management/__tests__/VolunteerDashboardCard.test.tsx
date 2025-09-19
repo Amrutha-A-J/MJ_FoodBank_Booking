@@ -30,12 +30,6 @@ jest.mock('../../../api/volunteers', () => ({
   }),
   getVolunteerLeaderboard: jest.fn().mockResolvedValue(undefined),
   resolveVolunteerBookingConflict: jest.fn().mockResolvedValue(undefined),
-  getVolunteerGroupStats: jest.fn().mockResolvedValue({
-    averageHours: 0,
-    coverage: [],
-    filledShifts: 0,
-    totalShifts: 0,
-  }),
 }));
 
 jest.mock('../../../api/events', () => ({

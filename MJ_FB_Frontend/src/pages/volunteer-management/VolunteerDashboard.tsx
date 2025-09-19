@@ -364,12 +364,12 @@ export default function VolunteerDashboard() {
               </SectionCard>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <VolunteerGroupStatsCard />
+              <VolunteerGroupStatsCard stats={stats} />
             </Grid>
           </>
         ) : (
           <Grid size={{ xs: 12 }}>
-            <VolunteerGroupStatsCard />
+            <VolunteerGroupStatsCard stats={stats} />
           </Grid>
         )}
         <Grid size={{ xs: 12, md: 6 }}>

@@ -8,7 +8,6 @@ import {
   updateVolunteerBookingStatus,
   getVolunteerStats,
   getVolunteerLeaderboard,
-  getVolunteerGroupStats,
   resolveVolunteerBookingConflict,
   type VolunteerStats,
 } from '../api/volunteers';
@@ -22,7 +21,6 @@ jest.mock('../api/volunteers', () => ({
   updateVolunteerBookingStatus: jest.fn(),
   getVolunteerStats: jest.fn(),
   getVolunteerLeaderboard: jest.fn(),
-  getVolunteerGroupStats: jest.fn(),
   resolveVolunteerBookingConflict: jest.fn(),
 }));
 
@@ -52,20 +50,6 @@ jest.mock('../components/FeedbackSnackbar', () => ({
   default: ({ message }: { message: string }) =>
     message ? <div role="alert">{message}</div> : null,
 }));
-
-jest.mock('../components/dashboard/VolunteerGroupStatsCard', () => {
-  const React = require('react');
-  const { getVolunteerGroupStats } = require('../api/volunteers');
-  return {
-    __esModule: true,
-    default: () => {
-      getVolunteerGroupStats();
-      return React.createElement('div', {
-        'data-testid': 'group-progress-gauge',
-      });
-    },
-  };
-});
 
 jest.mock('../components/dashboard/PersonalContributionChart', () => ({
   __esModule: true,
@@ -110,15 +94,6 @@ describe('VolunteerDashboard', () => {
     jest.useFakeTimers();
     jest.setSystemTime(now);
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
-    (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
-      totalHours: 0,
-      monthHours: 0,
-      monthHoursGoal: 0,
-      totalLbs: 0,
-      weekLbs: 0,
-      monthLbs: 0,
-      monthFamilies: 0,
-    });
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
     localStorage.clear();
     localStorage.setItem('volunteerOnboarding', 'true');
@@ -479,14 +454,16 @@ describe('VolunteerDashboard', () => {
     await renderDashboard();
 
     await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
-    expect(await screen.findByText('Lifetime Hours')).toBeInTheDocument();
-    expect(screen.getByText('10')).toBeInTheDocument();
-    expect(screen.getByText('Hours This Month')).toBeInTheDocument();
-    expect(screen.getByText('5')).toBeInTheDocument();
-    expect(screen.getByText('Total Shifts')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('Current Streak')).toBeInTheDocument();
-    expect(screen.getByText('2 weeks')).toBeInTheDocument();
+    const statsTitle = await screen.findByText('My Stats');
+    const card = statsTitle.closest('.MuiCard-root') as HTMLElement;
+    expect(within(card).getByText('Lifetime Hours')).toBeInTheDocument();
+    expect(within(card).getByText('10')).toBeInTheDocument();
+    expect(within(card).getByText('Hours This Month')).toBeInTheDocument();
+    expect(within(card).getByText('5')).toBeInTheDocument();
+    expect(within(card).getByText('Total Shifts')).toBeInTheDocument();
+    expect(within(card).getByText('3')).toBeInTheDocument();
+    expect(within(card).getByText('Current Streak')).toBeInTheDocument();
+    expect(within(card).getByText('2 weeks')).toBeInTheDocument();
   });
 
   it('shows leaderboard percentile in My Stats card', async () => {
@@ -557,17 +534,36 @@ describe('VolunteerDashboard', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows group stats card with progress and quote', async () => {
+  it('shows community impact card with personalized stats', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(
+      makeStats({
+        lifetimeHours: 40,
+        monthHours: 10,
+        monthFamiliesServed: 6,
+        monthPoundsHandled: 120,
+      }),
+    );
 
     await renderDashboard();
 
-    await waitFor(() => expect(getVolunteerGroupStats).toHaveBeenCalled());
+    const impactTitle = await screen.findByText('Community Impact');
+    const card = impactTitle.closest('.MuiCard-root') as HTMLElement;
     expect(
-      await screen.findByTestId('group-progress-gauge'),
+      within(card).getByText((_, element) =>
+        element?.textContent === 'You helped move 120 lbs this month',
+      ),
     ).toBeInTheDocument();
+    expect(
+      within(card).getByText((_, element) =>
+        element?.textContent === 'You supported 6 families this month',
+      ),
+    ).toBeInTheDocument();
+    const gauge = within(card).getByTestId('group-progress-gauge');
+    expect(gauge).toBeInTheDocument();
+    expect(gauge).toHaveTextContent('10 / 40 hrs lifetime');
   });
 
   it('displays year in date labels', async () => {
@@ -643,21 +639,19 @@ describe('VolunteerDashboard', () => {
         role_name: 'Greeter',
       },
     ]);
-    (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
-      totalHours: 20,
-      monthHours: 5,
-      monthHoursGoal: 10,
-      totalLbs: 100,
-      weekLbs: 25,
-      monthLbs: 25,
-      monthFamilies: 0,
-    });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(
+      makeStats({
+        lifetimeHours: 20,
+        monthHours: 5,
+        monthFamiliesServed: 2,
+        monthPoundsHandled: 25,
+      }),
+    );
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
     await renderDashboard();
 
-    await waitFor(() => expect(getVolunteerGroupStats).toHaveBeenCalled());
     await waitFor(() => expect(getMyVolunteerBookings).toHaveBeenCalled());
     expect(await screen.findByTestId('contribution-chart')).toBeInTheDocument();
     expect(await screen.findByTestId('group-progress-gauge')).toBeInTheDocument();
