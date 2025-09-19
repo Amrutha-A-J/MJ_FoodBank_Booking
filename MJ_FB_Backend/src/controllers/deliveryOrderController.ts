@@ -33,6 +33,10 @@ interface DeliveryOrderRow {
   createdAt: Date | string;
 }
 
+interface DeliveryOrderWithClientRow extends DeliveryOrderRow {
+  clientName: string | null;
+}
+
 interface DeliveryOrderItemRow {
   orderId: number;
   itemId: number;
@@ -468,12 +472,22 @@ export const listOutstandingDeliveryOrders = asyncHandler(
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const ordersResult = await pool.query<DeliveryOrderRow>(
-      `SELECT id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"
-         FROM delivery_orders
-        WHERE status <> 'completed'
-          AND status <> 'cancelled'
-     ORDER BY created_at ASC`,
+    const ordersResult = await pool.query<DeliveryOrderWithClientRow>(
+      `SELECT o.id,
+              o.client_id AS "clientId",
+              o.address,
+              o.phone,
+              o.email,
+              o.status,
+              o.scheduled_for AS "scheduledFor",
+              o.notes,
+              o.created_at AS "createdAt",
+              NULLIF(trim(concat_ws(' ', c.first_name, c.last_name)), '') AS "clientName"
+         FROM delivery_orders o
+         LEFT JOIN clients c ON c.client_id = o.client_id
+        WHERE o.status <> 'completed'
+          AND o.status <> 'cancelled'
+     ORDER BY o.created_at ASC`,
     );
 
     const orders = ordersResult.rows;
@@ -517,6 +531,7 @@ export const listOutstandingDeliveryOrders = asyncHandler(
     const response = orders.map(order => ({
       id: order.id,
       clientId: order.clientId,
+      clientName: order.clientName,
       address: order.address,
       phone: order.phone,
       email: order.email,
