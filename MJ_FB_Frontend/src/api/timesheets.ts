@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ApiError } from './client';
 
@@ -67,10 +67,9 @@ export async function updateTimesheetDay(
     note?: string;
   },
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/timesheets/${timesheetId}/days/${date}`, {
+  const res = await jsonApiFetch(`${API_BASE}/timesheets/${timesheetId}/days/${date}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   await handleResponse(res);
 }

@@ -1,4 +1,4 @@
-import { apiFetch } from '../client';
+import { apiFetch, jsonApiFetch } from '../client';
 import {
   createMonetaryDonor,
   updateMonetaryDonor,
@@ -19,12 +19,14 @@ import {
 jest.mock('../client', () => ({
   API_BASE: '/api/v1',
   apiFetch: jest.fn(),
+  jsonApiFetch: jest.fn(),
   handleResponse: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('monetary donor api', () => {
   beforeEach(() => {
     (apiFetch as jest.Mock).mockResolvedValue(new Response(null));
+    (jsonApiFetch as jest.Mock).mockResolvedValue(new Response(null));
     jest.clearAllMocks();
   });
 
@@ -34,16 +36,15 @@ describe('monetary donor api', () => {
       lastName: 'Doe',
       email: 'jane@example.com',
     });
-    expect(apiFetch).toHaveBeenCalledWith(
+    expect(jsonApiFetch).toHaveBeenCalledWith(
       '/api/v1/monetary-donors',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           firstName: 'Jane',
           lastName: 'Doe',
           email: 'jane@example.com',
-        }),
+        },
       }),
     );
   });
@@ -54,16 +55,15 @@ describe('monetary donor api', () => {
       lastName: 'Smith',
       email: 'john@example.com',
     });
-    expect(apiFetch).toHaveBeenCalledWith(
+    expect(jsonApiFetch).toHaveBeenCalledWith(
       '/api/v1/monetary-donors/1',
       expect.objectContaining({
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           firstName: 'John',
           lastName: 'Smith',
           email: 'john@example.com',
-        }),
+        },
       }),
     );
   });
@@ -86,16 +86,15 @@ describe('monetary donor api', () => {
       amount: 50,
       date: '2024-01-01',
     });
-    expect(apiFetch).toHaveBeenCalledWith(
+    expect(jsonApiFetch).toHaveBeenCalledWith(
       '/api/v1/monetary-donors/donations/5',
       expect.objectContaining({
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           donorId: 3,
           amount: 50,
           date: '2024-01-01',
-        }),
+        },
       }),
     );
   });
@@ -134,24 +133,22 @@ describe('monetary donor mail lists api', () => {
 
   it('sends mail list emails', async () => {
     await sendMailListEmails({ year: 2024, month: 5 });
-    expect(apiFetch).toHaveBeenCalledWith(
+    expect(jsonApiFetch).toHaveBeenCalledWith(
       '/api/v1/monetary-donors/mail-lists/send',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ year: 2024, month: 5 }),
+        body: { year: 2024, month: 5 },
       }),
     );
   });
 
   it('sends test mail list emails', async () => {
     await sendTestMailListEmails({ year: 2024, month: 5 });
-    expect(apiFetch).toHaveBeenCalledWith(
+    expect(jsonApiFetch).toHaveBeenCalledWith(
       '/api/v1/monetary-donors/mail-lists/test',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ year: 2024, month: 5 }),
+        body: { year: 2024, month: 5 },
       }),
     );
   });
@@ -161,22 +158,20 @@ describe('monetary donor mail lists api', () => {
     expect(apiFetch).toHaveBeenCalledWith('/api/v1/monetary-donors/test-emails');
 
     await createDonorTestEmail('a@test.com');
-    expect(apiFetch).toHaveBeenCalledWith(
+    expect(jsonApiFetch).toHaveBeenCalledWith(
       '/api/v1/monetary-donors/test-emails',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'a@test.com' }),
+        body: { email: 'a@test.com' },
       }),
     );
 
     await updateDonorTestEmail(1, 'b@test.com');
-    expect(apiFetch).toHaveBeenCalledWith(
+    expect(jsonApiFetch).toHaveBeenCalledWith(
       '/api/v1/monetary-donors/test-emails/1',
       expect.objectContaining({
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'b@test.com' }),
+        body: { email: 'b@test.com' },
       }),
     );
 

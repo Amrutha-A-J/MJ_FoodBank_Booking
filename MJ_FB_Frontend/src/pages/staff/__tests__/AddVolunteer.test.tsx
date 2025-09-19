@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import AddVolunteer from '../volunteer-management/AddVolunteer';
-import { apiFetch } from '../../../api/client';
+import { apiFetch, jsonApiFetch } from '../../../api/client';
 import { getVolunteerRoles } from '../../../api/volunteers';
 
 jest.mock('../../../api/volunteers', () => {
@@ -15,11 +15,13 @@ jest.mock('../../../api/volunteers', () => {
 jest.mock('../../../api/client', () => ({
   API_BASE: '/api/v1',
   apiFetch: jest.fn(async (_url, init) => new Response(null, { status: 200 })),
+  jsonApiFetch: jest.fn(async (_url, init) => new Response(null, { status: 200 })),
   handleResponse: jest.fn(async () => undefined),
 }));
 
 beforeEach(() => {
   (apiFetch as jest.Mock).mockClear();
+  (jsonApiFetch as jest.Mock).mockClear();
 });
 
 test('omits sendPasswordLink when creating volunteer without email', async () => {
@@ -52,12 +54,12 @@ test('omits sendPasswordLink when creating volunteer without email', async () =>
   fireEvent.keyDown(listbox, { key: 'Escape' });
   fireEvent.click(screen.getByRole('button', { name: /add volunteer/i }));
 
-  await waitFor(() => expect(apiFetch).toHaveBeenCalled());
+  await waitFor(() => expect(jsonApiFetch).toHaveBeenCalled());
 
-  const body = JSON.parse((apiFetch as jest.Mock).mock.calls[0][1].body);
-  expect(body).not.toHaveProperty('sendPasswordLink');
-  expect(body).not.toHaveProperty('password');
-  expect(body).not.toHaveProperty('email');
+  const body = (jsonApiFetch as jest.Mock).mock.calls[0][1].body;
+  expect(body.sendPasswordLink).toBeUndefined();
+  expect(body.password).toBeUndefined();
+  expect(body.email).toBeUndefined();
 });
 
 test('requires password when set password selected', async () => {
@@ -97,7 +99,7 @@ test('requires password when set password selected', async () => {
   fireEvent.click(screen.getByRole('button', { name: /add volunteer/i }));
 
   expect(await screen.findByText('Password required')).toBeInTheDocument();
-  expect(apiFetch).not.toHaveBeenCalled();
+  expect(jsonApiFetch).not.toHaveBeenCalled();
 });
 
 test('requires at least one role', async () => {
@@ -127,7 +129,7 @@ test('requires at least one role', async () => {
   fireEvent.click(screen.getByRole('button', { name: /add volunteer/i }));
 
   expect(await screen.findByText('At least one role required')).toBeInTheDocument();
-  expect(apiFetch).not.toHaveBeenCalled();
+  expect(jsonApiFetch).not.toHaveBeenCalled();
 });
 
 test('requires email when online access enabled', async () => {

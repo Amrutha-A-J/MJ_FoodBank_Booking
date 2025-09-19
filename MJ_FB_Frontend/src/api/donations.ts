@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
 export interface Donation {
   id: number;
@@ -24,19 +24,17 @@ export async function getDonationsByMonth(month: string): Promise<Donation[]> {
 }
 
 export async function createDonation(data: { date: string; donorId: number; weight: number }): Promise<Donation> {
-  const res = await apiFetch(`${API_BASE}/donations`, {
+  const res = await jsonApiFetch(`${API_BASE}/donations`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }
 
 export async function updateDonation(id: number, data: { date: string; donorId: number; weight: number }): Promise<Donation> {
-  const res = await apiFetch(`${API_BASE}/donations/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/donations/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }
@@ -69,10 +67,9 @@ export async function postManualDonorAggregation(data: {
   donorId: number;
   total: number;
 }): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/donations/aggregations/manual`, {
+  const res = await jsonApiFetch(`${API_BASE}/donations/aggregations/manual`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   await handleResponse(res);
 }

@@ -1,15 +1,17 @@
-import { apiFetch } from '../client';
+import { apiFetch, jsonApiFetch } from '../client';
 import { getMaintenance, updateMaintenance, clearMaintenance } from '../maintenance';
 
 jest.mock('../client', () => ({
   API_BASE: '/api/v1',
   apiFetch: jest.fn(),
+  jsonApiFetch: jest.fn(),
   handleResponse: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('maintenance api', () => {
   beforeEach(() => {
     (apiFetch as jest.Mock).mockResolvedValue(new Response(null));
+    (jsonApiFetch as jest.Mock).mockResolvedValue(new Response(null));
     jest.clearAllMocks();
   });
 
@@ -20,12 +22,11 @@ describe('maintenance api', () => {
 
   it('updates maintenance settings', async () => {
     await updateMaintenance({ maintenanceMode: true, notice: 'test' });
-    expect(apiFetch).toHaveBeenCalledWith(
+    expect(jsonApiFetch).toHaveBeenCalledWith(
       '/api/v1/maintenance',
       expect.objectContaining({
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ maintenanceMode: true, notice: 'test' }),
+        body: { maintenanceMode: true, notice: 'test' },
       }),
     );
   });

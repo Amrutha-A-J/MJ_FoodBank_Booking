@@ -47,17 +47,19 @@ export async function getVolunteerGroupStats(
 ) {
   try {
     const result = await pool.query(
-      `WITH booking_hours AS (
+      `WITH bounds AS (
+         SELECT date_trunc('week', timezone('Canada/Saskatchewan', now()))::date AS week_start,
+                (date_trunc('week', timezone('Canada/Saskatchewan', now()))::date + INTERVAL '7 days')::date AS week_end,
+                date_trunc('month', timezone('Canada/Saskatchewan', now()))::date AS month_start,
+                (date_trunc('month', timezone('Canada/Saskatchewan', now()))::date + INTERVAL '1 month')::date AS month_end
+       ),
+       booking_hours AS (
          SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600), 0) AS total_hours,
-                COALESCE(SUM(
-                  CASE
-                    WHEN date_trunc('month', vb.date) = date_trunc('month', CURRENT_DATE)
-                    THEN EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600
-                    ELSE 0
-                  END
-                ), 0) AS month_hours
+                COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600)
+                  FILTER (WHERE vb.date >= bounds.month_start AND vb.date < bounds.month_end), 0) AS month_hours
          FROM volunteer_bookings vb
          JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+         CROSS JOIN bounds
          WHERE vb.status = 'completed'
        ),
        archived AS (
@@ -70,26 +72,15 @@ export async function getVolunteerGroupStats(
        ),
        weight AS (
          SELECT COALESCE(SUM(COALESCE(weight_without_cart, weight_with_cart - cart_tare)), 0) AS total_lbs,
-              COALESCE(SUM(
-                CASE
-                  WHEN date_trunc('week', date) = date_trunc('week', CURRENT_DATE)
-                  THEN COALESCE(weight_without_cart, weight_with_cart - cart_tare)
-                  ELSE 0
-                END
-               ), 0) AS week_lbs,
-               COALESCE(SUM(
-                 CASE
-                   WHEN date_trunc('month', date) = date_trunc('month', CURRENT_DATE)
-                   THEN COALESCE(weight_without_cart, weight_with_cart - cart_tare)
-                   ELSE 0
-                 END
-               ), 0) AS month_lbs,
-               COALESCE(COUNT(DISTINCT client_id) FILTER (
-                   WHERE date_trunc('month', date) = date_trunc('month', CURRENT_DATE)
-                     AND is_anonymous = false
-               ), 0) AS month_families
-        FROM client_visits
-        CROSS JOIN cart
+                COALESCE(SUM(COALESCE(weight_without_cart, weight_with_cart - cart_tare))
+                  FILTER (WHERE date >= bounds.week_start AND date < bounds.week_end), 0) AS week_lbs,
+                COALESCE(SUM(COALESCE(weight_without_cart, weight_with_cart - cart_tare))
+                  FILTER (WHERE date >= bounds.month_start AND date < bounds.month_end), 0) AS month_lbs,
+                COALESCE(COUNT(DISTINCT client_id)
+                  FILTER (WHERE date >= bounds.month_start AND date < bounds.month_end AND is_anonymous = false), 0) AS month_families
+         FROM client_visits
+         CROSS JOIN cart
+         CROSS JOIN bounds
       ),
       goal AS (
         SELECT COALESCE(value::numeric, 0) AS month_goal

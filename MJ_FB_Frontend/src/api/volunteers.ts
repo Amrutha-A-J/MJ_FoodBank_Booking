@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 import type {
   VolunteerRole,
   VolunteerRoleWithShifts,
@@ -32,10 +32,9 @@ export async function loginVolunteer(
   email: string,
   password: string
 ): Promise<LoginResponse> {
-  const res = await apiFetch(`${API_BASE}/auth/login`, {
+  const res = await jsonApiFetch(`${API_BASE}/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: { email, password },
   });
   const data = await handleResponse(res);
   return data;
@@ -101,10 +100,9 @@ export async function updateVolunteer(
     sendPasswordLink?: boolean;
   },
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/volunteers/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteers/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   await handleResponse(res);
 }
@@ -137,12 +135,9 @@ export async function requestVolunteerBooking(
 ): Promise<BookingActionResponse> {
   const body: VolunteerBookingRequest = { roleId, date, type: 'volunteer shift' };
   if (note && note.trim()) body.note = note;
-  const res = await apiFetch(`${API_BASE}/volunteer-bookings`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteer-bookings`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
+    body,
   });
   return handleResponse<BookingActionResponse>(res);
 }
@@ -160,10 +155,9 @@ export async function resolveVolunteerBookingConflict(
   };
   if (roleId !== undefined) body.roleId = roleId;
   if (date !== undefined) body.date = date;
-  const res = await apiFetch(`${API_BASE}/volunteer-bookings/resolve-conflict`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteer-bookings/resolve-conflict`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body,
   });
   const data = await handleResponse<{ booking: RawVolunteerBooking }>(res);
   return normalizeVolunteerBooking(data.booking);
@@ -176,19 +170,16 @@ export async function createRecurringVolunteerBooking(
   weekdays?: number[],
   endDate?: string,
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/volunteer-bookings/recurring`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteer-bookings/recurring`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
+    body: {
       roleId,
       startDate,
       pattern: frequency,
       daysOfWeek: weekdays,
       endDate,
       type: 'volunteer shift',
-    }),
+    },
   });
   await handleResponse(res);
 }
@@ -204,14 +195,11 @@ export async function cancelVolunteerBooking(
   bookingId: number,
   reason = 'volunteer_cancelled',
 ): Promise<BookingActionResponse> {
-  const res = await apiFetch(
+  const res = await jsonApiFetch(
     `${API_BASE}/volunteer-bookings/${bookingId}/cancel`,
     {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ reason, type: 'volunteer shift' }),
+      body: { reason, type: 'volunteer shift' },
     },
   );
   return handleResponse<BookingActionResponse>(res);
@@ -264,19 +252,17 @@ export async function restoreVolunteerRoles() {
 }
 
 export async function createVolunteerMasterRole(name: string) {
-  const res = await apiFetch(`${API_BASE}/volunteer-master-roles`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteer-master-roles`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
+    body: { name },
   });
   return handleResponse(res);
 }
 
 export async function updateVolunteerMasterRole(id: number, name: string) {
-  const res = await apiFetch(`${API_BASE}/volunteer-master-roles/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteer-master-roles/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
+    body: { name },
   });
   return handleResponse(res);
 }
@@ -311,10 +297,9 @@ export async function createVolunteerRole(
     body.name = name;
     body.categoryId = categoryId;
   }
-  const res = await apiFetch(`${API_BASE}/volunteer-roles`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteer-roles`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body,
   });
   return handleResponse(res);
 }
@@ -337,26 +322,24 @@ export async function updateVolunteerRole(
     isWednesdaySlot?: boolean;
   },
 ) {
-  const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteer-roles/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+    body: {
       name,
       startTime,
       endTime,
       maxVolunteers,
       categoryId,
       isWednesdaySlot,
-    }),
+    },
   });
   return handleResponse(res);
 }
 
 export async function toggleVolunteerRole(id: number, isActive: boolean) {
-  const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteer-roles/${id}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ isActive }),
+    body: { isActive },
   });
   return handleResponse(res);
 }
@@ -372,12 +355,9 @@ export async function updateVolunteerRoleStatus(
   id: number,
   isActive: boolean,
 ) {
-  const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteer-roles/${id}`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ isActive }),
+    body: { isActive },
   });
   return handleResponse(res);
 }
@@ -427,12 +407,9 @@ export async function updateVolunteerBookingStatus(
   reason?: string,
 ): Promise<void> {
   const body = reason ? { status, reason } : { status };
-  const res = await apiFetch(`${API_BASE}/volunteer-bookings/${bookingId}`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteer-bookings/${bookingId}`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
+    body,
   });
   await handleResponse(res);
 }
@@ -443,12 +420,9 @@ export async function createVolunteerBookingForVolunteer(
   date: string,
   force = false,
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/volunteer-bookings/staff`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteer-bookings/staff`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ volunteerId, roleId, date, force }),
+    body: { volunteerId, roleId, date, force },
   });
   await handleResponse(res);
 }
@@ -461,19 +435,18 @@ export async function createRecurringVolunteerBookingForVolunteer(
   weekdays?: number[],
   endDate?: string,
 ) {
-  const res = await apiFetch(
+  const res = await jsonApiFetch(
     `${API_BASE}/volunteer-bookings/recurring/staff`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      body: {
         volunteerId,
         roleId,
         startDate,
         pattern: frequency,
         daysOfWeek: weekdays,
         endDate,
-      }),
+      },
     },
   );
   const data = await handleResponse(res);
@@ -522,12 +495,9 @@ export async function createVolunteer(
   };
   if (password !== undefined) body.password = password;
   if (sendPasswordLink !== undefined) body.sendPasswordLink = sendPasswordLink;
-  const res = await apiFetch(`${API_BASE}/volunteers`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteers`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
+    body,
   });
   await handleResponse(res);
 }
@@ -536,12 +506,9 @@ export async function updateVolunteerTrainedAreas(
   id: number,
   roleIds: number[]
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/volunteers/${id}/trained-areas`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteers/${id}/trained-areas`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ roleIds }),
+    body: { roleIds },
   });
   await handleResponse(res);
 }
@@ -551,10 +518,9 @@ export async function rescheduleVolunteerBookingByToken(
   roleId: number,
   date: string,
 ): Promise<BookingActionResponse> {
-  const res = await apiFetch(`${API_BASE}/volunteer-bookings/reschedule/${rescheduleToken}`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteer-bookings/reschedule/${rescheduleToken}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ roleId, date }),
+    body: { roleId, date },
   });
   return handleResponse<BookingActionResponse>(res);
 }
@@ -572,14 +538,13 @@ export async function createVolunteerShopperProfile(
   email?: string,
   phone?: string,
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/volunteers/${volunteerId}/shopper`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteers/${volunteerId}/shopper`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+    body: {
       clientId: Number(clientId),
       email,
       phone,
-    }),
+    },
   });
   await handleResponse(res);
 }
@@ -674,10 +639,9 @@ export async function getVolunteerNoShowRanking(): Promise<VolunteerNoShowRankin
 }
 
 export async function awardVolunteerBadge(badgeCode: string): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/volunteers/me/badges`, {
+  const res = await jsonApiFetch(`${API_BASE}/volunteers/me/badges`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ badgeCode }),
+    body: { badgeCode },
   });
   await handleResponse(res);
 }

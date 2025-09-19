@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 import type { ClientVisit } from '../types';
 export type { ClientVisit } from '../types';
 
@@ -12,16 +12,15 @@ export async function getClientVisits(date: string): Promise<ClientVisit[]> {
 export async function createClientVisit(
   payload: Omit<ClientVisit, 'id' | 'clientName'>,
 ): Promise<ClientVisit> {
-  const res = await apiFetch(`${API_BASE}/client-visits`, {
+  const res = await jsonApiFetch(`${API_BASE}/client-visits`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+    body: {
       ...payload,
       adults: payload.adults,
       children: payload.children,
       verified: payload.verified,
       note: payload.note ?? undefined,
-    }),
+    },
   });
   return handleResponse(res);
 }
@@ -30,16 +29,15 @@ export async function updateClientVisit(
   id: number,
   payload: Partial<Omit<ClientVisit, 'id' | 'clientName'>>,
 ): Promise<ClientVisit> {
-  const res = await apiFetch(`${API_BASE}/client-visits/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/client-visits/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+    body: {
       ...payload,
       adults: payload.adults ?? undefined,
       children: payload.children ?? undefined,
       verified: payload.verified ?? undefined,
       note: payload.note ?? undefined,
-    }),
+    },
   });
   return handleResponse(res);
 }

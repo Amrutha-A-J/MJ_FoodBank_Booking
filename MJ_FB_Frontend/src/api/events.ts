@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
 export interface Event {
   id: number;
@@ -35,10 +35,9 @@ export async function createEvent(data: {
   visibleToClients?: boolean;
   priority?: number;
 }) {
-  const res = await apiFetch(`${API_BASE}/events`, {
+  const res = await jsonApiFetch(`${API_BASE}/events`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }
@@ -56,10 +55,9 @@ export async function updateEvent(
     priority?: number;
   },
 ) {
-  const res = await apiFetch(`${API_BASE}/events/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/events/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }

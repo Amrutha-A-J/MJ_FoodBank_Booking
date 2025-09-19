@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
 function startOfWeek(date: Date) {
   const d = new Date(date);
@@ -95,10 +95,9 @@ export async function postManualPantryAggregate(data: {
   weight: number;
 }) {
   const body = { ...data, people: data.adults + data.children };
-  const res = await apiFetch(`${API_BASE}/pantry-aggregations/manual/weekly`, {
+  const res = await jsonApiFetch(`${API_BASE}/pantry-aggregations/manual/weekly`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body,
   });
   await handleResponse(res);
 }

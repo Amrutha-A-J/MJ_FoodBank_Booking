@@ -1,15 +1,17 @@
-import { apiFetch } from '../client';
+import { apiFetch, jsonApiFetch } from '../client';
 import { deleteUser, login } from '../users';
 
 jest.mock('../client', () => ({
   API_BASE: '/api/v1',
   apiFetch: jest.fn(),
+  jsonApiFetch: jest.fn(),
   handleResponse: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('users api', () => {
   beforeEach(() => {
     (apiFetch as jest.Mock).mockResolvedValue(new Response(null));
+    (jsonApiFetch as jest.Mock).mockResolvedValue(new Response(null));
     jest.clearAllMocks();
   });
 
@@ -20,12 +22,11 @@ describe('users api', () => {
 
   it('logs in client with email', async () => {
     await login('user@example.com', 'secret');
-    expect(apiFetch).toHaveBeenCalledWith(
+    expect(jsonApiFetch).toHaveBeenCalledWith(
       '/api/v1/auth/login',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: 'secret', email: 'user@example.com' }),
+        body: { password: 'secret', email: 'user@example.com' },
       }),
     );
   });
