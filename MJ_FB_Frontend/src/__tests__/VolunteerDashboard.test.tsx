@@ -167,6 +167,35 @@ describe('VolunteerDashboard', () => {
     expect(await screen.findByText(/Volunteer Event/)).toBeInTheDocument();
   });
 
+  it('preserves line breaks in event details', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({
+      today: [
+        {
+          id: 1,
+          title: 'Volunteer Event',
+          startDate: new Date().toISOString(),
+          endDate: new Date().toISOString(),
+          createdBy: 1,
+          createdByName: 'Staff',
+          priority: 0,
+          details: 'First line\nSecond line',
+        },
+      ],
+      upcoming: [],
+      past: [],
+    });
+
+    await renderDashboard();
+
+    const details = await screen.findByText(
+      (_, element) => element?.textContent === 'First line\nSecond line',
+    );
+    expect(details).toBeInTheDocument();
+    expect(window.getComputedStyle(details).whiteSpace).toBe('pre-line');
+  });
+
   it('shows an error message if events cannot be fetched', async () => {
     const consoleErrorSpy = jest
       .spyOn(console, 'error')

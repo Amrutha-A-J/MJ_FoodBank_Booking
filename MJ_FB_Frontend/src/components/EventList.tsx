@@ -49,7 +49,12 @@ export default function EventList({ events, limit, onDelete, onChange, onEdit }:
             secondary={
               <>
                 {ev.details && (
-                  <Typography variant="body2" component="span" display="block">
+                  <Typography
+                    variant="body2"
+                    component="span"
+                    display="block"
+                    sx={{ whiteSpace: 'pre-line' }}
+                  >
                     {ev.details}
                   </Typography>
                 )}
