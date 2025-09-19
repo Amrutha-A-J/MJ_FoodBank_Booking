@@ -5,15 +5,19 @@ import {
   updateSurplus,
   deleteSurplus,
 } from '../src/controllers/warehouse/surplusController';
-import { refreshWarehouseOverall } from '../src/controllers/warehouse/warehouseOverallController';
 import { getWarehouseSettings } from '../src/utils/warehouseSettings';
-
-jest.mock('../src/controllers/warehouse/warehouseOverallController', () => ({
-  refreshWarehouseOverall: jest.fn(),
-}));
+import {
+  refreshWarehouseForDate,
+  refreshWarehouseForDateChange,
+} from '../src/utils/warehouseRefresh';
 
 jest.mock('../src/utils/warehouseSettings', () => ({
   getWarehouseSettings: jest.fn(),
+}));
+
+jest.mock('../src/utils/warehouseRefresh', () => ({
+  refreshWarehouseForDate: jest.fn(),
+  refreshWarehouseForDateChange: jest.fn(),
 }));
 
 const flushPromises = () => new Promise(process.nextTick);
@@ -21,8 +25,9 @@ const flushPromises = () => new Promise(process.nextTick);
 describe('surplusController', () => {
   beforeEach(() => {
     (mockDb.query as jest.Mock).mockReset();
-    (refreshWarehouseOverall as jest.Mock).mockReset();
     (getWarehouseSettings as jest.Mock).mockReset();
+    (refreshWarehouseForDate as jest.Mock).mockReset();
+    (refreshWarehouseForDateChange as jest.Mock).mockReset();
   });
 
   it('lists surplus entries', async () => {
@@ -69,7 +74,7 @@ describe('surplusController', () => {
       2,
       1,
     ]);
-    expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 5);
+    expect(refreshWarehouseForDate).toHaveBeenCalledWith('2024-05-20');
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({
       id: 1,
@@ -119,7 +124,7 @@ describe('surplusController', () => {
       1,
       '1',
     ]);
-    expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 5);
+    expect(refreshWarehouseForDateChange).toHaveBeenCalledWith('2024-05-21', '2024-05-20');
     expect(res.json).toHaveBeenCalledWith({
       id: 1,
       date: '2024-05-21',
@@ -152,7 +157,7 @@ describe('surplusController', () => {
     await flushPromises();
     expect(mockDb.query).toHaveBeenNthCalledWith(1, expect.any(String), ['1']);
     expect(mockDb.query).toHaveBeenNthCalledWith(2, expect.any(String), ['1']);
-    expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 5);
+    expect(refreshWarehouseForDate).toHaveBeenCalledWith('2024-05-20');
     expect(res.json).toHaveBeenCalledWith({ message: 'Deleted' });
   });
 
