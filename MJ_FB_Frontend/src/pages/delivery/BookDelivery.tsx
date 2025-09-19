@@ -400,11 +400,12 @@ export default function BookDelivery() {
               const limit = resolveCategoryLimit(category);
               const remaining = remainingSelections(category);
               const selectedId = category.items.find(item => selectedItems[item.id])?.id;
+              const title = Number.isFinite(limit)
+                ? `${category.name} (Select ${limit})`
+                : category.name;
               return (
                 <Card key={category.id}>
-                  <CardHeader
-                    title={`${category.name}$${Number.isFinite(limit) ? ` (Select ${limit})` : ''}`.replace('$', '')}
-                  />
+                  <CardHeader title={title} />
                   <CardContent>
                     {category.description && (
                       <Typography color="text.secondary" sx={{ mb: 2 }}>
