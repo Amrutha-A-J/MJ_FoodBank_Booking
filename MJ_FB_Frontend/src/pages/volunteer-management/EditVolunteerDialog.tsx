@@ -1,24 +1,14 @@
 import { useEffect, useState } from 'react';
-import {
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Stack,
-  FormControlLabel,
-  Switch,
-  FormControl,
-  FormHelperText,
-  Tooltip,
-} from '@mui/material';
+import { DialogTitle } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import PasswordField from '../../components/PasswordField';
 import FormDialog from '../../components/FormDialog';
 import { updateVolunteer, type VolunteerSearchResult } from '../../api/volunteers';
 import { getApiErrorMessage } from '../../api/helpers';
+import AccountEditForm, {
+  type AccountEditFormData,
+} from '../../components/account/AccountEditForm';
 
 interface EditVolunteerDialogProps {
   volunteer: VolunteerSearchResult | null;
@@ -27,7 +17,7 @@ interface EditVolunteerDialogProps {
 }
 
 export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: EditVolunteerDialogProps) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<AccountEditFormData>({
     firstName: '',
     lastName: '',
     email: '',
@@ -56,17 +46,17 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
     }
   }, [volunteer]);
 
-  async function handleSave() {
+  async function handleSave(data: AccountEditFormData) {
     if (!volunteer) return;
     try {
       await updateVolunteer(volunteer.id, {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email || undefined,
-        phone: form.phone || undefined,
-        onlineAccess: form.hasPassword ? true : form.onlineAccess,
-        ...(form.onlineAccess && !form.hasPassword && form.password
-          ? { password: form.password }
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email || undefined,
+        phone: data.phone || undefined,
+        onlineAccess: data.hasPassword ? true : data.onlineAccess,
+        ...(data.onlineAccess && !data.hasPassword && data.password
+          ? { password: data.password }
           : {}),
       });
       setSnackbar({ open: true, message: 'Volunteer updated', severity: 'success' });
@@ -80,14 +70,14 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
     }
   }
 
-  async function handleSendLink() {
+  async function handleSendLink(data: AccountEditFormData) {
     if (!volunteer) return;
     try {
       await updateVolunteer(volunteer.id, {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email || undefined,
-        phone: form.phone || undefined,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email || undefined,
+        phone: data.phone || undefined,
         onlineAccess: true,
         sendPasswordLink: true,
       });
@@ -105,82 +95,17 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
     <FormDialog open={!!volunteer} onClose={onClose}>
       <DialogCloseButton onClose={onClose} />
       <DialogTitle>Edit Volunteer</DialogTitle>
-      <DialogContent>
-          <Stack spacing={2} mt={1}>
-            <Tooltip title="Volunteer already has a password" disableHoverListener={!form.hasPassword}>
-              <span>
-                <FormControl>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={form.onlineAccess}
-                        onChange={e =>
-                          setForm({ ...form, onlineAccess: e.target.checked })
-                        }
-                        disabled={form.hasPassword}
-                        data-testid="online-access-toggle"
-                      />
-                    }
-                    label="Online Access"
-                  />
-                  <FormHelperText>
-                    Allow the volunteer to sign in online.
-                  </FormHelperText>
-                </FormControl>
-              </span>
-            </Tooltip>
-            <TextField
-              label="First Name"
-              value={form.firstName}
-              onChange={e => setForm({ ...form, firstName: e.target.value })}
-              required
-              fullWidth
-          />
-          <TextField
-            label="Last Name"
-            value={form.lastName}
-            onChange={e => setForm({ ...form, lastName: e.target.value })}
-            required
-            fullWidth
-          />
-          <TextField
-            label="Email (optional)"
-            type="email"
-            value={form.email}
-            onChange={e => setForm({ ...form, email: e.target.value })}
-            fullWidth
-          />
-          <TextField
-            label="Phone (optional)"
-            type="tel"
-            value={form.phone}
-            onChange={e => setForm({ ...form, phone: e.target.value })}
-            fullWidth
-          />
-          {form.onlineAccess && !form.hasPassword && (
-            <PasswordField
-              label="Password"
-              value={form.password}
-              onChange={e => setForm({ ...form, password: e.target.value })}
-              fullWidth
-            />
-          )}
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        {form.onlineAccess && (
-          <Button variant="outlined" onClick={handleSendLink}>
-            Send password setup link
-          </Button>
-        )}
-        <Button
-          onClick={handleSave}
-          disabled={!form.firstName || !form.lastName}
-          aria-label="Save volunteer"
-        >
-          Save
-        </Button>
-      </DialogActions>
+      <AccountEditForm
+        open={!!volunteer}
+        initialData={form}
+        onSave={handleSave}
+        onSecondaryAction={handleSendLink}
+        secondaryActionLabel="Send password setup link"
+        onlineAccessHelperText="Allow the volunteer to sign in online."
+        existingPasswordTooltip="Volunteer already has a password"
+        primaryActionLabel="Save"
+        secondaryActionTestId="send-password-setup-button"
+      />
       <FeedbackSnackbar
         open={!!snackbar}
         onClose={() => setSnackbar(null)}

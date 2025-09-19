@@ -6,6 +6,7 @@ import {
   Link,
   Typography,
   TableContainer,
+  Chip,
 } from "@mui/material";
 import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
 import DialogCloseButton from "../../../components/DialogCloseButton";
@@ -20,14 +21,15 @@ import {
 import type { AlertColor } from "@mui/material";
 import getApiErrorMessage from "../../../utils/getApiErrorMessage";
 import ResponsiveTable, { type Column } from "../../../components/ResponsiveTable";
-import EditClientForm, {
-  type EditClientFormData,
-} from "./EditClientForm";
+import AccountEditForm, {
+  type AccountEditFormData,
+} from "../../../components/account/AccountEditForm";
+import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
 
 export default function UpdateClientData() {
   const [clients, setClients] = useState<IncompleteUser[]>([]);
   const [selected, setSelected] = useState<IncompleteUser | null>(null);
-  const [form, setForm] = useState<EditClientFormData>({
+  const [form, setForm] = useState<AccountEditFormData>({
     firstName: "",
     lastName: "",
     email: "",
@@ -91,7 +93,7 @@ export default function UpdateClientData() {
     }
   }
 
-  async function handleSave(data: EditClientFormData): Promise<boolean> {
+  async function handleSave(data: AccountEditFormData): Promise<boolean> {
     if (!selected) return false;
     try {
       await updateUserInfo(selected.clientId, {
@@ -122,7 +124,7 @@ export default function UpdateClientData() {
     }
   }
 
-  async function handleSendReset(data: EditClientFormData) {
+  async function handleSendReset(data: AccountEditFormData) {
     if (!selected) return;
     const ok = await handleSave(data);
     if (!ok) return;
@@ -193,11 +195,25 @@ export default function UpdateClientData() {
             </Link>
           )}
         </DialogTitle>
-        <EditClientForm
+        <AccountEditForm
           open={!!selected}
           initialData={form}
           onSave={handleSave}
-          onSendReset={handleSendReset}
+          onSecondaryAction={handleSendReset}
+          secondaryActionLabel="Send password reset link"
+          onlineAccessHelperText="Allow the client to sign in online."
+          existingPasswordTooltip="Client already has a password"
+          secondaryActionTestId="send-reset-button"
+          titleAdornment={data =>
+            data.hasPassword ? (
+              <Chip
+                color="success"
+                icon={<CheckCircleOutline />}
+                label="Online account"
+                data-testid="online-badge"
+              />
+            ) : null
+          }
         />
       </FormDialog>
 

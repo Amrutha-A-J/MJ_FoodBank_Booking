@@ -1,4 +1,10 @@
-import { useState, useEffect, useCallback, type ReactNode } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  type ReactNode,
+} from "react";
 import {
   getSlots,
   getBookings,
@@ -233,12 +239,21 @@ export default function PantrySchedule({
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
 
+  const bookingsBySlot = useMemo(() => {
+    return bookings.reduce<Record<string, Booking[]>>((acc, booking) => {
+      const slotKey = String(booking.slot_id);
+      if (!acc[slotKey]) {
+        acc[slotKey] = [];
+      }
+      acc[slotKey].push(booking);
+      return acc;
+    }, {});
+  }, [bookings]);
+
   const maxSlots = Math.max(
     0,
     ...slots.map((s) => {
-      const bookingCount = bookings.filter(
-        (b) => b.slot_id === parseInt(s.id),
-      ).length;
+      const bookingCount = bookingsBySlot[s.id]?.length ?? 0;
       return Math.max(s.maxCapacity ?? 0, bookingCount);
     }),
   );
@@ -285,9 +300,7 @@ export default function PantrySchedule({
         ],
       };
     }
-    const slotBookings = bookings.filter(
-      (b) => b.slot_id === parseInt(slot.id),
-    );
+    const slotBookings = bookingsBySlot[slot.id] ?? [];
     return {
       time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
       cells: Array.from({ length: maxSlots }).map((_, i) => {

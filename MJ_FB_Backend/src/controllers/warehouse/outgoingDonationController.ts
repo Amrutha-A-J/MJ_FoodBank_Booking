@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
 import pool from '../../db';
-import { refreshWarehouseOverall } from './warehouseOverallController';
-import { reginaStartOfDayISO } from '../../utils/dateUtils';
 import asyncHandler from '../../middleware/asyncHandler';
+import {
+  refreshWarehouseForDate,
+  refreshWarehouseForDateChange,
+} from '../../utils/warehouseRefresh';
 
 export const listOutgoingDonations = asyncHandler(async (req: Request, res: Response) => {
   const date = req.query.date as string;
@@ -23,8 +25,7 @@ export const addOutgoingDonation = asyncHandler(async (req: Request, res: Respon
     [date, receiverId, weight, note ?? null],
   );
   const recRes = await pool.query('SELECT name FROM outgoing_receivers WHERE id = $1', [receiverId]);
-  const dt = new Date(reginaStartOfDayISO(date));
-  await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
+  await refreshWarehouseForDate(date);
   res.status(201).json({ ...result.rows[0], receiver: recRes.rows[0].name });
 });
 
@@ -38,17 +39,7 @@ export const updateOutgoingDonation = asyncHandler(async (req: Request, res: Res
     [date, receiverId, weight, note ?? null, id],
   );
   const recRes = await pool.query('SELECT name FROM outgoing_receivers WHERE id = $1', [receiverId]);
-  const newDt = new Date(reginaStartOfDayISO(date));
-  await refreshWarehouseOverall(newDt.getUTCFullYear(), newDt.getUTCMonth() + 1);
-  if (oldDate) {
-    const oldDt = new Date(reginaStartOfDayISO(oldDate));
-    if (
-      oldDt.getUTCFullYear() !== newDt.getUTCFullYear() ||
-      oldDt.getUTCMonth() !== newDt.getUTCMonth()
-    ) {
-      await refreshWarehouseOverall(oldDt.getUTCFullYear(), oldDt.getUTCMonth() + 1);
-    }
-  }
+  await refreshWarehouseForDateChange(date, oldDate);
   res.json({ ...result.rows[0], receiver: recRes.rows[0].name });
 });
 
@@ -57,8 +48,7 @@ export const deleteOutgoingDonation = asyncHandler(async (req: Request, res: Res
   const existing = await pool.query('SELECT date FROM outgoing_donation_log WHERE id = $1', [id]);
   await pool.query('DELETE FROM outgoing_donation_log WHERE id = $1', [id]);
   if (existing.rows[0]) {
-    const dt = new Date(reginaStartOfDayISO(existing.rows[0].date));
-    await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
+    await refreshWarehouseForDate(existing.rows[0].date);
   }
   res.json({ message: 'Deleted' });
 });

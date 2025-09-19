@@ -9,12 +9,14 @@ import {
 } from './pantry/pantryAggregationController';
 
 export async function refreshSunshineBagOverall(year: number, month: number) {
+  const startDate = new Date(Date.UTC(year, month - 1, 1)).toISOString().slice(0, 10);
+  const endDate = new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
   const result = await pool.query(
     `SELECT COALESCE(SUM(weight)::int, 0) AS weight,
             COALESCE(SUM(client_count)::int, 0) AS client_count
        FROM sunshine_bag_log
-       WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
-    [year, month],
+       WHERE date >= $1 AND date < $2`,
+    [startDate, endDate],
   );
   const weight = Number(result.rows[0]?.weight ?? 0);
   const clientCount = Number(result.rows[0]?.client_count ?? 0);
