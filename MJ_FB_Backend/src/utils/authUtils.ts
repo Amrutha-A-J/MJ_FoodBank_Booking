@@ -5,18 +5,92 @@ import pool from '../db';
 import config from '../config';
 
 // Use HTTPS cookies in production; allow HTTP cookies in development.
-// sameSite is set to 'none' when secure (for cross-site usage) and 'lax' otherwise.
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Options applied to auth cookies across the app. Cookies are scoped to the
 // root path and optionally to a specific domain via the COOKIE_DOMAIN env var.
-export const cookieOptions: CookieOptions = {
+const baseCookieOptions: CookieOptions = {
   httpOnly: true,
-  sameSite: isProduction ? 'none' : 'lax',
   secure: isProduction,
   path: '/',
   ...(isProduction && config.cookieDomain ? { domain: config.cookieDomain } : {}),
 };
+
+const IOS_SAFARI_REGEX = /iP(?:hone|ad|od);.*OS 12[_\d]*/i;
+const IOS_WEBVIEW_REGEX = /iP(?:hone|ad|od).+AppleWebKit(?!.*Safari)/i;
+
+function isAndroidWebView(userAgent: string): boolean {
+  if (!/Android/i.test(userAgent)) return false;
+  return /Version\//.test(userAgent) && !/Chrome\//.test(userAgent);
+}
+
+function isMacEmbeddedBrowser(userAgent: string): boolean {
+  return /Macintosh;.*Mac OS X/.test(userAgent) && !/Safari\//.test(userAgent);
+}
+
+function isLegacyMacSafari(userAgent: string): boolean {
+  if (!/Macintosh;.*Mac OS X/.test(userAgent)) return false;
+  if (!/Safari\//.test(userAgent) || /Chrome\//.test(userAgent) || /Edg\//.test(userAgent)) {
+    return false;
+  }
+  const versionMatch = userAgent.match(/Version\/(\d+)/);
+  if (!versionMatch) return false;
+  const majorVersion = Number.parseInt(versionMatch[1], 10);
+  return Number.isFinite(majorVersion) && majorVersion < 13;
+}
+
+/**
+ * Returns true when the provided user agent is compatible with
+ * SameSite=None; Secure cookies. Older WebKit based browsers (notably iOS 12
+ * Safari, embedded web views, and legacy macOS Safari builds) ignore the
+ * `None` attribute and drop the cookie entirely. When we detect these user
+ * agents we fall back to SameSite=Lax to keep logins working.
+ */
+export function isSameSiteNoneCompatible(userAgent?: string | null): boolean {
+  if (!isProduction) {
+    return true;
+  }
+  if (!userAgent) {
+    return true;
+  }
+
+  if (IOS_SAFARI_REGEX.test(userAgent)) {
+    return false;
+  }
+
+  if (IOS_WEBVIEW_REGEX.test(userAgent)) {
+    return false;
+  }
+
+  if (isAndroidWebView(userAgent)) {
+    return false;
+  }
+
+  if (isMacEmbeddedBrowser(userAgent)) {
+    return false;
+  }
+
+  if (isLegacyMacSafari(userAgent)) {
+    return false;
+  }
+
+  return true;
+}
+
+export function getCookieOptions(userAgent?: string | null): CookieOptions {
+  const sameSite: CookieOptions['sameSite'] = isProduction
+    ? isSameSiteNoneCompatible(userAgent)
+      ? 'none'
+      : 'lax'
+    : 'lax';
+
+  return {
+    ...baseCookieOptions,
+    sameSite,
+  };
+}
+
+export const cookieOptions = getCookieOptions();
 
 export type AuthPayload = {
   id: number;
@@ -40,6 +114,7 @@ export async function issueAuthTokens(
   res: Response,
   payload: AuthPayload,
   subject: string,
+  userAgent?: string | null,
 ) {
   const jti = randomUUID();
   const token = jwt.sign(payload, config.jwtSecret, {
@@ -59,12 +134,14 @@ export async function issueAuthTokens(
     [jti, subject, refreshExpiresAt],
   );
 
+  const resolvedCookieOptions = getCookieOptions(userAgent);
+
   res.cookie('token', token, {
-    ...cookieOptions,
+    ...resolvedCookieOptions,
     maxAge: 60 * 60 * 1000,
   });
   res.cookie('refreshToken', refreshToken, {
-    ...cookieOptions,
+    ...resolvedCookieOptions,
     maxAge: refreshExpiry,
     expires: refreshExpiresAt,
   });

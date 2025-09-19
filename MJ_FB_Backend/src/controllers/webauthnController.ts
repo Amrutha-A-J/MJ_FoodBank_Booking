@@ -41,7 +41,7 @@ export async function registerCredential(
   }
   try {
     await saveCredential(identifier, credentialId, publicKey, signCount ?? 0);
-    const data = await loginByIdentifier(identifier, res);
+    const data = await loginByIdentifier(identifier, res, req.get('user-agent'));
     res.json(data);
   } catch (error) {
     if (error instanceof UnauthorizedError) {
@@ -132,7 +132,7 @@ export async function verifyCredential(
 
     await updateCredentialSignCount(stored.credentialId, newCounter);
 
-    const data = await loginByIdentifier(stored.userIdentifier, res);
+    const data = await loginByIdentifier(stored.userIdentifier, res, req.get('user-agent'));
     res.json(data);
   } catch (error) {
     if (error instanceof UnauthorizedError) {
@@ -143,7 +143,11 @@ export async function verifyCredential(
   }
 }
 
-async function loginByIdentifier(identifier: string, res: Response) {
+async function loginByIdentifier(
+  identifier: string,
+  res: Response,
+  userAgent?: string | null,
+) {
   if (identifier.includes('@')) {
     const volunteerQuery = await pool.query(
       `SELECT v.id, v.first_name, v.last_name, v.user_id, v.consent, u.role AS user_role
@@ -179,7 +183,7 @@ async function loginByIdentifier(identifier: string, res: Response) {
           userRole: volunteer.user_role || 'shopper',
         }),
       };
-      await issueAuthTokens(res, payload, `volunteer:${volunteer.id}`);
+      await issueAuthTokens(res, payload, `volunteer:${volunteer.id}`, userAgent);
       return {
         role: 'volunteer',
         name: `${volunteer.first_name} ${volunteer.last_name}`,
@@ -204,7 +208,7 @@ async function loginByIdentifier(identifier: string, res: Response) {
         type: 'staff',
         access: staff.access || [],
       };
-      await issueAuthTokens(res, payload, `staff:${staff.id}`);
+      await issueAuthTokens(res, payload, `staff:${staff.id}`, userAgent);
       return {
         role: 'staff',
         name: `${staff.first_name} ${staff.last_name}`,
@@ -256,7 +260,7 @@ async function loginByIdentifier(identifier: string, res: Response) {
       userId: userRow.client_id,
       userRole: userRow.role,
     };
-    await issueAuthTokens(res, payload, `volunteer:${volunteer.id}`);
+    await issueAuthTokens(res, payload, `volunteer:${volunteer.id}`, userAgent);
     return {
       role: 'volunteer',
       name: `${volunteer.first_name} ${volunteer.last_name}`,
@@ -272,7 +276,7 @@ async function loginByIdentifier(identifier: string, res: Response) {
     role: userRow.role,
     type: 'user',
   };
-  await issueAuthTokens(res, payload, `user:${userRow.client_id}`);
+  await issueAuthTokens(res, payload, `user:${userRow.client_id}`, userAgent);
   return {
     role: userRow.role,
     name: `${userRow.first_name} ${userRow.last_name}`,

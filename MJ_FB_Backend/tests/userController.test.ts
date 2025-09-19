@@ -60,6 +60,19 @@ const mockBuildPasswordSetupEmailParams =
 const mockSendTemplatedEmail =
   sendTemplatedEmail as jest.MockedFunction<typeof sendTemplatedEmail>;
 
+const defaultUserAgent = 'jest-agent/1.0';
+function buildReq(overrides: Record<string, unknown> = {}) {
+  const base = {
+    get: jest.fn().mockImplementation((header: string) => {
+      if (header && header.toLowerCase() === 'user-agent') {
+        return defaultUserAgent;
+      }
+      return undefined;
+    }),
+  };
+  return { ...base, ...overrides } as Record<string, unknown>;
+}
+
 describe('userController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -256,9 +269,9 @@ describe('userController', () => {
         });
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-      const req: any = {
+      const req: any = buildReq({
         body: { email: 'jane@example.com', password: 'pw' },
-      };
+      });
       const res: any = {
         cookie: jest.fn(),
         status: jest.fn().mockReturnThis(),
@@ -278,6 +291,7 @@ describe('userController', () => {
         res,
         { id: 5, role: 'staff', type: 'staff', access: ['admin'] },
         'staff:5',
+        defaultUserAgent,
       );
     });
 
@@ -302,9 +316,9 @@ describe('userController', () => {
         });
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-      const req: any = {
+      const req: any = buildReq({
         body: { email: '  CASE@EXAMPLE.COM  ', password: 'pw' },
-      };
+      });
       const res: any = {
         cookie: jest.fn(),
         status: jest.fn().mockReturnThis(),
@@ -339,7 +353,7 @@ describe('userController', () => {
         .mockResolvedValueOnce({ rowCount: 0, rows: [] });
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      const req: any = { body: { email: 'a', password: 'pw' } };
+      const req: any = buildReq({ body: { email: 'a', password: 'pw' } });
       const res: any = {
         cookie: jest.fn(),
         status: jest.fn().mockReturnThis(),
@@ -387,7 +401,9 @@ describe('userController', () => {
         .mockResolvedValueOnce(false)
         .mockResolvedValueOnce(true);
 
-      const req: any = { body: { email: 'client@example.com', password: 'pw' } };
+      const req: any = buildReq({
+        body: { email: 'client@example.com', password: 'pw' },
+      });
       const res: any = {
         cookie: jest.fn(),
         status: jest.fn().mockReturnThis(),
@@ -400,6 +416,7 @@ describe('userController', () => {
         res,
         { id: 42, role: 'shopper', type: 'user' },
         'user:42',
+        defaultUserAgent,
       );
       expect(res.json).toHaveBeenCalledWith({
         role: 'shopper',
@@ -440,7 +457,9 @@ describe('userController', () => {
         });
       (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
 
-      const req: any = { body: { email: 'ready@example.com', password: 'secret' } };
+      const req: any = buildReq({
+        body: { email: 'ready@example.com', password: 'secret' },
+      });
       const res: any = {
         cookie: jest.fn(),
         status: jest.fn().mockReturnThis(),
@@ -453,6 +472,7 @@ describe('userController', () => {
         res,
         { id: 88, role: 'delivery', type: 'user' },
         'user:88',
+        defaultUserAgent,
       );
       expect(res.json).toHaveBeenCalledWith({
         role: 'delivery',
@@ -484,7 +504,9 @@ describe('userController', () => {
         });
       (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
 
-      const req: any = { body: { email: 'vol@example.com', password: 'pw' } };
+      const req: any = buildReq({
+        body: { email: 'vol@example.com', password: 'pw' },
+      });
       const res: any = {
         cookie: jest.fn(),
         status: jest.fn().mockReturnThis(),
@@ -497,6 +519,7 @@ describe('userController', () => {
         res,
         { id: 17, role: 'volunteer', type: 'volunteer' },
         'volunteer:17',
+        defaultUserAgent,
       );
       expect(res.json).toHaveBeenCalledWith({
         role: 'volunteer',
@@ -523,7 +546,7 @@ describe('userController', () => {
         })
         .mockResolvedValueOnce({ rowCount: 1 });
 
-      const req: any = { headers: { cookie: `refreshToken=${token}` } };
+      const req: any = buildReq({ headers: { cookie: `refreshToken=${token}` } });
       const res: any = {
         cookie: jest.fn(),
         clearCookie: jest.fn(),
@@ -546,7 +569,7 @@ describe('userController', () => {
       });
       (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
 
-      const req: any = { headers: { cookie: `refreshToken=${token}` } };
+      const req: any = buildReq({ headers: { cookie: `refreshToken=${token}` } });
       const res: any = {
         cookie: jest.fn(),
         clearCookie: jest.fn(),

@@ -38,6 +38,95 @@ describe('cookieOptions', () => {
   });
 });
 
+describe('SameSite compatibility handling', () => {
+  const modernChromeUa =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+  const ios12SafariUa =
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 12_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1 Mobile/15E148 Safari/604.1';
+
+  it('keeps SameSite=None for compatible browsers in production', async () => {
+    jest.clearAllMocks();
+    (randomUUID as unknown as jest.Mock).mockReset();
+    (randomUUID as unknown as jest.Mock).mockReturnValue('uuid-1');
+    const originalNodeEnv = process.env.NODE_ENV;
+
+    const res = { cookie: jest.fn() } as unknown as Response;
+
+    try {
+      process.env.NODE_ENV = 'production';
+      await jest.isolateModulesAsync(async () => {
+        const jwtModule = await import('jsonwebtoken');
+        (jwtModule.sign as jest.Mock)
+          .mockReturnValueOnce('access-token')
+          .mockReturnValueOnce('refresh-token');
+        const { default: prodIssueAuthTokens } = await import('../src/utils/authUtils');
+        await prodIssueAuthTokens(
+          res,
+          { id: 1, role: 'user', type: 'user' },
+          'user:1',
+          modernChromeUa,
+        );
+      });
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv;
+    }
+
+    expect(res.cookie).toHaveBeenNthCalledWith(
+      1,
+      'token',
+      'access-token',
+      expect.objectContaining({ sameSite: 'none', secure: true }),
+    );
+    expect(res.cookie).toHaveBeenNthCalledWith(
+      2,
+      'refreshToken',
+      'refresh-token',
+      expect.objectContaining({ sameSite: 'none', secure: true }),
+    );
+  });
+
+  it('falls back to SameSite=Lax for incompatible browsers in production', async () => {
+    jest.clearAllMocks();
+    (randomUUID as unknown as jest.Mock).mockReset();
+    (randomUUID as unknown as jest.Mock).mockReturnValue('uuid-1');
+    const originalNodeEnv = process.env.NODE_ENV;
+
+    const res = { cookie: jest.fn() } as unknown as Response;
+
+    try {
+      process.env.NODE_ENV = 'production';
+      await jest.isolateModulesAsync(async () => {
+        const jwtModule = await import('jsonwebtoken');
+        (jwtModule.sign as jest.Mock)
+          .mockReturnValueOnce('access-token')
+          .mockReturnValueOnce('refresh-token');
+        const { default: prodIssueAuthTokens } = await import('../src/utils/authUtils');
+        await prodIssueAuthTokens(
+          res,
+          { id: 1, role: 'user', type: 'user' },
+          'user:1',
+          ios12SafariUa,
+        );
+      });
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv;
+    }
+
+    expect(res.cookie).toHaveBeenNthCalledWith(
+      1,
+      'token',
+      'access-token',
+      expect.objectContaining({ sameSite: 'lax', secure: true }),
+    );
+    expect(res.cookie).toHaveBeenNthCalledWith(
+      2,
+      'refreshToken',
+      'refresh-token',
+      expect.objectContaining({ sameSite: 'lax', secure: true }),
+    );
+  });
+});
+
 describe('issueAuthTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
