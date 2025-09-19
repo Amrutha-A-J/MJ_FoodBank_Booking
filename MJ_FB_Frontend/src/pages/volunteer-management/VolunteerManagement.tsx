@@ -21,7 +21,10 @@ import {
   type VolunteerSearchResult,
   type VolunteerStatsByIdResponse,
 } from '../../api/volunteers';
-import type { VolunteerBookingDetail } from '../../types';
+import type {
+  VolunteerBookingDetail,
+  VolunteerBookingStatus,
+} from '../../types';
 import { formatTime } from '../../utils/time';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import { fromZonedTime } from 'date-fns-tz';
@@ -135,8 +138,9 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
 
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
-  const statusColors: Record<string, string> = {
+  const statusColors: Record<VolunteerBookingStatus, string> = {
     approved: approvedColor,
+    cancelled: 'rgb(255, 200, 200)',
     no_show: 'rgb(255, 200, 200)',
     completed: 'rgb(111,146,113)',
   };
@@ -747,10 +751,15 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
           time: `${formatTime(role.start_time || '')} - ${formatTime(role.end_time || '')}`,
           cells: Array.from({ length: role.max_volunteers }).map((_, i) => {
             const booking = slotBookings[i];
+            const statusKey = booking
+              ? (booking.status.toLowerCase() as VolunteerBookingStatus)
+              : undefined;
             return {
               content: booking ? booking.volunteer_name : 'Available',
               backgroundColor: booking
-                ? statusColors[booking.status] || approvedColor
+                ? statusKey
+                  ? statusColors[statusKey] || approvedColor
+                  : approvedColor
                 : undefined,
               onClick: () => {
                 if (booking) {
@@ -935,10 +944,15 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                       cells: Array.from({ length: role.max_volunteers }).map(
                         (_, i) => {
                           const booking = slotBookings[i];
+                          const statusKey = booking
+                            ? (booking.status.toLowerCase() as VolunteerBookingStatus)
+                            : undefined;
                           return {
                             content: booking ? booking.volunteer_name : 'Available',
                             backgroundColor: booking
-                              ? statusColors[booking.status] || approvedColor
+                              ? statusKey
+                                ? statusColors[statusKey] || approvedColor
+                                : approvedColor
                               : undefined,
                             onClick: () => {
                               if (booking) {
