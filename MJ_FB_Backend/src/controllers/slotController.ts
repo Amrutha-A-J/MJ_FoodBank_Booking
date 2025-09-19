@@ -2,7 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import { Slot } from '../models/slot';
 import logger from '../utils/logger';
-import { formatReginaDate, reginaStartOfDayISO } from '../utils/dateUtils';
+import {
+  formatReginaDate,
+  reginaStartOfDayISO,
+  isValidDateString,
+} from '../utils/dateUtils';
 import { isHoliday } from '../utils/holidayCache';
 import { slotSchema, slotIdParamSchema, slotCapacitySchema } from '../schemas/slotSchemas';
 
@@ -45,7 +49,6 @@ interface SlotRangeData {
 }
 
 const REGINA_TZ = 'America/Regina';
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 function currentReginaTime(): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -278,7 +281,7 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
   const date = req.query.date;
   if (!date)
     return res.status(400).json({ message: 'Date query parameter required' });
-  if (typeof date !== 'string' || !DATE_REGEX.test(date)) {
+  if (typeof date !== 'string' || !isValidDateString(date)) {
     return res.status(400).json({ message: 'Invalid date' });
   }
 
@@ -346,7 +349,7 @@ export async function listSlotsRange(
   }
   const startQuery = req.query.start;
   if (startQuery !== undefined) {
-    if (typeof startQuery !== 'string' || !DATE_REGEX.test(startQuery)) {
+    if (typeof startQuery !== 'string' || !isValidDateString(startQuery)) {
       return res.status(400).json({ message: 'Invalid date' });
     }
   }
