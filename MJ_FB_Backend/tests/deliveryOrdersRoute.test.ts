@@ -117,6 +117,7 @@ describe('delivery orders routes', () => {
           {
             id: 101,
             clientId: 88,
+            clientName: 'Casey Client',
             address: '10 River Ave',
             phone: '555-1111',
             email: null,
@@ -128,6 +129,7 @@ describe('delivery orders routes', () => {
           {
             id: 205,
             clientId: 93,
+            clientName: null,
             address: '22 Pine St',
             phone: '555-2222',
             email: 'shopper@example.com',
@@ -176,6 +178,7 @@ describe('delivery orders routes', () => {
       {
         id: 101,
         clientId: 88,
+        clientName: 'Casey Client',
         address: '10 River Ave',
         phone: '555-1111',
         email: null,
@@ -203,6 +206,7 @@ describe('delivery orders routes', () => {
       {
         id: 205,
         clientId: 93,
+        clientName: null,
         address: '22 Pine St',
         phone: '555-2222',
         email: 'shopper@example.com',
@@ -229,6 +233,10 @@ describe('delivery orders routes', () => {
     expect(pool.query).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining("status <> 'cancelled'"),
+    );
+    expect(pool.query).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining('JOIN clients'),
     );
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
