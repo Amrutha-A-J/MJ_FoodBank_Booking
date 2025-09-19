@@ -28,30 +28,33 @@ describe('warehouseOverallController', () => {
 
       await refreshWarehouseOverall(2024, 5);
 
+      const startDate = new Date(Date.UTC(2024, 4, 1)).toISOString().slice(0, 10);
+      const endDate = new Date(Date.UTC(2024, 5, 1)).toISOString().slice(0, 10);
+
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
         expect.stringContaining('FROM donations'),
-        [2024, 5],
+        [startDate, endDate],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM surplus_log'),
-        [2024, 5],
+        [startDate, endDate],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
         3,
         expect.stringContaining('FROM pig_pound_log'),
-        [2024, 5],
+        [startDate, endDate],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
         4,
         expect.stringContaining('FROM outgoing_donation_log'),
-        [2024, 5],
+        [startDate, endDate],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
         5,
         expect.stringContaining('FROM donations d'),
-        [2024, 5],
+        [startDate, endDate],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
         6,

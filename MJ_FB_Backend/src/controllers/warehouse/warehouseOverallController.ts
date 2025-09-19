@@ -6,38 +6,41 @@ import { reginaStartOfDayISO } from '../../utils/dateUtils';
 import asyncHandler from '../../middleware/asyncHandler';
 
 export async function refreshWarehouseOverall(year: number, month: number) {
+  const startDate = new Date(Date.UTC(year, month - 1, 1)).toISOString().slice(0, 10);
+  const endDate = new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
+
   const [donationsRes, surplusRes, pigRes, outgoingRes, donorAggRes] = await Promise.all([
     pool.query(
       `SELECT COALESCE(SUM(weight)::int, 0) AS total
          FROM donations
-         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
-      [year, month],
+         WHERE date >= $1 AND date < $2`,
+      [startDate, endDate],
     ),
     pool.query(
       `SELECT COALESCE(SUM(weight)::int, 0) AS total
          FROM surplus_log
-         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
-      [year, month],
+         WHERE date >= $1 AND date < $2`,
+      [startDate, endDate],
     ),
     pool.query(
       `SELECT COALESCE(SUM(weight)::int, 0) AS total
          FROM pig_pound_log
-         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
-      [year, month],
+         WHERE date >= $1 AND date < $2`,
+      [startDate, endDate],
     ),
     pool.query(
       `SELECT COALESCE(SUM(weight)::int, 0) AS total
          FROM outgoing_donation_log
-         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
-      [year, month],
+         WHERE date >= $1 AND date < $2`,
+      [startDate, endDate],
     ),
     pool.query(
       `SELECT o.id AS "donorId", COALESCE(SUM(d.weight)::int, 0) AS total
          FROM donations d
          JOIN donors o ON d.donor_id = o.id
-         WHERE EXTRACT(YEAR FROM d.date) = $1 AND EXTRACT(MONTH FROM d.date) = $2
+         WHERE d.date >= $1 AND d.date < $2
          GROUP BY o.id`,
-      [year, month],
+      [startDate, endDate],
     ),
   ]);
 
