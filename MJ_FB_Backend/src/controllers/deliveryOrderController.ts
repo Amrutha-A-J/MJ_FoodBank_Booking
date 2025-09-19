@@ -192,8 +192,6 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     clientName = currentName.length > 0 ? currentName : null;
   }
 
-  const deliverySettings = await getDeliverySettings();
-
   // created_at is stored in UTC, so convert to Regina time before truncating to the month
   const monthlyOrderCountResult = await pool.query<CountRow>(
     `SELECT COUNT(*)::int AS count

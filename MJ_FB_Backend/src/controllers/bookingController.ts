@@ -8,6 +8,7 @@ import {
   formatReginaDateWithDay,
   formatTimeToAmPm,
   reginaStartOfDayISO,
+  isValidDateString,
 } from '../utils/dateUtils';
 import {
   isDateWithinCurrentOrNextMonth,
@@ -48,13 +49,6 @@ import { notifyOps } from '../utils/opsAlert';
 
 const NO_SHOW_MESSAGE =
   'This booking has already expired and was marked as a no-show. Please book a new appointment.';
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-function isValidDateString(date: string): boolean {
-  if (!DATE_REGEX.test(date)) return false;
-  const parsed = new Date(date);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
-}
-
 function isTodayOrFutureDate(date: string): boolean {
   if (!isValidDateString(date)) return false;
   try {

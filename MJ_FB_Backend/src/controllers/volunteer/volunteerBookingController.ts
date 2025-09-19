@@ -20,18 +20,12 @@ import {
   formatReginaDateWithDay,
   reginaStartOfDayISO,
   formatTimeToAmPm,
+  isValidDateString,
 } from '../../utils/dateUtils';
 import config from '../../config';
 import { notifyOps } from '../../utils/opsAlert';
 import { volunteerBookingsByDateSchema } from '../../schemas/volunteer/volunteerBookingSchemas';
 import { isHoliday, getHolidays } from '../../utils/holidayCache';
-
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-function isValidDateString(date: string): boolean {
-  if (!DATE_REGEX.test(date)) return false;
-  const parsed = new Date(date);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
-}
 
 const STATUS_COLORS: Record<string, string> = {
   approved: 'green',

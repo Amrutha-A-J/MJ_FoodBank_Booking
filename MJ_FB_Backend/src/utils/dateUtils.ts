@@ -1,10 +1,17 @@
 const REGINA_TZ = 'America/Regina';
 const REGINA_OFFSET = '-06:00';
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+export function isValidDateString(date: string): boolean {
+  if (!DATE_REGEX.test(date)) return false;
+  const parsed = new Date(date);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+}
 
 function toReginaDate(date: string | Date): Date {
   if (typeof date === 'string') {
     // If no time component is provided, treat the string as a Regina local date
-    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    if (DATE_REGEX.test(date)) {
       return new Date(`${date}T00:00:00${REGINA_OFFSET}`);
     }
     return new Date(date);
