@@ -14,6 +14,13 @@ import UnauthorizedError from '../utils/UnauthorizedError';
 import config from '../config';
 import { consumeChallenge, persistChallenge } from '../utils/webauthnChallengeStore';
 
+class MaintenanceModeError extends Error {
+  constructor() {
+    super('Service unavailable due to maintenance');
+    this.name = 'MaintenanceModeError';
+  }
+}
+
 export async function generateChallenge(req: Request, res: Response) {
   const { identifier } = req.body as { identifier?: string };
   const challenge = randomBytes(32).toString('base64url');
@@ -44,7 +51,9 @@ export async function registerCredential(
     const data = await loginByIdentifier(identifier, res, req.get('user-agent'));
     res.json(data);
   } catch (error) {
-    if (error instanceof UnauthorizedError) {
+    if (error instanceof MaintenanceModeError) {
+      res.status(503).json({ message: 'Service unavailable due to maintenance' });
+    } else if (error instanceof UnauthorizedError) {
       res.status(401).json({ message: 'Invalid credentials' });
     } else {
       next(error);
@@ -135,7 +144,9 @@ export async function verifyCredential(
     const data = await loginByIdentifier(stored.userIdentifier, res, req.get('user-agent'));
     res.json(data);
   } catch (error) {
-    if (error instanceof UnauthorizedError) {
+    if (error instanceof MaintenanceModeError) {
+      res.status(503).json({ message: 'Service unavailable due to maintenance' });
+    } else if (error instanceof UnauthorizedError) {
       res.status(401).json({ message: 'Invalid credentials' });
     } else {
       next(error);
@@ -148,6 +159,11 @@ async function loginByIdentifier(
   res: Response,
   userAgent?: string | null,
 ) {
+  const maintenanceRes = await pool.query(
+    "SELECT value FROM app_config WHERE key = 'maintenance_mode'",
+  );
+  const maintenanceMode = maintenanceRes.rows[0]?.value === 'true';
+
   if (identifier.includes('@')) {
     const volunteerQuery = await pool.query(
       `SELECT v.id, v.first_name, v.last_name, v.user_id, v.consent, u.role AS user_role
@@ -158,6 +174,9 @@ async function loginByIdentifier(
     );
     if ((volunteerQuery.rowCount ?? 0) > 0) {
       const volunteer = volunteerQuery.rows[0];
+      if (maintenanceMode) {
+        throw new MaintenanceModeError();
+      }
       const rolesRes = await pool.query(
         `SELECT vr.name
          FROM volunteer_trained_roles vtr
@@ -230,6 +249,10 @@ async function loginByIdentifier(
     throw new UnauthorizedError('Invalid credentials');
   }
   const userRow = userQuery.rows[0];
+
+  if (maintenanceMode) {
+    throw new MaintenanceModeError();
+  }
 
   const volunteerQuery = await pool.query(
     `SELECT id, first_name, last_name, consent FROM volunteers WHERE user_id = $1`,
