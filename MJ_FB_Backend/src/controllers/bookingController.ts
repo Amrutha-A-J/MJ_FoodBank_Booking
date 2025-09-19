@@ -25,6 +25,7 @@ import { buildIcsFile } from '../utils/calendarLinks';
 import logger from '../utils/logger';
 import { isHoliday } from '../utils/holidayCache';
 import { parseIdParam } from '../utils/parseIdParam';
+import { parseOptionalPaginationParams } from '../utils/parseOptionalPaginationParams';
 import {
   SlotCapacityError,
   checkSlotCapacity,
@@ -1219,16 +1220,15 @@ export async function getBookingHistory(
     const past = req.query.past === 'true';
     const includeVisits = req.query.includeVisits === 'true';
     const canViewStaffNotes = requester.role === 'staff';
-    const limitParam = req.query.limit as string | undefined;
-    const offsetParam = req.query.offset as string | undefined;
-    const limit = limitParam ? Number(limitParam) : undefined;
-    const offset = offsetParam ? Number(offsetParam) : undefined;
-
-    if (limitParam !== undefined && Number.isNaN(limit)) {
-      return res.status(400).json({ message: 'Invalid limit' });
-    }
-    if (offsetParam !== undefined && Number.isNaN(offset)) {
-      return res.status(400).json({ message: 'Invalid offset' });
+    let limit: number | undefined;
+    let offset: number | undefined;
+    try {
+      ({ limit, offset } = parseOptionalPaginationParams(
+        req,
+        Number.MAX_SAFE_INTEGER,
+      ));
+    } catch (err) {
+      return res.status(400).json({ message: (err as Error).message });
     }
 
     const rows = await repoFetchBookingHistory(
