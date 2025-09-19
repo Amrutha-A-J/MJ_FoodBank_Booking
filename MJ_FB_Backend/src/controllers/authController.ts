@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import type { CookieOptions } from 'express';
 import pool from '../db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -8,7 +7,7 @@ import logger from '../utils/logger';
 import { randomUUID } from 'crypto';
 import { validatePassword } from '../utils/passwordUtils';
 import cookie from 'cookie';
-import { cookieOptions } from '../utils/authUtils';
+import { getCookieOptions } from '../utils/authUtils';
 import {
   generatePasswordSetupToken,
   verifyPasswordSetupToken,
@@ -22,17 +21,6 @@ import { findUserByEmail } from '../models/userLookup';
 // setTimeout so the cache doesn't grow indefinitely.
 export const resendLimit = new Map<string, ReturnType<typeof setTimeout>>();
 export const RESEND_WINDOW_MS = 60_000;
-
-const resolvedCookieOptions: CookieOptions =
-  cookieOptions ?? {
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    ...(process.env.NODE_ENV === 'production' && config.cookieDomain
-      ? { domain: config.cookieDomain }
-      : {}),
-  };
 
 export const TABLE_MAP = {
   staff: { table: 'staff', idColumn: 'id' },
@@ -358,6 +346,7 @@ function getRefreshTokenFromCookies(req: Request) {
 }
 
 export async function refreshToken(req: Request, res: Response, _next: NextFunction) {
+  const cookieOptions = getCookieOptions(req.get('user-agent'));
   try {
     const token = getRefreshTokenFromCookies(req);
     if (!token) {
@@ -428,24 +417,25 @@ export async function refreshToken(req: Request, res: Response, _next: NextFunct
       { expiresIn: '7d', algorithm: 'HS256' },
     );
     res.cookie('token', accessToken, {
-      ...resolvedCookieOptions,
+      ...cookieOptions,
       maxAge: 60 * 60 * 1000,
     });
     res.cookie('refreshToken', newRefreshToken, {
-      ...resolvedCookieOptions,
+      ...cookieOptions,
       maxAge: refreshExpiry,
       expires: newExpiresAt,
     });
     return res.status(204).send();
   } catch (err) {
     logger.warn('Invalid refresh token');
-    res.clearCookie('token', resolvedCookieOptions);
-    res.clearCookie('refreshToken', resolvedCookieOptions);
+    res.clearCookie('token', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
     return res.status(401).json({ message: 'Invalid refresh token' });
   }
 }
 
 export async function logout(req: Request, res: Response, next: NextFunction) {
+  const cookieOptions = getCookieOptions(req.get('user-agent'));
   try {
     const token = getRefreshTokenFromCookies(req);
     if (token) {
@@ -464,8 +454,8 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
         // ignore
       }
     }
-    res.clearCookie('token', resolvedCookieOptions);
-    res.clearCookie('refreshToken', resolvedCookieOptions);
+    res.clearCookie('token', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
     res.status(204).send();
   } catch (err) {
     next(err);

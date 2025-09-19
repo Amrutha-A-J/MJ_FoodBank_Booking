@@ -14,6 +14,7 @@ import { normalizeEmail } from '../utils/normalizeEmail';
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
   const normalizedEmail = normalizeEmail(email);
+  const userAgent = req.get('user-agent');
 
   if (!password) {
     return res.status(400).json({ message: 'Password required' });
@@ -74,7 +75,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
                 userRole: volunteer.user_role || 'shopper',
               }),
             };
-            await issueAuthTokens(res, payload, `volunteer:${volunteer.id}`);
+            await issueAuthTokens(res, payload, `volunteer:${volunteer.id}`, userAgent);
             return res.json({
               role: 'volunteer',
               name: `${volunteer.first_name} ${volunteer.last_name}`,
@@ -109,7 +110,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
               type: 'staff',
               access: staff.access || [],
             };
-            await issueAuthTokens(res, payload, `staff:${staff.id}`);
+            await issueAuthTokens(res, payload, `staff:${staff.id}`, userAgent);
             return res.json({
               role,
               name: `${staff.first_name} ${staff.last_name}`,
@@ -144,7 +145,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
               role: userRow.role,
               type: 'user',
             };
-            await issueAuthTokens(res, payload, `user:${userRow.client_id}`);
+            await issueAuthTokens(res, payload, `user:${userRow.client_id}`, userAgent);
             return res.json({
               role: userRow.role,
               name: `${userRow.first_name} ${userRow.last_name}`,
@@ -223,8 +224,8 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
           userId: userRow.client_id,
           userRole: userRow.role,
         };
-        await issueAuthTokens(res, payload, `volunteer:${volunteer.id}`);
-        return res.json({
+            await issueAuthTokens(res, payload, `volunteer:${volunteer.id}`, userAgent);
+            return res.json({
           role: 'volunteer',
           name: `${volunteer.first_name} ${volunteer.last_name}`,
           userRole: userRow.role,
@@ -239,7 +240,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         role: userRow.role,
         type: 'user',
       };
-      await issueAuthTokens(res, payload, `user:${userRow.client_id}`);
+      await issueAuthTokens(res, payload, `user:${userRow.client_id}`, userAgent);
       return res.json({
         role: userRow.role,
         name: `${userRow.first_name} ${userRow.last_name}`,

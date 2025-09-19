@@ -4,7 +4,7 @@ import jwt, { TokenExpiredError } from 'jsonwebtoken';
 import config from '../config';
 import logger from '../utils/logger';
 import cookie from 'cookie';
-import { cookieOptions } from '../utils/authUtils';
+import { getCookieOptions } from '../utils/authUtils';
 import type { RequestUser } from '../types/RequestUser';
 
 function getTokenFromCookies(req: Request) {
@@ -132,6 +132,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     return next();
   }
   if (result.status === 'expired') {
+    const cookieOptions = getCookieOptions(req.get('user-agent'));
     res.clearCookie('token', cookieOptions);
     return res.status(401).json({ message: 'Token expired' });
   }
@@ -150,6 +151,7 @@ export async function optionalAuthMiddleware(
     return next();
   }
   if (result.status === 'expired') {
+    const cookieOptions = getCookieOptions(req.get('user-agent'));
     res.clearCookie('token', cookieOptions);
     return res.status(401).json({ message: 'Token expired' });
   }
