@@ -50,7 +50,8 @@ test('omits sendPasswordLink when creating volunteer without email', async () =>
   });
   fireEvent.mouseDown(screen.getByLabelText(/roles/i));
   const listbox = await screen.findByRole('listbox');
-  fireEvent.click(within(listbox).getByText('Role A'));
+  const roleOption = await within(listbox).findByText('Role A');
+  fireEvent.click(roleOption);
   fireEvent.keyDown(listbox, { key: 'Escape' });
   fireEvent.click(screen.getByRole('button', { name: /add volunteer/i }));
 
@@ -93,7 +94,8 @@ test('requires password when set password selected', async () => {
   });
   fireEvent.mouseDown(screen.getByLabelText(/roles/i));
   const listbox = await screen.findByRole('listbox');
-  fireEvent.click(within(listbox).getByText('Role A'));
+  const roleOption = await within(listbox).findByText('Role A');
+  fireEvent.click(roleOption);
   fireEvent.keyDown(listbox, { key: 'Escape' });
 
   fireEvent.click(screen.getByRole('button', { name: /add volunteer/i }));

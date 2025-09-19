@@ -47,7 +47,7 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
   }, [volunteer]);
 
   async function handleSave(data: AccountEditFormData) {
-    if (!volunteer) return;
+    if (!volunteer) return false;
     try {
       await updateVolunteer(volunteer.id, {
         firstName: data.firstName,
@@ -61,12 +61,14 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
       });
       setSnackbar({ open: true, message: 'Volunteer updated', severity: 'success' });
       onSaved();
+      return true;
     } catch (err) {
       setSnackbar({
         open: true,
         message: getApiErrorMessage(err, 'Unable to update volunteer'),
         severity: 'error',
       });
+      return false;
     }
   }
 

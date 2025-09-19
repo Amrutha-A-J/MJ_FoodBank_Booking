@@ -10,8 +10,8 @@ type ContactInfoFieldsProps = {
   onEmailChange: (value: string) => void;
   phone: string;
   onPhoneChange: (value: string) => void;
-  emailTextFieldProps?: Omit<TextFieldProps, 'value' | 'onChange' | 'required' | 'type'>;
-  phoneTextFieldProps?: Omit<TextFieldProps, 'value' | 'onChange' | 'type'>;
+  emailTextFieldProps?: Omit<TextFieldProps, 'value' | 'onChange'>;
+  phoneTextFieldProps?: Omit<TextFieldProps, 'value' | 'onChange'>;
 };
 
 export default function ContactInfoFields({
