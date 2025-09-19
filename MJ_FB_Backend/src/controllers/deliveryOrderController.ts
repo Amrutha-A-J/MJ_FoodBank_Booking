@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import pool from '../db';
 import asyncHandler from '../middleware/asyncHandler';
 import parseIdParam from '../utils/parseIdParam';
+import config from '../config';
 import { sendTemplatedEmail } from '../utils/emailUtils';
 import { getDeliverySettings } from '../utils/deliverySettings';
 import logger from '../utils/logger';
@@ -342,7 +343,7 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
   try {
     await sendTemplatedEmail({
       to: deliverySettings.requestEmail,
-      templateId: 16,
+      templateId: config.deliveryRequestTemplateId,
       params: {
         orderId: order.id,
         clientId,
