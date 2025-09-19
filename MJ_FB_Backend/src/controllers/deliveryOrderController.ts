@@ -61,19 +61,12 @@ interface CountRow {
 }
 
 function normalizeSelections(selections: DeliveryOrderSelectionInput[]): NormalizedSelection[] {
-  const orderMap = new Map<number, { quantity: number; index: number }>();
-  let order = 0;
+  const orderMap = new Map<number, number>();
   for (const selection of selections) {
-    const existing = orderMap.get(selection.itemId);
-    if (existing) {
-      existing.quantity += selection.quantity;
-    } else {
-      orderMap.set(selection.itemId, { quantity: selection.quantity, index: order++ });
-    }
+    const existingQuantity = orderMap.get(selection.itemId) ?? 0;
+    orderMap.set(selection.itemId, existingQuantity + selection.quantity);
   }
-  return Array.from(orderMap.entries())
-    .sort((a, b) => a[1].index - b[1].index)
-    .map(([itemId, value]) => ({ itemId, quantity: value.quantity }));
+  return Array.from(orderMap.entries(), ([itemId, quantity]) => ({ itemId, quantity }));
 }
 
 function sortItems(items: DeliveryOrderItemDetail[]): DeliveryOrderItemDetail[] {
