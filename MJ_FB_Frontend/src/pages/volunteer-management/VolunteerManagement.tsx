@@ -1404,6 +1404,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                       variant="body2"
                       sx={{
                         fontWeight: 500,
+                        wordBreak: 'break-word',
                         whiteSpace: 'normal',
                         overflowWrap: 'anywhere',
                       }}
@@ -1416,6 +1417,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                         color="text.secondary"
                         sx={{
                           display: 'block',
+                          wordBreak: 'break-word',
                           whiteSpace: 'normal',
                           overflowWrap: 'anywhere',
                         }}
@@ -1425,7 +1427,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                     )}
                   </Box>
                   <Button
-                    sx={{ ml: 1, flexShrink: 0 }}
+                    sx={{ ml: 1, flexShrink: 0, justifySelf: 'end' }}
                     onClick={() => assignVolunteer(v)}
                     variant="outlined"
                     color="primary"
