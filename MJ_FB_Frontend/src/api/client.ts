@@ -36,6 +36,8 @@ async function ensureCsrfToken() {
 // shared refresh promise to avoid multiple concurrent refresh calls
 let refreshPromise: Promise<Response> | null = null;
 
+type JsonRequestInit = Omit<RequestInit, 'body'> & { body?: unknown };
+
 export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   const headers = new Headers(init.headers || {});
   if (!csrfToken) {
@@ -106,7 +108,7 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
 
 export function jsonApiFetch(
   input: RequestInfo | URL,
-  init: RequestInit & { body?: unknown } = {},
+  init: JsonRequestInit = {},
 ) {
   const { body, headers, ...rest } = init;
   const nextHeaders = new Headers(headers);
