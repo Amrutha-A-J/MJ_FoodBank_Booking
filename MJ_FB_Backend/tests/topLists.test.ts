@@ -9,6 +9,8 @@ const app = express();
 app.use('/donors', donorsRoutes);
 app.use('/outgoing-receivers', outgoingReceiversRoutes);
 const year = new Date().getFullYear();
+const startOfYear = new Date(Date.UTC(year, 0, 1)).toISOString().slice(0, 10);
+const startOfNextYear = new Date(Date.UTC(year + 1, 0, 1)).toISOString().slice(0, 10);
 
 beforeEach(() => {
   (pool.query as jest.Mock).mockReset();
@@ -25,6 +27,7 @@ describe('GET /donors/top', () => {
     expect(res.body).toEqual([
       { name: 'Alice', totalLbs: 100, lastDonationISO: `${year}-01-10` },
     ]);
+    expect((pool.query as jest.Mock).mock.calls[0][1]).toEqual([startOfYear, startOfNextYear, 5]);
   });
 
   it('clamps limit to 100', async () => {
@@ -32,7 +35,7 @@ describe('GET /donors/top', () => {
 
     const res = await request(app).get(`/donors/top?year=${year}&limit=150`);
     expect(res.status).toBe(200);
-    expect((pool.query as jest.Mock).mock.calls[0][1]).toEqual([year, 100]);
+    expect((pool.query as jest.Mock).mock.calls[0][1]).toEqual([startOfYear, startOfNextYear, 100]);
   });
 
   it('returns 400 for non-numeric limit', async () => {
@@ -60,5 +63,6 @@ describe('GET /outgoing-receivers/top', () => {
       { name: 'Org', totalLbs: 50, lastPickupISO: `${year}-02-15` },
     ]);
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/ORDER BY "totalLbs" DESC/);
+    expect((pool.query as jest.Mock).mock.calls[0][1]).toEqual([startOfYear, startOfNextYear, 5]);
   });
 });

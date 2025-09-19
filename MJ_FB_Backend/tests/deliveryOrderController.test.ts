@@ -25,6 +25,7 @@ const flushPromises = () => new Promise(process.nextTick);
 const mockGetDeliverySettings = getDeliverySettings as jest.MockedFunction<
   typeof getDeliverySettings
 >;
+const MOCK_MONTHLY_LIMIT = 3;
 
 describe('deliveryOrderController', () => {
   beforeEach(() => {
@@ -34,6 +35,7 @@ describe('deliveryOrderController', () => {
     config.deliveryRequestTemplateId = 99;
     mockGetDeliverySettings.mockResolvedValue({
       requestEmail: 'ops@example.com',
+      monthlyOrderLimit: MOCK_MONTHLY_LIMIT,
     });
   });
 
@@ -496,7 +498,7 @@ describe('deliveryOrderController', () => {
 
     it('rejects a third order in the same month', async () => {
       (mockDb.query as jest.Mock).mockResolvedValueOnce({
-        rows: [{ count: '2' }],
+        rows: [{ count: String(MOCK_MONTHLY_LIMIT) }],
         rowCount: 1,
       });
 
@@ -523,7 +525,7 @@ describe('deliveryOrderController', () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
         message:
-          'You have already used the food bank 2 times this month, please request again next month',
+          `You have already used the food bank ${MOCK_MONTHLY_LIMIT} times this month, please request again next month`,
       });
       expect(mockDb.query).toHaveBeenCalledTimes(1);
       expect(mockDb.query).toHaveBeenCalledWith(

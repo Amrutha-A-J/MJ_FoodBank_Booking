@@ -46,14 +46,16 @@ export const topOutgoingReceivers = asyncHandler(async (req: Request, res: Respo
     parseInt((req.query.year as string) ?? '', 10) ||
     new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
   const limit = parseInt((req.query.limit as string) ?? '', 10) || 7;
+  const startDate = new Date(Date.UTC(year, 0, 1)).toISOString().slice(0, 10);
+  const endDate = new Date(Date.UTC(year + 1, 0, 1)).toISOString().slice(0, 10);
   const result = await pool.query(
     `SELECT r.name, SUM(l.weight)::int AS "totalLbs", TO_CHAR(MAX(l.date), 'YYYY-MM-DD') AS "lastPickupISO"
        FROM outgoing_donation_log l JOIN outgoing_receivers r ON l.receiver_id = r.id
-       WHERE EXTRACT(YEAR FROM l.date) = $1
+       WHERE l.date >= $1 AND l.date < $2
        GROUP BY r.id, r.name
        ORDER BY "totalLbs" DESC, MAX(l.date) DESC
-       LIMIT $2`,
-    [year, limit],
+       LIMIT $3`,
+    [startDate, endDate, limit],
   );
   res.json(result.rows);
 });

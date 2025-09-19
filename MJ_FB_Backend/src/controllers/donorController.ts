@@ -66,14 +66,17 @@ export const topDonors = asyncHandler(async (req: Request, res: Response) => {
     return res.status(400).json({ message: (err as Error).message });
   }
 
+  const startDate = new Date(Date.UTC(year, 0, 1)).toISOString().slice(0, 10);
+  const endDate = new Date(Date.UTC(year + 1, 0, 1)).toISOString().slice(0, 10);
+
   const result = await pool.query(
     `SELECT o.first_name || ' ' || o.last_name AS name, SUM(d.weight)::int AS "totalLbs", TO_CHAR(MAX(d.date), 'YYYY-MM-DD') AS "lastDonationISO"
        FROM donations d JOIN donors o ON d.donor_id = o.id
-       WHERE EXTRACT(YEAR FROM d.date) = $1
+       WHERE d.date >= $1 AND d.date < $2
        GROUP BY o.id, o.first_name, o.last_name
        ORDER BY "totalLbs" DESC, MAX(d.date) DESC
-       LIMIT $2`,
-    [year, limit],
+       LIMIT $3`,
+    [startDate, endDate, limit],
   );
   res.json(result.rows);
 });

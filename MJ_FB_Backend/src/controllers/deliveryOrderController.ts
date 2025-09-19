@@ -62,19 +62,12 @@ interface CountRow {
 }
 
 function normalizeSelections(selections: DeliveryOrderSelectionInput[]): NormalizedSelection[] {
-  const orderMap = new Map<number, { quantity: number; index: number }>();
-  let order = 0;
+  const orderMap = new Map<number, number>();
   for (const selection of selections) {
-    const existing = orderMap.get(selection.itemId);
-    if (existing) {
-      existing.quantity += selection.quantity;
-    } else {
-      orderMap.set(selection.itemId, { quantity: selection.quantity, index: order++ });
-    }
+    const existingQuantity = orderMap.get(selection.itemId) ?? 0;
+    orderMap.set(selection.itemId, existingQuantity + selection.quantity);
   }
-  return Array.from(orderMap.entries())
-    .sort((a, b) => a[1].index - b[1].index)
-    .map(([itemId, value]) => ({ itemId, quantity: value.quantity }));
+  return Array.from(orderMap.entries(), ([itemId, quantity]) => ({ itemId, quantity }));
 }
 
 function sortItems(items: DeliveryOrderItemDetail[]): DeliveryOrderItemDetail[] {
@@ -169,6 +162,9 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
   const { clientId, address, phone, email, selections } = parsed.data;
   const normalizedSelections = normalizeSelections(selections);
 
+  const deliverySettings = await getDeliverySettings();
+  const { monthlyOrderLimit } = deliverySettings;
+
   const isClient = req.user.role === 'delivery';
   const isStaff = req.user.role === 'staff' || req.user.role === 'admin';
 
@@ -196,6 +192,8 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     clientName = currentName.length > 0 ? currentName : null;
   }
 
+  const deliverySettings = await getDeliverySettings();
+
   // created_at is stored in UTC, so convert to Regina time before truncating to the month
   const monthlyOrderCountResult = await pool.query<CountRow>(
     `SELECT COUNT(*)::int AS count
@@ -210,9 +208,9 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
   );
 
   const monthlyOrderCount = Number(monthlyOrderCountResult.rows[0]?.count ?? 0);
-  if (monthlyOrderCount >= 2) {
+  if (monthlyOrderCount >= deliverySettings.monthlyOrderLimit) {
     return res.status(400).json({
-      message: `You have already used the food bank ${monthlyOrderCount} times this month, please request again next month`,
+      message: `You have already used the food bank ${monthlyOrderCount} times this month, which is the limit of ${monthlyOrderLimit}. Please request again next month`,
     });
   }
 
@@ -343,9 +341,8 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
   const itemList = buildItemListHtml(itemDetails);
 
   try {
-    const { requestEmail } = await getDeliverySettings();
     await sendTemplatedEmail({
-      to: requestEmail,
+      to: deliverySettings.requestEmail,
       templateId: config.deliveryRequestTemplateId,
       params: {
         orderId: order.id,

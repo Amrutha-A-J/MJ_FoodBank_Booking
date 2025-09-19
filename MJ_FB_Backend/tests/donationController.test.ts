@@ -8,11 +8,15 @@ import {
   donorAggregations,
   exportDonorAggregations,
 } from '../src/controllers/warehouse/donationController';
-import { refreshWarehouseOverall } from '../src/controllers/warehouse/warehouseOverallController';
+import {
+  refreshWarehouseForDate,
+  refreshWarehouseForDateChange,
+} from '../src/utils/warehouseRefresh';
 import writeXlsxFile from 'write-excel-file/node';
 
-jest.mock('../src/controllers/warehouse/warehouseOverallController', () => ({
-  refreshWarehouseOverall: jest.fn(),
+jest.mock('../src/utils/warehouseRefresh', () => ({
+  refreshWarehouseForDate: jest.fn(),
+  refreshWarehouseForDateChange: jest.fn(),
 }));
 
 jest.mock('write-excel-file/node', () => jest.fn());
@@ -22,7 +26,8 @@ const flushPromises = () => new Promise(process.nextTick);
 describe('donationController', () => {
   beforeEach(() => {
     (mockDb.query as jest.Mock).mockReset();
-    (refreshWarehouseOverall as jest.Mock).mockReset();
+    (refreshWarehouseForDate as jest.Mock).mockReset();
+    (refreshWarehouseForDateChange as jest.Mock).mockReset();
     (writeXlsxFile as jest.Mock).mockReset();
   });
 
@@ -151,7 +156,7 @@ describe('donationController', () => {
         'INSERT INTO donations (date, donor_id, weight) VALUES ($1, $2, $3) RETURNING id, date, weight',
         ['2024-05-20', 2, 10],
       );
-      expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 5);
+      expect(refreshWarehouseForDate).toHaveBeenCalledWith('2024-05-20');
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         id: 1,
@@ -205,8 +210,38 @@ describe('donationController', () => {
         'UPDATE donations SET date = $1, donor_id = $2, weight = $3 WHERE id = $4 RETURNING id, date, weight',
         ['2024-05-02', 2, 15, '1'],
       );
-      expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 5);
-      expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 4);
+      expect(refreshWarehouseForDateChange).toHaveBeenCalledWith('2024-05-02', '2024-04-30');
+      expect(res.json).toHaveBeenCalledWith({
+        id: 1,
+        date: '2024-05-02',
+        weight: 15,
+        donorId: 2,
+        firstName: 'Alice',
+        lastName: 'Smith',
+        email: 'a@example.com',
+        phone: '555-1111',
+      });
+    });
+
+    it('updates a donation without month change', async () => {
+      (mockDb.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ date: '2024-05-01' }] })
+        .mockResolvedValueOnce({
+          rows: [
+            { id: 2, firstName: 'Alice', lastName: 'Smith', email: 'a@example.com', phone: '555-1111' },
+          ],
+        })
+        .mockResolvedValueOnce({
+          rows: [{ id: 1, date: '2024-05-02', weight: 15 }],
+        });
+      const req = {
+        params: { id: '1' },
+        body: { date: '2024-05-02', donorId: 2, weight: 15 },
+      } as any;
+      const res = { json: jest.fn() } as any;
+      await updateDonation(req, res, jest.fn());
+      await flushPromises();
+      expect(refreshWarehouseForDateChange).toHaveBeenCalledWith('2024-05-02', '2024-05-01');
       expect(res.json).toHaveBeenCalledWith({
         id: 1,
         date: '2024-05-02',
@@ -231,7 +266,7 @@ describe('donationController', () => {
       await flushPromises();
       expect(mockDb.query).toHaveBeenNthCalledWith(1, expect.any(String), ['1']);
       expect(mockDb.query).toHaveBeenNthCalledWith(2, expect.any(String), ['1']);
-      expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 5);
+      expect(refreshWarehouseForDate).toHaveBeenCalledWith('2024-05-20');
       expect(res.json).toHaveBeenCalledWith({ message: 'Deleted' });
     });
   });

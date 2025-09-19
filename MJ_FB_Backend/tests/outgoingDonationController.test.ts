@@ -5,10 +5,14 @@ import {
   updateOutgoingDonation,
   deleteOutgoingDonation,
 } from '../src/controllers/warehouse/outgoingDonationController';
-import { refreshWarehouseOverall } from '../src/controllers/warehouse/warehouseOverallController';
+import {
+  refreshWarehouseForDate,
+  refreshWarehouseForDateChange,
+} from '../src/utils/warehouseRefresh';
 
-jest.mock('../src/controllers/warehouse/warehouseOverallController', () => ({
-  refreshWarehouseOverall: jest.fn(),
+jest.mock('../src/utils/warehouseRefresh', () => ({
+  refreshWarehouseForDate: jest.fn(),
+  refreshWarehouseForDateChange: jest.fn(),
 }));
 
 const flushPromises = () => new Promise(process.nextTick);
@@ -16,7 +20,8 @@ const flushPromises = () => new Promise(process.nextTick);
 describe('outgoingDonationController', () => {
   beforeEach(() => {
     (mockDb.query as jest.Mock).mockReset();
-    (refreshWarehouseOverall as jest.Mock).mockReset();
+    (refreshWarehouseForDate as jest.Mock).mockReset();
+    (refreshWarehouseForDateChange as jest.Mock).mockReset();
   });
 
   it('lists outgoing donations for a date', async () => {
@@ -95,7 +100,7 @@ describe('outgoingDonationController', () => {
       null,
     ]);
     expect(mockDb.query).toHaveBeenNthCalledWith(2, expect.any(String), [2]);
-    expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 5);
+    expect(refreshWarehouseForDate).toHaveBeenCalledWith('2024-05-20');
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({
       id: 1,
@@ -149,7 +154,7 @@ describe('outgoingDonationController', () => {
       null,
       '1',
     ]);
-    expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 5);
+    expect(refreshWarehouseForDateChange).toHaveBeenCalledWith('2024-05-21', '2024-05-20');
     expect(res.json).toHaveBeenCalledWith({
       id: 1,
       date: '2024-05-21',
@@ -183,7 +188,7 @@ describe('outgoingDonationController', () => {
     await flushPromises();
     expect(mockDb.query).toHaveBeenNthCalledWith(1, expect.any(String), ['1']);
     expect(mockDb.query).toHaveBeenNthCalledWith(2, expect.any(String), ['1']);
-    expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, 5);
+    expect(refreshWarehouseForDate).toHaveBeenCalledWith('2024-05-20');
     expect(res.json).toHaveBeenCalledWith({ message: 'Deleted' });
   });
 
