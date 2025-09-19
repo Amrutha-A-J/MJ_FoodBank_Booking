@@ -24,6 +24,7 @@ describe('deliveryOrderController', () => {
     mockGetDeliverySettings.mockReset();
     mockGetDeliverySettings.mockResolvedValue({
       requestEmail: 'ops@example.com',
+      monthlyOrderLimit: 2,
     });
   });
 
@@ -513,7 +514,7 @@ describe('deliveryOrderController', () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
         message:
-          'You have already used the food bank 2 times this month, please request again next month',
+          'You have already used the food bank 2 times this month, which is the limit of 2. Please request again next month',
       });
       expect(mockDb.query).toHaveBeenCalledTimes(1);
       expect(mockDb.query).toHaveBeenCalledWith(
