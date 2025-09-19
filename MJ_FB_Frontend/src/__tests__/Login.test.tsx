@@ -51,9 +51,7 @@ describe('Login component', () => {
       target: { value: 'pass' },
     });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
-    expect(
-      await screen.findByText('Incorrect ID or email or password')
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Password is incorrect.')).toBeInTheDocument();
     expect(onLogin).not.toHaveBeenCalled();
   });
 

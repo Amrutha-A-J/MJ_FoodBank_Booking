@@ -349,7 +349,7 @@ describe('userController', () => {
       await loginUser(req, res, jest.fn());
 
       expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Invalid credentials' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Password is incorrect.' });
       expect(issueAuthTokens).not.toHaveBeenCalled();
     });
 

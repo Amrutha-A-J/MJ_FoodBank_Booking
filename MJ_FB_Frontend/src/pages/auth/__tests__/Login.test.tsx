@@ -24,7 +24,11 @@ beforeEach(() => {
 
 describe('Login error handling', () => {
   it('shows account not found message', async () => {
-    mockedLogin.mockRejectedValue({ status: 404, message: 'Account not found' });
+    mockedLogin.mockRejectedValue({
+      status: 404,
+      message:
+        "Hmm... you don't seem to have an account with us. Please contact hearvestpantry@mjfoodbank.org to have one created.",
+    });
     const onLogin = jest.fn().mockResolvedValue('/');
     render(
       <MemoryRouter>
@@ -40,7 +44,7 @@ describe('Login error handling', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          'Hmm.. you dont seem to have an account with us. Please email harvestpantry@mjfoodbank.org to have an account created for you.',
+          "Hmm... you don't seem to have an account with us. Please contact hearvestpantry@mjfoodbank.org to have one created.",
         ),
       ).toBeInTheDocument();
     });

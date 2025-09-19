@@ -51,13 +51,13 @@ export default function Login({
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {
-        setError('Incorrect ID or email or password');
+        setError('Password is incorrect.');
       } else if (apiErr?.status === 410) {
         setError('Password setup link expired');
         setResendOpen(true);
       } else if (apiErr?.status === 404) {
         setError(
-          'Hmm.. you dont seem to have an account with us. Please email harvestpantry@mjfoodbank.org to have an account created for you.',
+          "Hmm... you don't seem to have an account with us. Please contact hearvestpantry@mjfoodbank.org to have one created.",
         );
       } else {
         setError(err instanceof Error ? err.message : String(err));
