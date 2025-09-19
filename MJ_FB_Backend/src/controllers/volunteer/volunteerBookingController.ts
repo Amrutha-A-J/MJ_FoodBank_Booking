@@ -1180,7 +1180,7 @@ export async function createRecurringVolunteerBooking(
 
     const recurringRes = await pool.query(
       `INSERT INTO volunteer_recurring_bookings (volunteer_id, slot_id, start_date, end_date, pattern, days_of_week, active)
-       VALUES ($1,$2,$3,$4,$5,$6,true)
+       VALUES ($1,$2,$3,$4,$5,$6::integer[],true)
        RETURNING id`,
       [user.id, roleId, startDate, endDate, pattern, daysOfWeek],
     );
@@ -1382,7 +1382,7 @@ export async function createRecurringVolunteerBookingForVolunteer(
 
     const recurringRes = await pool.query(
       `INSERT INTO volunteer_recurring_bookings (volunteer_id, slot_id, start_date, end_date, pattern, days_of_week, active)
-       VALUES ($1,$2,$3,$4,$5,$6,true)
+       VALUES ($1,$2,$3,$4,$5,$6::integer[],true)
        RETURNING id`,
       [volunteerId, roleId, startDate, endDate, pattern, daysOfWeek],
     );
