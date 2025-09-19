@@ -1383,16 +1383,24 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                   key={v.id}
                   style={{
                     marginBottom: 4,
-                    display: 'flex',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto',
+                    columnGap: 8,
                     alignItems: 'flex-start',
-                    gap: 8,
                   }}
                 >
-                  <span style={{ flexGrow: 1, minWidth: 0, wordBreak: 'break-word' }}>
+                  <span
+                    style={{
+                      flexGrow: 1,
+                      minWidth: 0,
+                      whiteSpace: 'normal',
+                      overflowWrap: 'anywhere',
+                    }}
+                  >
                     {v.name}
                   </span>
                   <Button
-                    style={{ marginLeft: 'auto', flexShrink: 0 }}
+                    style={{ flexShrink: 0, justifySelf: 'end' }}
                     onClick={() => assignVolunteer(v)}
                     variant="outlined"
                     color="primary"

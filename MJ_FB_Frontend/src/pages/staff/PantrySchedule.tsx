@@ -481,15 +481,27 @@ export default function PantrySchedule({
                   disableGutters
                   sx={{
                     mb: 0.5,
-                    display: "flex",
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto",
+                    columnGap: 1,
                     alignItems: "flex-start",
-                    gap: 1,
                   }}
                 >
-                  <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                  <Box
+                    sx={{
+                      flexGrow: 1,
+                      minWidth: 0,
+                      whiteSpace: "normal",
+                      overflowWrap: "anywhere",
+                    }}
+                  >
                     <Typography
                       variant="body2"
-                      sx={{ fontWeight: 500, wordBreak: "break-word" }}
+                      sx={{
+                        fontWeight: 500,
+                        whiteSpace: "normal",
+                        overflowWrap: "anywhere",
+                      }}
                     >
                       {u.name} ({u.client_id})
                     </Typography>
@@ -497,7 +509,11 @@ export default function PantrySchedule({
                       <Typography
                         variant="caption"
                         color="text.secondary"
-                        sx={{ display: "block", wordBreak: "break-word" }}
+                        sx={{
+                          display: "block",
+                          whiteSpace: "normal",
+                          overflowWrap: "anywhere",
+                        }}
                       >
                         {[u.email, u.phone].filter(Boolean).join(" · ")}
                       </Typography>
@@ -507,7 +523,7 @@ export default function PantrySchedule({
                     onClick={() => assignExistingUser(u)}
                     variant="outlined"
                     color="primary"
-                    sx={{ flexShrink: 0 }}
+                    sx={{ flexShrink: 0, justifySelf: "end" }}
                   >
                     Assign
                   </Button>
