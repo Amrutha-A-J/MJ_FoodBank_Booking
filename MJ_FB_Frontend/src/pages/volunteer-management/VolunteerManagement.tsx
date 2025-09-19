@@ -31,7 +31,8 @@ import { fromZonedTime } from 'date-fns-tz';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import DialogCloseButton from '../../components/DialogCloseButton';
-import PasswordField from '../../components/PasswordField';
+import OnlineAccessControls from '../../components/OnlineAccessControls';
+import ContactInfoFields from '../../components/ContactInfoFields';
 import PageCard from '../../components/layout/PageCard';
 import BookingManagementBase from './BookingManagementBase';
 import ManageVolunteerShiftDialog from '../../components/ManageVolunteerShiftDialog';
@@ -43,6 +44,7 @@ import {
   Select,
   MenuItem,
   ListSubheader,
+  ListItemText,
   Checkbox,
   FormControlLabel,
   Switch,
@@ -170,15 +172,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [createMsg, setCreateMsg] = useState('');
   const [createSeverity, setCreateSeverity] = useState<'success' | 'error'>('success');
 
-  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const statsRequestIdRef = useRef(0);
-
-  function toggleCreateRole(name: string, checked: boolean) {
-    setSelectedCreateRoles(prev =>
-      checked ? [...prev, name] : prev.filter(r => r !== name)
-    );
-  }
 
   function resetVolunteerStats() {
     statsRequestIdRef.current += 1;
@@ -245,16 +239,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   function changeDay(delta: number) {
     setCurrentDate(d => addDays(d, delta));
   }
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setRoleDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   useEffect(() => {
     getVolunteerRoles()
@@ -345,8 +329,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       ]),
     [groupedRoles]
   );
-
-  const selectedRoleNames = selectedCreateRoles.join(', ');
 
   const departmentItems = useMemo(
     () =>
@@ -1211,105 +1193,53 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               
               fullWidth
             />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={onlineAccess}
-                  onChange={e => {
-                    setOnlineAccess(e.target.checked);
-                    if (!e.target.checked) {
-                      setSendPasswordLink(true);
-                      setPassword('');
-                    }
-                  }}
-                />
-              }
-              label="Online Access"
+            <OnlineAccessControls
+              onlineAccess={onlineAccess}
+              onOnlineAccessChange={setOnlineAccess}
+              sendPasswordLink={sendPasswordLink}
+              onSendPasswordLinkChange={setSendPasswordLink}
+              password={password}
+              onPasswordChange={setPassword}
+              passwordFieldProps={{ fullWidth: true }}
             />
-            {onlineAccess && (
-              <>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={sendPasswordLink}
-                      onChange={e => setSendPasswordLink(e.target.checked)}
-                    />
-                  }
-                  label="Send password setup link"
-                />
-                {sendPasswordLink && (
-                  <Typography variant="body2" color="text.secondary">
-                    An email invitation will be sent.
-                  </Typography>
-                )}
-                {!sendPasswordLink && (
-                  <PasswordField
-                    label="Password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    
-                    fullWidth
-                  />
-                )}
-              </>
-            )}
-            <TextField
-              label={onlineAccess ? 'Email' : 'Email (optional)'}
-              type="email"
-              required={onlineAccess}
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              
-              fullWidth
+            <ContactInfoFields
+              onlineAccess={onlineAccess}
+              email={email}
+              onEmailChange={setEmail}
+              phone={phone}
+              onPhoneChange={setPhone}
+              emailTextFieldProps={{ fullWidth: true }}
+              phoneTextFieldProps={{ fullWidth: true }}
             />
-            <TextField
-              label="Phone (optional)"
-              type="tel"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              
-              fullWidth
-            />
-            <div ref={dropdownRef} style={{ position: 'relative' }}>
-              <label>Role: </label>
-              <Button type="button" onClick={() => setRoleDropdownOpen(o => !o)} variant="outlined" color="primary">
-                {selectedRoleNames || 'Select roles'}
-              </Button>
-              {roleDropdownOpen && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    background: 'white',
-                    border: '1px solid #ccc',
-                    padding: 8,
-                    zIndex: 1,
-                    maxHeight: 200,
-                    overflowY: 'auto',
-                    marginTop: 4,
-                  }}
-                >
-                  {groupedRoles.map(g => (
-                    <div key={g.category} style={{ marginBottom: 8 }}>
-                      <div style={{ fontWeight: 'bold' }}>{g.category}</div>
-                      {g.roles.map(r => (
-                        <FormControlLabel
-                          key={r.name}
-                          control={
-                            <Checkbox
-                              value={r.name}
-                              checked={selectedCreateRoles.includes(r.name)}
-                              onChange={e => toggleCreateRole(r.name, e.target.checked)}
-                            />
-                          }
-                          label={r.name}
-                          sx={{ width: '100%', m: 0 }}
-                        />
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <FormControl fullWidth>
+              <InputLabel id="create-volunteer-roles-label">Roles</InputLabel>
+              <Select
+                labelId="create-volunteer-roles-label"
+                multiple
+                value={selectedCreateRoles}
+                label="Roles"
+                onChange={event => {
+                  const value = event.target.value;
+                  setSelectedCreateRoles(
+                    typeof value === 'string' ? value.split(',') : (value as string[])
+                  );
+                }}
+                renderValue={selected => {
+                  const names = selected as string[];
+                  return names.length ? names.join(', ') : 'Select roles';
+                }}
+              >
+                {groupedRoles.flatMap(g => [
+                  <ListSubheader key={`${g.category}-header`}>{g.category}</ListSubheader>,
+                  ...g.roles.map(r => (
+                    <MenuItem key={r.name} value={r.name}>
+                      <Checkbox checked={selectedCreateRoles.includes(r.name)} />
+                      <ListItemText primary={r.name} />
+                    </MenuItem>
+                  )),
+                ])}
+              </Select>
+            </FormControl>
           </FormCard>
           <FeedbackSnackbar
             open={!!createMsg}

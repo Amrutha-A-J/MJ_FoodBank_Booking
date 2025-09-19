@@ -98,7 +98,7 @@ describe('VolunteerManagement create volunteer', () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /select roles/i }));
+    fireEvent.mouseDown(screen.getByLabelText('Roles'));
     expect(await screen.findByText('Front')).toBeInTheDocument();
     expect(await screen.findByText('Back')).toBeInTheDocument();
   });
@@ -130,8 +130,25 @@ describe('VolunteerManagement create volunteer', () => {
     fireEvent.change(screen.getByLabelText('Last Name'), {
       target: { value: 'Doe' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /select roles/i }));
-    fireEvent.click(await screen.findByLabelText('Greeter'));
+    const rolesField = screen.getByRole('combobox', { name: 'Roles' });
+    fireEvent.mouseDown(rolesField);
+    fireEvent.click(await screen.findByRole('option', { name: 'Greeter' }));
+    const listbox = await screen.findByRole('listbox', { name: 'Roles' });
+    fireEvent.keyDown(listbox, {
+      key: 'Escape',
+      code: 'Escape',
+      keyCode: 27,
+      charCode: 27,
+    });
+    fireEvent.keyUp(listbox, {
+      key: 'Escape',
+      code: 'Escape',
+      keyCode: 27,
+      charCode: 27,
+    });
+    await waitFor(() =>
+      expect(screen.queryByRole('listbox', { name: 'Roles' })).not.toBeInTheDocument()
+    );
     fireEvent.click(screen.getByLabelText(/online access/i));
     fireEvent.click(screen.getByRole('button', { name: /add volunteer/i }));
 
@@ -166,10 +183,27 @@ describe('VolunteerManagement create volunteer', () => {
     fireEvent.change(screen.getByLabelText('Last Name'), {
       target: { value: 'Doe' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /select roles/i }));
-    fireEvent.click(await screen.findByLabelText('Greeter'));
+    const rolesField = screen.getByRole('combobox', { name: 'Roles' });
+    fireEvent.mouseDown(rolesField);
+    fireEvent.click(await screen.findByRole('option', { name: 'Greeter' }));
+    const listbox = await screen.findByRole('listbox', { name: 'Roles' });
+    fireEvent.keyDown(listbox, {
+      key: 'Escape',
+      code: 'Escape',
+      keyCode: 27,
+      charCode: 27,
+    });
+    fireEvent.keyUp(listbox, {
+      key: 'Escape',
+      code: 'Escape',
+      keyCode: 27,
+      charCode: 27,
+    });
+    await waitFor(() =>
+      expect(screen.queryByRole('listbox', { name: 'Roles' })).not.toBeInTheDocument()
+    );
     fireEvent.click(screen.getByLabelText(/online access/i));
-    fireEvent.click(await screen.findByLabelText(/send password setup link/i));
+    fireEvent.click(await screen.findByRole('button', { name: /set password/i }));
     fireEvent.change(await screen.findByLabelText(/email/i), {
       target: { value: 'john@example.com' },
     });
