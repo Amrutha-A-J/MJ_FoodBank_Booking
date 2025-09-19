@@ -72,6 +72,39 @@ describe('VolunteerCoverageCard', () => {
     expect(screen.getByText('Bob')).toBeInTheDocument();
   });
 
+  it('counts completed bookings as filled coverage and lists volunteers', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-15T12:00:00Z'));
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        name: 'Greeter',
+        category_name: 'Front',
+        max_volunteers: 2,
+        shifts: [{ id: 1, start_time: '08:00', end_time: '12:00' }],
+      },
+    ]);
+    (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([
+      { status: 'approved', date: '2024-01-15', volunteer_name: 'Alice' },
+      { status: 'completed', date: '2024-01-15', volunteer_name: 'Bob' },
+    ]);
+
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    render(<VolunteerCoverageCard />);
+
+    await screen.findByText('Greeter 8:00 AM–12:00 PM (Front)');
+    expect(await screen.findByText('2/2')).toBeInTheDocument();
+
+    await user.click(screen.getByText('Greeter 8:00 AM–12:00 PM (Front)'));
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    expect(screen.getByText('Alice')).toBeInTheDocument();
+    expect(screen.getByText('Bob')).toBeInTheDocument();
+  });
+
   it('shows coverage per shift', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2024-01-15T12:00:00Z'));
     (getVolunteerRoles as jest.Mock).mockResolvedValue([

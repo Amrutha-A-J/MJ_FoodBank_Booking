@@ -76,7 +76,7 @@ export default function VolunteerCoverageCard({
               const bookings = await getVolunteerBookingsByRole(s.id);
               const todayBookings = bookings.filter(
                 (b: any) =>
-                  b.status === 'approved' &&
+                  (b.status === 'approved' || b.status === 'completed') &&
                   formatReginaDate(toDate(b.date)) === todayStr,
               );
               const volunteers = todayBookings
