@@ -16,15 +16,14 @@ jest.mock('../../../src/utils/emailUtils', () => ({
     appleCalendarLink: 'apple-link',
     icsContent: 'BEGIN:VCALENDAR',
   }),
-  saveIcsFile: jest.fn().mockReturnValue('cancel-ics-link'),
 }));
 
-jest.mock('../../../src/utils/emailQueue', () => ({
-  enqueueEmail: jest.fn(),
-}));
-
-jest.mock('../../../src/utils/calendarLinks', () => ({
-  buildIcsFile: jest.fn().mockReturnValue('CANCEL_ICS_CONTENT'),
+jest.mock('../../../src/utils/bookingEmailHelpers', () => ({
+  sendBookingEmail: jest.fn().mockReturnValue({
+    googleCalendarLink: 'google-link',
+    appleCalendarLink: 'apple-link',
+    appleCalendarCancelLink: 'cancel-ics-link',
+  }),
 }));
 
 jest.mock('../../../src/utils/holidayCache', () => ({
@@ -39,14 +38,12 @@ import {
   rescheduleVolunteerBooking,
   cancelVolunteerBookingOccurrence,
 } from '../../../src/controllers/volunteer/volunteerBookingController';
-import { enqueueEmail } from '../../../src/utils/emailQueue';
 import {
   sendTemplatedEmail,
   buildCancelRescheduleLinks,
   buildCalendarLinks,
-  saveIcsFile,
 } from '../../../src/utils/emailUtils';
-import { buildIcsFile } from '../../../src/utils/calendarLinks';
+import { sendBookingEmail } from '../../../src/utils/bookingEmailHelpers';
 import { notifyOps } from '../../../src/utils/opsAlert';
 import logger from '../../../src/utils/logger';
 
@@ -66,12 +63,10 @@ describe('volunteerBookingController', () => {
     poolConnect.mockResolvedValue(client);
     client.query.mockReset();
     client.release.mockReset();
-    (enqueueEmail as jest.Mock).mockClear();
+    (sendBookingEmail as jest.Mock).mockClear();
     (sendTemplatedEmail as jest.Mock).mockClear();
     (buildCancelRescheduleLinks as jest.Mock).mockClear();
     (buildCalendarLinks as jest.Mock).mockClear();
-    (saveIcsFile as jest.Mock).mockClear();
-    (buildIcsFile as jest.Mock).mockClear();
     (notifyOps as jest.Mock).mockClear();
     (sendTemplatedEmail as jest.Mock).mockResolvedValue(undefined);
     randomUUIDMock.mockReset();
@@ -134,22 +129,18 @@ describe('volunteerBookingController', () => {
         googleCalendarUrl: 'google-link',
         icsUrl: 'apple-link',
       });
-      expect(enqueueEmail).toHaveBeenCalledWith(
+      expect(sendBookingEmail).toHaveBeenCalledWith(
         expect.objectContaining({
           to: 'vol@example.com',
           templateId: 0,
           params: expect.objectContaining({
-            cancelLink: 'cancel-link',
-            rescheduleLink: 'reschedule-link',
-            googleCalendarLink: 'google-link',
-            appleCalendarLink: 'apple-link',
+            body: expect.stringContaining('Date:'),
+            type: 'Volunteer Shift',
           }),
-          attachments: [
-            expect.objectContaining({
-              name: 'shift.ics',
-              content: Buffer.from('BEGIN:VCALENDAR', 'utf8').toString('base64'),
-            }),
-          ],
+          calendar: expect.objectContaining({
+            fileName: 'shift.ics',
+            sequence: 0,
+          }),
         }),
       );
       expect(client.query).toHaveBeenNthCalledWith(1, 'BEGIN');
@@ -212,7 +203,7 @@ describe('volunteerBookingController', () => {
       expect(res.json).toHaveBeenCalledWith({ message: 'Role is full' });
       expect(client.query).toHaveBeenNthCalledWith(4, 'ROLLBACK');
       expect(client.release).toHaveBeenCalled();
-      expect(enqueueEmail).not.toHaveBeenCalled();
+      expect(sendBookingEmail).not.toHaveBeenCalled();
     });
 
     it('returns 404 when the volunteer slot cannot be found', async () => {
@@ -331,7 +322,7 @@ describe('volunteerBookingController', () => {
       expect((notifyOps as jest.Mock)).toHaveBeenCalledWith(
         expect.stringContaining('Jordan Nguyen (volunteer) booked'),
       );
-      expect(enqueueEmail).not.toHaveBeenCalled();
+      expect(sendBookingEmail).not.toHaveBeenCalled();
     });
   });
 
@@ -393,22 +384,20 @@ describe('volunteerBookingController', () => {
         'volunteer-booking-42@mjfb',
         1,
       );
-      expect(saveIcsFile).toHaveBeenCalledWith(
-        'volunteer-booking-42@mjfb-cancel.ics',
-        'CANCEL_ICS_CONTENT',
-      );
-      expect(enqueueEmail).toHaveBeenCalledWith(
+      expect(sendBookingEmail).toHaveBeenCalledWith(
         expect.objectContaining({
           to: 'vol@example.com',
-          attachments: [
-            expect.objectContaining({ name: 'shift.ics' }),
-            expect.objectContaining({ name: 'shift-cancel.ics', content: Buffer.from('CANCEL_ICS_CONTENT', 'utf8').toString('base64') }),
-          ],
           params: expect.objectContaining({
-            appleCalendarCancelLink: 'cancel-ics-link',
-            cancelLink: 'cancel-link',
-            rescheduleLink: 'reschedule-link',
             newDate: expect.stringContaining('Jan 7, 2099'),
+            type: 'Volunteer Shift',
+          }),
+          calendar: expect.objectContaining({
+            fileName: 'shift.ics',
+            sequence: 1,
+          }),
+          cancelEvent: expect.objectContaining({
+            fileName: 'shift-cancel.ics',
+            sequence: 1,
           }),
         }),
       );

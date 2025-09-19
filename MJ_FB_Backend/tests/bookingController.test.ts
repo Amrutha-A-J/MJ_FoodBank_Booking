@@ -8,7 +8,7 @@ const holidayDate = formatReginaDate(new Date(Date.now() + 48 * 60 * 60 * 1000))
 
 describe('createBookingForUser', () => {
   let createBookingForUser: any;
-  let enqueueEmail: jest.Mock;
+  let sendBookingEmail: jest.Mock;
   let pool: any;
   let checkSlotCapacity: jest.Mock;
   let insertBooking: jest.Mock;
@@ -20,9 +20,12 @@ describe('createBookingForUser', () => {
   beforeEach(() => {
     jest.resetModules();
     jest.isolateModules(() => {
-      jest.doMock('../src/utils/emailQueue', () => ({
+      jest.doMock('../src/utils/bookingEmailHelpers', () => ({
         __esModule: true,
-        enqueueEmail: jest.fn(),
+        sendBookingEmail: jest.fn().mockReturnValue({
+          googleCalendarLink: '#google',
+          appleCalendarLink: '#apple',
+        }),
       }));
       jest.doMock('../src/utils/bookingUtils', () => ({
         __esModule: true,
@@ -57,7 +60,7 @@ describe('createBookingForUser', () => {
         default: { query: jest.fn(), connect: jest.fn() },
       }));
       createBookingForUser = require('../src/controllers/bookingController').createBookingForUser;
-      enqueueEmail = require('../src/utils/emailQueue').enqueueEmail;
+      sendBookingEmail = require('../src/utils/bookingEmailHelpers').sendBookingEmail;
       pool = require('../src/db').default;
       checkSlotCapacity = require('../src/models/bookingRepository').checkSlotCapacity;
       insertBooking = require('../src/models/bookingRepository').insertBooking;
@@ -104,15 +107,15 @@ describe('createBookingForUser', () => {
 
     await createBookingForUser(req, res, next);
 
-    expect(enqueueEmail).toHaveBeenCalledWith(
+    expect(sendBookingEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'client@example.com',
         templateId: expect.any(Number),
         params: expect.objectContaining({
           body: expect.stringContaining(`${tomorrowWithDay} from 9:00 AM to 9:30 AM`),
-          googleCalendarLink: expect.any(String),
-          appleCalendarLink: expect.any(String),
+          type: 'Shopping Appointment',
         }),
+        calendar: expect.objectContaining({ fileName: 'booking.ics' }),
       }),
     );
   });
@@ -286,12 +289,13 @@ describe('createBookingForUser', () => {
     await createBookingForUser(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(enqueueEmail).toHaveBeenCalledWith(
+    expect(sendBookingEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'client@example.com',
         params: expect.objectContaining({
           body: expect.stringContaining(`${todayWithDay} from 1:00 PM to 1:30 PM`),
         }),
+        calendar: expect.objectContaining({ fileName: 'booking.ics' }),
       }),
     );
   });

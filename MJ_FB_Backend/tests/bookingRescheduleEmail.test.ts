@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { rescheduleBooking } from '../src/controllers/bookingController';
-import { enqueueEmail } from '../src/utils/emailQueue';
+import { sendBookingEmail } from '../src/utils/bookingEmailHelpers';
 import pool from '../src/db';
 import {
   fetchBookingByToken,
@@ -13,8 +13,12 @@ import {
 } from '../src/utils/bookingUtils';
 import { notifyOps } from '../src/utils/opsAlert';
 
-jest.mock('../src/utils/emailQueue', () => ({
-  enqueueEmail: jest.fn(),
+jest.mock('../src/utils/bookingEmailHelpers', () => ({
+  sendBookingEmail: jest.fn().mockReturnValue({
+    googleCalendarLink: '#google',
+    appleCalendarLink: '#apple',
+    appleCalendarCancelLink: '#cancel',
+  }),
 }));
 jest.mock('../src/utils/emailUtils', () => ({
   buildCancelRescheduleLinks: () => ({ cancelLink: '#cancel', rescheduleLink: '#resched' }),
@@ -39,7 +43,7 @@ jest.mock('../src/db', () => ({
   default: { query: jest.fn(), connect: jest.fn() },
 }));
 
-const enqueueEmailMock = enqueueEmail as jest.Mock;
+const enqueueEmailMock = sendBookingEmail as jest.Mock;
 const fetchBookingByTokenMock = fetchBookingByToken as jest.Mock;
 const updateBookingMock = updateBooking as jest.Mock;
 const poolQueryMock = (pool as any).query as jest.Mock;
@@ -80,12 +84,22 @@ describe('rescheduleBooking', () => {
 
     expect(updateBookingMock).toHaveBeenCalled();
     expect(enqueueEmailMock).toHaveBeenCalledTimes(1);
-    expect(enqueueEmailMock.mock.calls[0][0].to).toBe('client@example.com');
-    const params = enqueueEmailMock.mock.calls[0][0].params;
-    expect(params.oldDate).toBe('Wed, Jan 1, 2025');
-    expect(params.oldTime).toBe('9:00 AM to 10:00 AM');
-    expect(params.newDate).toBe('Sun, Jan 5, 2025');
-    expect(params.newTime).toBe('11:00 AM to 12:00 PM');
+    const call = enqueueEmailMock.mock.calls[0][0];
+    expect(call.to).toBe('client@example.com');
+    expect(call.params).toEqual(
+      expect.objectContaining({
+        oldDate: 'Wed, Jan 1, 2025',
+        oldTime: '9:00 AM to 10:00 AM',
+        newDate: 'Sun, Jan 5, 2025',
+        newTime: '11:00 AM to 12:00 PM',
+      }),
+    );
+    expect(call.calendar).toEqual(
+      expect.objectContaining({ fileName: 'booking.ics', sequence: 1 }),
+    );
+    expect(call.cancelEvent).toEqual(
+      expect.objectContaining({ fileName: 'booking-cancel.ics', sequence: 1 }),
+    );
     expect(notifyOps).toHaveBeenCalled();
   });
 
