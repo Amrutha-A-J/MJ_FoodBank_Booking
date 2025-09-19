@@ -1379,10 +1379,20 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               />
             <ul style={{ listStyle: 'none', paddingLeft: 0, maxHeight: '150px', overflowY: 'auto' }}>
               {assignResults.map(v => (
-                <li key={v.id} style={{ marginBottom: 4 }}>
-                  {v.name}
+                <li
+                  key={v.id}
+                  style={{
+                    marginBottom: 4,
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 8,
+                  }}
+                >
+                  <span style={{ flexGrow: 1, minWidth: 0, wordBreak: 'break-word' }}>
+                    {v.name}
+                  </span>
                   <Button
-                    style={{ marginLeft: 4 }}
+                    style={{ marginLeft: 'auto', flexShrink: 0 }}
                     onClick={() => assignVolunteer(v)}
                     variant="outlined"
                     color="primary"
