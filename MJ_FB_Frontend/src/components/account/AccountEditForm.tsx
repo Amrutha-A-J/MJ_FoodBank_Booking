@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   DialogContent,
   DialogActions,
   Stack,
   Typography,
-  Chip,
   Tooltip,
   FormControl,
   FormControlLabel,
@@ -13,10 +12,10 @@ import {
   TextField,
   Button,
 } from '@mui/material';
-import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
-import PasswordField from '../../../components/PasswordField';
+import type { ButtonProps } from '@mui/material/Button';
+import PasswordField from '../PasswordField';
 
-export interface EditClientFormData {
+export interface AccountEditFormData {
   firstName: string;
   lastName: string;
   email: string;
@@ -26,22 +25,44 @@ export interface EditClientFormData {
   hasPassword: boolean;
 }
 
-interface Props {
+interface AccountEditFormProps {
   open: boolean;
-  initialData: EditClientFormData;
-  onSave: (data: EditClientFormData) => Promise<boolean> | boolean;
-  onSendReset?: (data: EditClientFormData) => void | Promise<void>;
+  initialData: AccountEditFormData;
+  onSave: (data: AccountEditFormData) => Promise<boolean> | boolean;
+  onSecondaryAction?: (data: AccountEditFormData) => void | Promise<void>;
+  primaryActionLabel?: string;
+  secondaryActionLabel?: string;
+  onlineAccessLabel?: string;
+  onlineAccessHelperText?: string;
+  existingPasswordTooltip?: string;
+  passwordLabel?: string;
   showOnlineAccessToggle?: boolean;
+  titleAdornment?: (data: AccountEditFormData) => ReactNode;
+  primaryActionTestId?: string;
+  secondaryActionTestId?: string;
+  passwordFieldTestId?: string;
+  secondaryActionVariant?: ButtonProps['variant'];
 }
 
-export default function EditClientForm({
+export default function AccountEditForm({
   open,
   initialData,
   onSave,
-  onSendReset,
+  onSecondaryAction,
+  primaryActionLabel = 'Save',
+  secondaryActionLabel,
+  onlineAccessLabel = 'Online Access',
+  onlineAccessHelperText = 'Allow this user to sign in online.',
+  existingPasswordTooltip = 'This user already has a password',
+  passwordLabel = 'Password',
   showOnlineAccessToggle = true,
-}: Props) {
-  const [form, setForm] = useState<EditClientFormData>(initialData);
+  titleAdornment,
+  primaryActionTestId = 'save-button',
+  secondaryActionTestId = 'secondary-action-button',
+  passwordFieldTestId = 'password-input',
+  secondaryActionVariant = 'outlined',
+}: AccountEditFormProps) {
+  const [form, setForm] = useState<AccountEditFormData>(initialData);
 
   useEffect(() => {
     if (open) {
@@ -49,36 +70,31 @@ export default function EditClientForm({
     }
   }, [open, initialData]);
 
-  function updateForm<K extends keyof EditClientFormData>(
+  function updateForm<K extends keyof AccountEditFormData>(
     key: K,
-    value: EditClientFormData[K],
+    value: AccountEditFormData[K],
   ) {
     setForm(prev => ({ ...prev, [key]: value }));
   }
+
+  const title = `${form.firstName} ${form.lastName}`.trim();
 
   return (
     <>
       <DialogContent>
         <Stack spacing={2} mt={1}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Typography variant="h6">
-              {form.firstName} {form.lastName}
-            </Typography>
-            {form.hasPassword && (
-              <Chip
-                color="success"
-                icon={<CheckCircleOutline />}
-                label="Online account"
-                data-testid="online-badge"
-              />
-            )}
-          </Stack>
+          {(title || titleAdornment) && (
+            <Stack direction="row" spacing={1} alignItems="center">
+              {title && <Typography variant="h6">{title}</Typography>}
+              {titleAdornment?.(form)}
+            </Stack>
+          )}
 
           <Stack spacing={2}>
             <Typography variant="subtitle1">Account</Typography>
             {showOnlineAccessToggle && (
               <Tooltip
-                title="Client already has a password"
+                title={existingPasswordTooltip}
                 disableHoverListener={!form.hasPassword}
               >
                 <span>
@@ -94,11 +110,9 @@ export default function EditClientForm({
                           data-testid="online-access-toggle"
                         />
                       }
-                      label="Online Access"
+                      label={onlineAccessLabel}
                     />
-                    <FormHelperText>
-                      Allow the client to sign in online.
-                    </FormHelperText>
+                    <FormHelperText>{onlineAccessHelperText}</FormHelperText>
                   </FormControl>
                 </span>
               </Tooltip>
@@ -106,10 +120,10 @@ export default function EditClientForm({
             {form.onlineAccess && !form.hasPassword && (
               <PasswordField
                 fullWidth
-                label="Password"
+                label={passwordLabel}
                 value={form.password}
                 onChange={e => updateForm('password', e.target.value)}
-                inputProps={{ 'data-testid': 'password-input' }}
+                inputProps={{ 'data-testid': passwordFieldTestId }}
               />
             )}
           </Stack>
@@ -150,14 +164,14 @@ export default function EditClientForm({
         </Stack>
       </DialogContent>
       <DialogActions>
-        {form.onlineAccess && (
+        {form.onlineAccess && onSecondaryAction && secondaryActionLabel && (
           <Button
-            variant="outlined"
+            variant={secondaryActionVariant}
             color="primary"
-            onClick={() => onSendReset?.(form)}
-            data-testid="send-reset-button"
+            onClick={() => onSecondaryAction(form)}
+            data-testid={secondaryActionTestId}
           >
-            Send password reset link
+            {secondaryActionLabel}
           </Button>
         )}
         <Button
@@ -165,12 +179,11 @@ export default function EditClientForm({
           color="primary"
           onClick={() => onSave(form)}
           disabled={!form.firstName || !form.lastName}
-          data-testid="save-button"
+          data-testid={primaryActionTestId}
         >
-          Save
+          {primaryActionLabel}
         </Button>
       </DialogActions>
     </>
   );
 }
-

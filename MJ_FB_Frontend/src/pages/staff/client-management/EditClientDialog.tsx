@@ -1,21 +1,14 @@
 import { useEffect, useState } from 'react';
-import {
-  DialogTitle,
-  FormControlLabel,
-  Switch,
-  Stack,
-  FormHelperText,
-  FormControl,
-  Tooltip,
-} from '@mui/material';
+import { Chip, DialogTitle } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from '../../../components/DialogCloseButton';
 import FormDialog from '../../../components/FormDialog';
 import { getUserByClientId, updateUserInfo, requestPasswordReset } from '../../../api/users';
 import getApiErrorMessage from '../../../utils/getApiErrorMessage';
-import EditClientForm, {
-  type EditClientFormData,
-} from './EditClientForm';
+import AccountEditForm, {
+  type AccountEditFormData,
+} from '../../../components/account/AccountEditForm';
+import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
 
 interface Props {
   open: boolean;
@@ -27,7 +20,7 @@ interface Props {
 
 export async function handleSave(
   clientId: number,
-  data: EditClientFormData,
+  data: AccountEditFormData,
   onClientUpdated: (name: string) => void,
   onUpdated: (message: string, severity: AlertColor) => void,
   onClose: () => void,
@@ -53,7 +46,7 @@ export async function handleSave(
 
 export async function handleSendReset(
   clientId: number,
-  data: EditClientFormData,
+  data: AccountEditFormData,
   onClientUpdated: (name: string) => void,
   onUpdated: (message: string, severity: AlertColor) => void,
   onClose: () => void,
@@ -78,7 +71,7 @@ export default function EditClientDialog({
   onUpdated,
   onClientUpdated,
 }: Props) {
-  const [form, setForm] = useState<EditClientFormData>({
+  const [form, setForm] = useState<AccountEditFormData>({
     firstName: '',
     lastName: '',
     email: '',
@@ -111,40 +104,27 @@ export default function EditClientDialog({
     <FormDialog open={open} onClose={onClose}>
       <DialogCloseButton onClose={onClose} />
       <DialogTitle>Edit Client</DialogTitle>
-      <Stack spacing={2} sx={{ px: 3, pt: 1 }}>
-        <Tooltip
-          title="Client already has a password"
-          disableHoverListener={!form.hasPassword}
-        >
-          <span>
-            <FormControl>
-              <FormControlLabel
-                control={
-                  <Switch
-                    name="online access"
-                    checked={form.onlineAccess}
-                    onChange={e =>
-                      setForm(prev => ({
-                        ...prev,
-                        onlineAccess: e.target.checked,
-                      }))
-                    }
-                    disabled={form.hasPassword}
-                  />
-                }
-                label="Online Access"
-              />
-              <FormHelperText>Allow the client to sign in online.</FormHelperText>
-            </FormControl>
-          </span>
-        </Tooltip>
-      </Stack>
-      <EditClientForm
+      <AccountEditForm
         open={open}
         initialData={form}
         onSave={data => handleSave(clientId, data, onClientUpdated, onUpdated, onClose)}
-        onSendReset={data => handleSendReset(clientId, data, onClientUpdated, onUpdated, onClose)}
-        showOnlineAccessToggle={false}
+        onSecondaryAction={data =>
+          handleSendReset(clientId, data, onClientUpdated, onUpdated, onClose)
+        }
+        secondaryActionLabel="Send password reset link"
+        onlineAccessHelperText="Allow the client to sign in online."
+        existingPasswordTooltip="Client already has a password"
+        secondaryActionTestId="send-reset-button"
+        titleAdornment={data =>
+          data.hasPassword ? (
+            <Chip
+              color="success"
+              icon={<CheckCircleOutline />}
+              label="Online account"
+              data-testid="online-badge"
+            />
+          ) : null
+        }
       />
     </FormDialog>
   );
