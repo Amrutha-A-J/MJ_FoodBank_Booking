@@ -4,19 +4,9 @@ import { addUser } from '../../../api/users';
 import type { UserRole } from '../../../types';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import FeedbackModal from '../../../components/FeedbackModal';
-import {
-  Box,
-  Button,
-  Stack,
-  TextField,
-  MenuItem,
-  Typography,
-  FormControlLabel,
-  Checkbox,
-  ToggleButtonGroup,
-  ToggleButton,
-} from '@mui/material';
-import PasswordField from '../../../components/PasswordField';
+import { Box, Button, Stack, TextField, MenuItem, Typography } from '@mui/material';
+import OnlineAccessControls from '../../../components/OnlineAccessControls';
+import ContactInfoFields from '../../../components/ContactInfoFields';
 
 export default function AddClient() {
   const [searchParams] = useSearchParams();
@@ -86,61 +76,23 @@ export default function AddClient() {
           <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
           <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
           <Stack spacing={2}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={onlineAccess}
-                onChange={e => {
-                  setOnlineAccess(e.target.checked);
-                  if (!e.target.checked) {
-                    setSendPasswordLink(true);
-                    setPassword('');
-                  }
-                }}
-              />
-            }
-            label="Online Access"
+          <OnlineAccessControls
+            onlineAccess={onlineAccess}
+            onOnlineAccessChange={setOnlineAccess}
+            sendPasswordLink={sendPasswordLink}
+            onSendPasswordLinkChange={setSendPasswordLink}
+            password={password}
+            onPasswordChange={setPassword}
           />
-          {onlineAccess && (
-            <>
-              <ToggleButtonGroup
-                
-                value={sendPasswordLink ? 'link' : 'password'}
-                exclusive
-                onChange={(_, v) => v && setSendPasswordLink(v === 'link')}
-              >
-                <ToggleButton value="link">Send link</ToggleButton>
-                <ToggleButton value="password">Set password</ToggleButton>
-              </ToggleButtonGroup>
-              {sendPasswordLink ? (
-                <Typography variant="body2" color="text.secondary">
-                  An email invitation will be sent.
-                </Typography>
-                ) : (
-                <PasswordField
-                  label="Password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  visibilityIconButtonProps={{ 'aria-label': 'Toggle password visibility' }}
-                />
-              )}
-            </>
-          )}
           <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
           <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
           <TextField label="Client ID" value={clientId} onChange={e => setClientId(e.target.value)} />
-          <TextField
-            label={onlineAccess ? 'Email' : 'Email (optional)'}
-            type="email"
-            required={onlineAccess}
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-          />
-          <TextField
-            label="Phone (optional)"
-            type="tel"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
+          <ContactInfoFields
+            onlineAccess={onlineAccess}
+            email={email}
+            onEmailChange={setEmail}
+            phone={phone}
+            onPhoneChange={setPhone}
           />
           <TextField select label="Role" value={role} onChange={e => setRole(e.target.value as UserRole)}>
             <MenuItem value="shopper">Shopper</MenuItem>
