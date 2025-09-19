@@ -163,7 +163,7 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
   const normalizedSelections = normalizeSelections(selections);
 
   const deliverySettings = await getDeliverySettings();
-  const { monthlyOrderLimit } = deliverySettings;
+  const { monthlyOrderLimit, requestEmail } = deliverySettings;
 
   const isClient = req.user.role === 'delivery';
   const isStaff = req.user.role === 'staff' || req.user.role === 'admin';
@@ -208,7 +208,7 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
   const monthlyOrderCount = Number(monthlyOrderCountResult.rows[0]?.count ?? 0);
   if (monthlyOrderCount >= monthlyOrderLimit) {
     return res.status(400).json({
-      message: `You have already used the food bank ${monthlyOrderCount} times this month, please request again next month`,
+      message: `You have already used the food bank ${monthlyOrderCount} times this month, which is the limit of ${monthlyOrderLimit}. Please request again next month`,
     });
   }
 
@@ -340,7 +340,7 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
 
   try {
     await sendTemplatedEmail({
-      to: deliverySettings.requestEmail,
+      to: requestEmail,
       templateId: config.deliveryRequestTemplateId,
       params: {
         orderId: order.id,
