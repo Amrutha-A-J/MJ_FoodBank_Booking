@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
 export interface PigPound {
   id: number;
@@ -12,19 +12,17 @@ export async function getPigPounds(date: string): Promise<PigPound[]> {
 }
 
 export async function createPigPound(data: { date: string; weight: number }): Promise<PigPound> {
-  const res = await apiFetch(`${API_BASE}/pig-pounds`, {
+  const res = await jsonApiFetch(`${API_BASE}/pig-pounds`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }
 
 export async function updatePigPound(id: number, data: { date: string; weight: number }): Promise<PigPound> {
-  const res = await apiFetch(`${API_BASE}/pig-pounds/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/pig-pounds/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }

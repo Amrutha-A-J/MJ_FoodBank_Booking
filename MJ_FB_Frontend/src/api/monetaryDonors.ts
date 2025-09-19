@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
 export interface MonetaryDonor {
   id: number;
@@ -49,10 +49,9 @@ export async function getMonetaryDonors(
 export async function createMonetaryDonor(
   data: Pick<MonetaryDonor, 'firstName' | 'lastName' | 'email'>,
 ): Promise<MonetaryDonor> {
-  const res = await apiFetch(`${API_BASE}/monetary-donors`, {
+  const res = await jsonApiFetch(`${API_BASE}/monetary-donors`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }
@@ -61,10 +60,9 @@ export async function updateMonetaryDonor(
   id: number,
   data: Pick<MonetaryDonor, 'firstName' | 'lastName' | 'email'>,
 ): Promise<MonetaryDonor> {
-  const res = await apiFetch(`${API_BASE}/monetary-donors/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/monetary-donors/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }
@@ -105,12 +103,11 @@ export async function createMonetaryDonation(
   donorId: number,
   data: Pick<MonetaryDonation, 'amount' | 'date'>,
 ): Promise<MonetaryDonation> {
-  const res = await apiFetch(
+  const res = await jsonApiFetch(
     `${API_BASE}/monetary-donors/${donorId}/donations`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: data,
     },
   );
   return handleResponse(res);
@@ -120,12 +117,11 @@ export async function updateMonetaryDonation(
   donationId: number,
   data: Pick<MonetaryDonation, 'donorId' | 'amount' | 'date'>,
 ): Promise<MonetaryDonation> {
-  const res = await apiFetch(
+  const res = await jsonApiFetch(
     `${API_BASE}/monetary-donors/donations/${donationId}`,
     {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: data,
     },
   );
   return handleResponse(res);
@@ -162,10 +158,9 @@ export async function sendMailListEmails({
   year,
   month,
 }: SendMailListParams): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/monetary-donors/mail-lists/send`, {
+  const res = await jsonApiFetch(`${API_BASE}/monetary-donors/mail-lists/send`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ year, month }),
+    body: { year, month },
   });
   await handleResponse(res);
 }
@@ -174,10 +169,9 @@ export async function sendTestMailListEmails({
   year,
   month,
 }: SendMailListParams): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/monetary-donors/mail-lists/test`, {
+  const res = await jsonApiFetch(`${API_BASE}/monetary-donors/mail-lists/test`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ year, month }),
+    body: { year, month },
   });
   await handleResponse(res);
 }
@@ -188,10 +182,9 @@ export async function getDonorTestEmails(): Promise<DonorTestEmail[]> {
 }
 
 export async function createDonorTestEmail(email: string): Promise<DonorTestEmail> {
-  const res = await apiFetch(`${API_BASE}/monetary-donors/test-emails`, {
+  const res = await jsonApiFetch(`${API_BASE}/monetary-donors/test-emails`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
+    body: { email },
   });
   return handleResponse(res);
 }
@@ -200,10 +193,9 @@ export async function updateDonorTestEmail(
   id: number,
   email: string,
 ): Promise<DonorTestEmail> {
-  const res = await apiFetch(`${API_BASE}/monetary-donors/test-emails/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/monetary-donors/test-emails/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
+    body: { email },
   });
   return handleResponse(res);
 }

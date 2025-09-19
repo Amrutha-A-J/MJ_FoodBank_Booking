@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
 export interface WarehouseOverall {
   month: number;
@@ -33,10 +33,9 @@ export interface ManualWarehouseOverall {
 }
 
 export async function postManualWarehouseOverall(data: ManualWarehouseOverall): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/warehouse-overall/manual`, {
+  const res = await jsonApiFetch(`${API_BASE}/warehouse-overall/manual`, {
     method: 'POST',
-    body: JSON.stringify(data),
-    headers: { 'Content-Type': 'application/json' },
+    body: data,
   });
   await handleResponse(res);
 }

@@ -1,15 +1,17 @@
-import { apiFetch, handleResponse } from '../api/client';
+import { apiFetch, handleResponse, jsonApiFetch } from '../api/client';
 import { updateDonor } from '../api/donors';
 
 jest.mock('../api/client', () => ({
   API_BASE: '/api/v1',
   apiFetch: jest.fn(),
+  jsonApiFetch: jest.fn(),
   handleResponse: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('donors api', () => {
   beforeEach(() => {
     (apiFetch as jest.Mock).mockResolvedValue(new Response(null));
+    (jsonApiFetch as jest.Mock).mockResolvedValue(new Response(null));
     jest.clearAllMocks();
   });
 
@@ -21,17 +23,16 @@ describe('donors api', () => {
       phone: '306-555-0100',
     });
 
-    expect(apiFetch).toHaveBeenCalledWith(
+    expect(jsonApiFetch).toHaveBeenCalledWith(
       '/api/v1/donors/7',
       expect.objectContaining({
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           firstName: 'Alice',
           lastName: 'Helper',
           email: 'alice@example.com',
           phone: '306-555-0100',
-        }),
+        },
       }),
     );
     expect(handleResponse).toHaveBeenCalled();

@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
 export interface Maintenance {
   maintenanceMode: boolean;
@@ -21,10 +21,9 @@ export async function getMaintenanceSettings(): Promise<MaintenanceSettings> {
 }
 
 export async function updateMaintenance(settings: Maintenance): Promise<Maintenance> {
-  const res = await apiFetch(`${API_BASE}/maintenance`, {
+  const res = await jsonApiFetch(`${API_BASE}/maintenance`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(settings),
+    body: settings,
   });
   return handleResponse(res);
 }
@@ -32,10 +31,9 @@ export async function updateMaintenance(settings: Maintenance): Promise<Maintena
 export async function updateMaintenanceSettings(
   settings: MaintenanceSettings,
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/maintenance/settings`, {
+  const res = await jsonApiFetch(`${API_BASE}/maintenance/settings`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(settings),
+    body: settings,
   });
   await handleResponse(res);
 }

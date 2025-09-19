@@ -1,4 +1,4 @@
-import { apiFetch } from '../client';
+import { apiFetch, jsonApiFetch } from '../client';
 import {
   listTimesheets,
   listAllTimesheets,
@@ -12,12 +12,14 @@ import {
 jest.mock('../client', () => ({
   API_BASE: 'http://localhost/api/v1',
   apiFetch: jest.fn(),
+  jsonApiFetch: jest.fn(),
   handleResponse: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('timesheets api', () => {
   beforeEach(() => {
     (apiFetch as jest.Mock).mockResolvedValue(new Response(null));
+    (jsonApiFetch as jest.Mock).mockResolvedValue(new Response(null));
     jest.clearAllMocks();
   });
 
@@ -52,17 +54,17 @@ describe('timesheets api', () => {
       sickHours: 0,
       vacHours: 0,
     });
-    expect(apiFetch).toHaveBeenCalledWith(
+    expect(jsonApiFetch).toHaveBeenCalledWith(
       'http://localhost/api/v1/timesheets/3/days/2024-01-02',
       expect.objectContaining({
         method: 'PATCH',
-        body: JSON.stringify({
+        body: {
           regHours: 7.5,
           otHours: 0,
           statHours: 0,
           sickHours: 0,
           vacHours: 0,
-        }),
+        },
       }),
     );
   });

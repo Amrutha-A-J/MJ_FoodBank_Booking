@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, handleResponse } from './client';
+import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
 export interface OutgoingDonation {
   id: number;
@@ -15,19 +15,17 @@ export async function getOutgoingDonations(date: string): Promise<OutgoingDonati
 }
 
 export async function createOutgoingDonation(data: { date: string; receiverId: number; weight: number; note?: string }): Promise<OutgoingDonation> {
-  const res = await apiFetch(`${API_BASE}/outgoing-donations`, {
+  const res = await jsonApiFetch(`${API_BASE}/outgoing-donations`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }
 
 export async function updateOutgoingDonation(id: number, data: { date: string; receiverId: number; weight: number; note?: string }): Promise<OutgoingDonation> {
-  const res = await apiFetch(`${API_BASE}/outgoing-donations/${id}`, {
+  const res = await jsonApiFetch(`${API_BASE}/outgoing-donations/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: data,
   });
   return handleResponse(res);
 }
