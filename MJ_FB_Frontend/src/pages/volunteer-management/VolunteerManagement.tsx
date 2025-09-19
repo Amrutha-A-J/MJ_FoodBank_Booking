@@ -1377,34 +1377,69 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 
                 fullWidth
               />
-            <ul style={{ listStyle: 'none', paddingLeft: 0, maxHeight: '150px', overflowY: 'auto' }}>
+            <Box
+              component="ul"
+              sx={{
+                listStyle: 'none',
+                pl: 0,
+                maxHeight: 150,
+                overflowY: 'auto',
+                mt: 2,
+              }}
+            >
               {assignResults.map(v => (
-                <li
+                <Box
+                  component="li"
                   key={v.id}
-                  style={{
-                    marginBottom: 4,
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 8,
+                  sx={{
+                    mb: 0.5,
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto',
+                    columnGap: 1,
+                    alignItems: 'center',
                   }}
                 >
-                  <span style={{ flexGrow: 1, minWidth: 0, wordBreak: 'break-word' }}>
-                    {v.name}
-                  </span>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 500,
+                        whiteSpace: 'normal',
+                        overflowWrap: 'anywhere',
+                      }}
+                    >
+                      {v.name}
+                    </Typography>
+                    {(v.email || v.phone) && (
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          display: 'block',
+                          whiteSpace: 'normal',
+                          overflowWrap: 'anywhere',
+                        }}
+                      >
+                        {[v.email, v.phone].filter(Boolean).join(' · ')}
+                      </Typography>
+                    )}
+                  </Box>
                   <Button
-                    style={{ marginLeft: 'auto', flexShrink: 0 }}
+                    sx={{ ml: 1, flexShrink: 0 }}
                     onClick={() => assignVolunteer(v)}
                     variant="outlined"
                     color="primary"
                   >
                     Assign
                   </Button>
-                </li>
+                </Box>
               ))}
               {assignSearch.length >= 3 && assignResults.length === 0 && (
-                <li>No search results.</li>
+                <Box component="li" sx={{ mb: 0.5 }}>
+                  <Typography variant="body2">No search results.</Typography>
+                </Box>
               )}
-            </ul>
+            </Box>
             <Button
               onClick={() => {
                 setAssignSlot(null);
