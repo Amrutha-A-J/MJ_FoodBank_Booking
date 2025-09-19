@@ -81,12 +81,20 @@ describe('deliveryOrderController', () => {
       expect(mockDb.query).toHaveBeenCalledTimes(2);
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('America/Regina'),
-        [123],
+        expect.stringContaining('created_at >= $2'),
+        [123, expect.any(Date), expect.any(Date)],
+      );
+      const [, firstParams] = (mockDb.query as jest.Mock).mock.calls[0];
+      expect(firstParams[1]).toBeInstanceOf(Date);
+      expect(firstParams[2]).toBeInstanceOf(Date);
+      expect((firstParams[1] as Date).getTime()).toBeLessThan(
+        (firstParams[2] as Date).getTime(),
       );
       const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
       expect(firstQuery).toContain('FROM delivery_orders');
       expect(firstQuery).toContain("status <> 'cancelled'");
+      expect(firstQuery).toContain('created_at >= $2');
+      expect(firstQuery).toContain('created_at < $3');
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM delivery_items'),
@@ -139,12 +147,20 @@ describe('deliveryOrderController', () => {
       expect(mockDb.query).toHaveBeenCalledTimes(2);
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('America/Regina'),
-        [123],
+        expect.stringContaining('created_at >= $2'),
+        [123, expect.any(Date), expect.any(Date)],
+      );
+      const [, firstParams] = (mockDb.query as jest.Mock).mock.calls[0];
+      expect(firstParams[1]).toBeInstanceOf(Date);
+      expect(firstParams[2]).toBeInstanceOf(Date);
+      expect((firstParams[1] as Date).getTime()).toBeLessThan(
+        (firstParams[2] as Date).getTime(),
       );
       const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
       expect(firstQuery).toContain('FROM delivery_orders');
       expect(firstQuery).toContain("status <> 'cancelled'");
+      expect(firstQuery).toContain('created_at >= $2');
+      expect(firstQuery).toContain('created_at < $3');
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM delivery_items'),
@@ -219,12 +235,20 @@ describe('deliveryOrderController', () => {
 
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('America/Regina'),
-        [456],
+        expect.stringContaining('created_at >= $2'),
+        [456, expect.any(Date), expect.any(Date)],
+      );
+      const [, firstParams] = (mockDb.query as jest.Mock).mock.calls[0];
+      expect(firstParams[1]).toBeInstanceOf(Date);
+      expect(firstParams[2]).toBeInstanceOf(Date);
+      expect((firstParams[1] as Date).getTime()).toBeLessThan(
+        (firstParams[2] as Date).getTime(),
       );
       const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
       expect(firstQuery).toContain('FROM delivery_orders');
       expect(firstQuery).toContain("status <> 'cancelled'");
+      expect(firstQuery).toContain('created_at >= $2');
+      expect(firstQuery).toContain('created_at < $3');
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM clients'),
@@ -351,12 +375,20 @@ describe('deliveryOrderController', () => {
 
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('America/Regina'),
-        [555],
+        expect.stringContaining('created_at >= $2'),
+        [555, expect.any(Date), expect.any(Date)],
+      );
+      const [, firstParams] = (mockDb.query as jest.Mock).mock.calls[0];
+      expect(firstParams[1]).toBeInstanceOf(Date);
+      expect(firstParams[2]).toBeInstanceOf(Date);
+      expect((firstParams[1] as Date).getTime()).toBeLessThan(
+        (firstParams[2] as Date).getTime(),
       );
       const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
       expect(firstQuery).toContain('FROM delivery_orders');
       expect(firstQuery).toContain("status <> 'cancelled'");
+      expect(firstQuery).toContain('created_at >= $2');
+      expect(firstQuery).toContain('created_at < $3');
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM delivery_items'),
@@ -529,12 +561,20 @@ describe('deliveryOrderController', () => {
       });
       expect(mockDb.query).toHaveBeenCalledTimes(1);
       expect(mockDb.query).toHaveBeenCalledWith(
-        expect.stringContaining('America/Regina'),
-        [321],
+        expect.stringContaining('created_at >= $2'),
+        [321, expect.any(Date), expect.any(Date)],
+      );
+      const [, firstParams] = (mockDb.query as jest.Mock).mock.calls[0];
+      expect(firstParams[1]).toBeInstanceOf(Date);
+      expect(firstParams[2]).toBeInstanceOf(Date);
+      expect((firstParams[1] as Date).getTime()).toBeLessThan(
+        (firstParams[2] as Date).getTime(),
       );
       const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
       expect(firstQuery).toContain('FROM delivery_orders');
       expect(firstQuery).toContain("status <> 'cancelled'");
+      expect(firstQuery).toContain('created_at >= $2');
+      expect(firstQuery).toContain('created_at < $3');
       expect(sendTemplatedEmail).not.toHaveBeenCalled();
     });
   });
