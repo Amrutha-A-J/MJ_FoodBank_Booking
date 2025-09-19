@@ -156,14 +156,17 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       }
 
       if (!foundAccount) {
-        return res.status(404).json({ message: 'Account not found' });
+        return res.status(404).json({
+          message:
+            "Hmm... you don't seem to have an account with us. Please contact hearvestpantry@mjfoodbank.org to have one created.",
+        });
       }
 
       if (pendingSetup && !invalidCredentials) {
         return res.status(410).json({ message: 'Password setup link expired' });
       }
 
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Password is incorrect.' });
     }
 
     if (clientId) {
@@ -172,7 +175,10 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         [clientId],
       );
       if ((userQuery.rowCount ?? 0) === 0) {
-        return res.status(401).json({ message: 'Invalid credentials' });
+        return res.status(404).json({
+          message:
+            "Hmm... you don't seem to have an account with us. Please contact hearvestpantry@mjfoodbank.org to have one created.",
+        });
       }
       const userRow = userQuery.rows[0];
       if (!userRow.password) {
@@ -180,7 +186,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       }
       const match = await bcrypt.compare(password, userRow.password);
       if (!match) {
-        return res.status(401).json({ message: 'Invalid credentials' });
+        return res.status(401).json({ message: 'Password is incorrect.' });
       }
       if (maintenanceMode) {
         return res
