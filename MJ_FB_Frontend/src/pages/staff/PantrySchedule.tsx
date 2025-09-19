@@ -481,36 +481,54 @@ export default function PantrySchedule({
                   disableGutters
                   sx={{
                     mb: 0.5,
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 1,
+                    px: 0,
                   }}
                 >
-                  <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontWeight: 500, wordBreak: "break-word" }}
-                    >
-                      {u.name} ({u.client_id})
-                    </Typography>
-                    {(u.email || u.phone) && (
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ display: "block", wordBreak: "break-word" }}
-                      >
-                        {[u.email, u.phone].filter(Boolean).join(" · ")}
-                      </Typography>
-                    )}
-                  </Box>
-                  <Button
-                    onClick={() => assignExistingUser(u)}
-                    variant="outlined"
-                    color="primary"
-                    sx={{ flexShrink: 0 }}
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr auto",
+                      columnGap: 1,
+                      alignItems: "center",
+                      width: "100%",
+                    }}
                   >
-                    Assign
-                  </Button>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 500,
+                          wordBreak: "break-word",
+                          whiteSpace: "normal",
+                          overflowWrap: "anywhere",
+                        }}
+                      >
+                        {u.name} ({u.client_id})
+                      </Typography>
+                      {(u.email || u.phone) && (
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            display: "block",
+                            wordBreak: "break-word",
+                            whiteSpace: "normal",
+                            overflowWrap: "anywhere",
+                          }}
+                        >
+                          {[u.email, u.phone].filter(Boolean).join(" · ")}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Button
+                      onClick={() => assignExistingUser(u)}
+                      variant="outlined"
+                      color="primary"
+                      sx={{ flexShrink: 0, alignSelf: "center" }}
+                    >
+                      Assign
+                    </Button>
+                  </Box>
                 </ListItem>
               ))}
               {searchTerm.length >= 3 && userResults.length === 0 && (
