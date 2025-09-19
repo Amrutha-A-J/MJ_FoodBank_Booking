@@ -524,7 +524,11 @@ export default function PantrySchedule({
                       onClick={() => assignExistingUser(u)}
                       variant="outlined"
                       color="primary"
-                      sx={{ flexShrink: 0, alignSelf: "center" }}
+                      sx={{
+                        flexShrink: 0,
+                        alignSelf: "center",
+                        justifySelf: "end",
+                      }}
                     >
                       Assign
                     </Button>
