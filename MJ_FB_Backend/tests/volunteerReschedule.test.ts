@@ -4,11 +4,15 @@ import request from 'supertest';
 import express from 'express';
 import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
-import { enqueueEmail } from '../src/utils/emailQueue';
+import { sendBookingEmail } from '../src/utils/bookingEmailHelpers';
 import { notifyOps } from '../src/utils/opsAlert';
 
-jest.mock('../src/utils/emailQueue', () => ({
-  enqueueEmail: jest.fn(),
+jest.mock('../src/utils/bookingEmailHelpers', () => ({
+  sendBookingEmail: jest.fn().mockReturnValue({
+    googleCalendarLink: '#g',
+    appleCalendarLink: '#a',
+    appleCalendarCancelLink: '#',
+  }),
 }));
 
 afterAll(() => {
@@ -24,7 +28,7 @@ jest.mock('../src/utils/emailUtils', () => ({
   }),
   saveIcsFile: () => '#',
 }));
-const enqueueEmailMock = enqueueEmail as jest.Mock;
+const enqueueEmailMock = sendBookingEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
@@ -65,15 +69,22 @@ describe('rescheduleVolunteerBooking', () => {
 
     expect(res.status).toBe(200);
     expect(enqueueEmailMock).toHaveBeenCalledTimes(1);
-    expect(enqueueEmailMock.mock.calls[0][0].to).toBe('vol@example.com');
-    const params = enqueueEmailMock.mock.calls[0][0].params;
-    expect(params.oldDate).toBe('Sun, Sep 1, 2030');
-      expect(params.oldTime).toBe('8:00 AM to 9:00 AM');
-    expect(params.newDate).toBe('Thu, Sep 5, 2030');
-    expect(params.newTime).toBe('9:00 AM to 12:00 PM');
-    expect(params.googleCalendarLink).toBe('#g');
-    expect(params.appleCalendarLink).toBe('#a');
-    expect(params.appleCalendarCancelLink).toBe('#');
+    const call = enqueueEmailMock.mock.calls[0][0];
+    expect(call.to).toBe('vol@example.com');
+    expect(call.params).toEqual(
+      expect.objectContaining({
+        oldDate: 'Sun, Sep 1, 2030',
+        oldTime: '8:00 AM to 9:00 AM',
+        newDate: 'Thu, Sep 5, 2030',
+        newTime: '9:00 AM to 12:00 PM',
+      }),
+    );
+    expect(call.calendar).toEqual(
+      expect.objectContaining({ fileName: 'shift.ics', sequence: 1 }),
+    );
+    expect(call.cancelEvent).toEqual(
+      expect.objectContaining({ fileName: 'shift-cancel.ics', sequence: 1 }),
+    );
     expect(notifyOps).toHaveBeenCalled();
   });
 });

@@ -16,13 +16,8 @@ import {
   LIMIT_MESSAGE,
   findUpcomingBooking,
 } from '../utils/bookingUtils';
-import { enqueueEmail } from '../utils/emailQueue';
-import {
-  buildCancelRescheduleLinks,
-  buildCalendarLinks,
-  saveIcsFile,
-} from '../utils/emailUtils';
-import { buildIcsFile } from '../utils/calendarLinks';
+import { buildCalendarLinks } from '../utils/emailUtils';
+import { sendBookingEmail } from '../utils/bookingEmailHelpers';
 import logger from '../utils/logger';
 import { isHoliday } from '../utils/holidayCache';
 import { parseIdParam } from '../utils/parseIdParam';
@@ -275,26 +270,27 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     const formattedDate = formatReginaDateWithDay(date);
     const body = `Date: ${formattedDate}${time}`;
     if (user.email) {
-      const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
-      const attachments = [
-        {
-          name: 'booking.ics',
-          content: Buffer.from(icsContent, 'utf8').toString('base64'),
-          type: 'text/calendar',
-        },
-      ];
-      enqueueEmail({
+      sendBookingEmail({
         to: user.email,
         templateId: config.bookingConfirmationTemplateId,
+        token,
         params: {
           body,
-          cancelLink,
-          rescheduleLink,
-          googleCalendarLink,
-          appleCalendarLink,
           type: emailType,
         },
-        attachments,
+        calendar: {
+          uid,
+          date,
+          startTime: start_time,
+          endTime: end_time,
+          sequence: 0,
+          fileName: 'booking.ics',
+        },
+        calendarLinks: {
+          googleCalendarLink,
+          appleCalendarLink,
+          icsContent,
+        },
       });
     } else {
       logger.warn(
@@ -697,68 +693,54 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     const { email, name: nameRes, first_name, last_name } = emailRes.rows[0] || {};
     const name =
       nameRes || (first_name && last_name ? `${first_name} ${last_name}` : 'Client');
+    const oldSlot = oldSlotRes.rows[0];
+    const newSlot = newSlotRes.rows[0];
     if (email) {
-      const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(newToken);
-      const oldTime = oldSlotRes.rows[0]
-        ? `${formatTimeToAmPm(oldSlotRes.rows[0].start_time)} to ${formatTimeToAmPm(oldSlotRes.rows[0].end_time)}`
+      const oldTime = oldSlot
+        ? `${formatTimeToAmPm(oldSlot.start_time)} to ${formatTimeToAmPm(oldSlot.end_time)}`
         : '';
-      const newTime = newSlotRes.rows[0]
-        ? `${formatTimeToAmPm(newSlotRes.rows[0].start_time)} to ${formatTimeToAmPm(newSlotRes.rows[0].end_time)}`
+      const newTime = newSlot
+        ? `${formatTimeToAmPm(newSlot.start_time)} to ${formatTimeToAmPm(newSlot.end_time)}`
         : '';
       const uid = `booking-${booking.id}@mjfb`;
-      const {
-        googleCalendarLink,
-        appleCalendarLink,
-        icsContent,
-      } = buildCalendarLinks(
+      const links = buildCalendarLinks(
         date,
-        newSlotRes.rows[0]?.start_time,
-        newSlotRes.rows[0]?.end_time,
+        newSlot?.start_time,
+        newSlot?.end_time,
         uid,
         1,
       );
-      const cancelIcs = buildIcsFile({
-        title: 'Harvest Pantry Booking',
-        start: `${booking.date}T${oldSlotRes.rows[0].start_time}-06:00`,
-        end: `${booking.date}T${oldSlotRes.rows[0].end_time}-06:00`,
-        description: 'Your booking at the Harvest Pantry',
-        location: 'Moose Jaw Food Bank',
-        uid,
-        method: 'CANCEL',
-        sequence: 1,
-      });
-      const cancelBase64 = Buffer.from(cancelIcs, 'utf8').toString('base64');
-      const cancelFileName = `${uid}-cancel.ics`;
-      const appleCalendarCancelLink = saveIcsFile(cancelFileName, cancelIcs);
-      const attachments = [
-        {
-          name: 'booking.ics',
-          content: Buffer.from(icsContent, 'utf8').toString('base64'),
-          type: 'text/calendar',
-        },
-        {
-          name: 'booking-cancel.ics',
-          content: cancelBase64,
-          type: 'text/calendar',
-        },
-      ];
-      enqueueEmail({
+      sendBookingEmail({
         to: email,
         templateId:
           config.clientRescheduleTemplateId || config.bookingConfirmationTemplateId,
+        token: newToken,
         params: {
           oldDate: formatReginaDateWithDay(booking.date),
           oldTime,
           newDate: formatReginaDateWithDay(date),
           newTime,
-          cancelLink,
-          rescheduleLink,
-          googleCalendarLink,
-          appleCalendarLink,
-          appleCalendarCancelLink,
           type: emailType,
         },
-        attachments,
+        calendar: {
+          uid,
+          date,
+          startTime: newSlot?.start_time,
+          endTime: newSlot?.end_time,
+          sequence: 1,
+          fileName: 'booking.ics',
+        },
+        calendarLinks: links,
+        cancelEvent:
+          oldSlot?.start_time && oldSlot?.end_time
+            ? {
+                date: booking.date,
+                startTime: oldSlot.start_time,
+                endTime: oldSlot.end_time,
+                sequence: 1,
+                fileName: 'booking-cancel.ics',
+              }
+            : undefined,
       });
     } else {
       logger.warn('Booking %s has no email. Skipping reschedule email.', booking.id);
@@ -1052,37 +1034,30 @@ export async function createBookingForUser(
       }
     }
     if (clientEmail) {
-        const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
-        const {
-          googleCalendarLink,
-          appleCalendarLink,
-          icsContent,
-        } = buildCalendarLinks(date, start_time, end_time, uid, 0);
-        const time =
-          start_time && end_time
-            ? ` from ${formatTimeToAmPm(start_time)} to ${formatTimeToAmPm(end_time)}`
-            : '';
-        const formattedDate = formatReginaDateWithDay(date);
-        const body = `Date: ${formattedDate}${time}`;
-        const attachments = [
-          {
-            name: 'booking.ics',
-            content: Buffer.from(icsContent, 'utf8').toString('base64'),
-            type: 'text/calendar',
-          },
-        ];
-      enqueueEmail({
+      const links = buildCalendarLinks(date, start_time, end_time, uid, 0);
+      const time =
+        start_time && end_time
+          ? ` from ${formatTimeToAmPm(start_time)} to ${formatTimeToAmPm(end_time)}`
+          : '';
+      const formattedDate = formatReginaDateWithDay(date);
+      const body = `Date: ${formattedDate}${time}`;
+      sendBookingEmail({
         to: clientEmail,
         templateId: config.bookingConfirmationTemplateId,
+        token,
         params: {
           body,
-          cancelLink,
-          rescheduleLink,
-          googleCalendarLink,
-          appleCalendarLink,
           type: emailType,
         },
-        attachments,
+        calendar: {
+          uid,
+          date,
+          startTime: start_time,
+          endTime: end_time,
+          sequence: 0,
+          fileName: 'booking.ics',
+        },
+        calendarLinks: links,
       });
     } else {
       logger.warn(

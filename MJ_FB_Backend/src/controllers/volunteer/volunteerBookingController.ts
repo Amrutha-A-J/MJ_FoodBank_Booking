@@ -6,10 +6,8 @@ import {
   sendTemplatedEmail,
   buildCancelRescheduleLinks,
   buildCalendarLinks,
-  saveIcsFile,
 } from '../../utils/emailUtils';
-import { buildIcsFile } from '../../utils/calendarLinks';
-import { enqueueEmail } from '../../utils/emailQueue';
+import { sendBookingEmail } from '../../utils/bookingEmailHelpers';
 import logger from '../../utils/logger';
 import {
   CreateRecurringVolunteerBookingRequest,
@@ -206,9 +204,6 @@ export async function createVolunteerBooking(
       let googleCalendarLink: string | undefined;
       let appleCalendarLink: string | undefined;
       if (user.email) {
-        const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
-          token,
-        );
         const uid = `volunteer-booking-${insertRes.rows[0].id}@mjfb`;
         const links = buildCalendarLinks(
           date,
@@ -217,31 +212,29 @@ export async function createVolunteerBooking(
           uid,
           0,
         );
-        googleCalendarLink = links.googleCalendarLink;
-        appleCalendarLink = links.appleCalendarLink;
         const body = `Date: ${formatReginaDateWithDay(date)} from ${formatTimeToAmPm(
           slot.start_time,
         )} to ${formatTimeToAmPm(slot.end_time)}`;
-        const attachments = [
-          {
-            name: 'shift.ics',
-            content: Buffer.from(links.icsContent, 'utf8').toString('base64'),
-            type: 'text/calendar',
-          },
-        ];
-        enqueueEmail({
+        const result = sendBookingEmail({
           to: user.email,
           templateId: config.volunteerBookingConfirmationTemplateId,
+          token,
           params: {
             body,
-            cancelLink,
-            rescheduleLink,
-            googleCalendarLink,
-            appleCalendarLink,
             type: emailType,
           },
-          attachments,
+          calendar: {
+            uid,
+            date,
+            startTime: slot.start_time,
+            endTime: slot.end_time,
+            sequence: 0,
+            fileName: 'shift.ics',
+          },
+          calendarLinks: links,
         });
+        googleCalendarLink = result.googleCalendarLink;
+        appleCalendarLink = result.appleCalendarLink;
       } else {
         logger.warn(
           'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
@@ -644,35 +637,28 @@ export async function resolveVolunteerBookingConflict(
     );
 
     if (user.email) {
-      const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
       const uid = `volunteer-booking-${insertRes.rows[0].id}@mjfb`;
-      const {
-        googleCalendarLink,
-        appleCalendarLink,
-        icsContent,
-      } = buildCalendarLinks(date!, slot.start_time, slot.end_time, uid, 0);
+      const links = buildCalendarLinks(date!, slot.start_time, slot.end_time, uid, 0);
       const body = `Date: ${formatReginaDateWithDay(date!)} from ${formatTimeToAmPm(
         slot.start_time,
       )} to ${formatTimeToAmPm(slot.end_time)}`;
-      const attachments = [
-        {
-          name: 'shift.ics',
-          content: Buffer.from(icsContent, 'utf8').toString('base64'),
-          type: 'text/calendar',
-        },
-      ];
-      enqueueEmail({
+      sendBookingEmail({
         to: user.email,
         templateId: config.volunteerBookingConfirmationTemplateId,
+        token,
         params: {
           body,
-          cancelLink,
-          rescheduleLink,
-          googleCalendarLink,
-          appleCalendarLink,
           type: emailType,
         },
-        attachments,
+        calendar: {
+          uid,
+          date: date!,
+          startTime: slot.start_time,
+          endTime: slot.end_time,
+          sequence: 0,
+          fileName: 'shift.ics',
+        },
+        calendarLinks: links,
       });
     } else {
       logger.warn(
@@ -1060,63 +1046,51 @@ export async function rescheduleVolunteerBooking(
     const { email, first_name, last_name } = emailRes.rows[0] || {};
     const name = first_name && last_name ? `${first_name} ${last_name}` : 'Volunteer';
     if (email) {
-        const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(newToken);
-        const oldTime = oldSlotRes.rows[0]
-          ? `${formatTimeToAmPm(oldSlotRes.rows[0].start_time)} to ${formatTimeToAmPm(
-              oldSlotRes.rows[0].end_time,
-            )}`
-          : '';
+      const oldSlot = oldSlotRes.rows[0];
+      const oldTime = oldSlot
+        ? `${formatTimeToAmPm(oldSlot.start_time)} to ${formatTimeToAmPm(
+            oldSlot.end_time,
+          )}`
+        : '';
       const uid = `volunteer-booking-${booking.id}@mjfb`;
-      const {
-        googleCalendarLink,
-        appleCalendarLink,
-        icsContent,
-      } = buildCalendarLinks(date, slot.start_time, slot.end_time, uid, 1);
-      const cancelIcs = buildIcsFile({
-        title: 'Volunteer Shift',
-        start: `${booking.date}T${oldSlotRes.rows[0].start_time}-06:00`,
-        end: `${booking.date}T${oldSlotRes.rows[0].end_time}-06:00`,
-        description: 'Your volunteer shift at the Harvest Pantry',
-        location: 'Moose Jaw Food Bank',
-        uid,
-        method: 'CANCEL',
-        sequence: 1,
-      });
-      const cancelBase64 = Buffer.from(cancelIcs, 'utf8').toString('base64');
-      const cancelFileName = `${uid}-cancel.ics`;
-      const appleCalendarCancelLink = saveIcsFile(cancelFileName, cancelIcs);
-      const attachments = [
-        {
-          name: 'shift.ics',
-          content: Buffer.from(icsContent, 'utf8').toString('base64'),
-          type: 'text/calendar',
-        },
-        {
-          name: 'shift-cancel.ics',
-          content: cancelBase64,
-          type: 'text/calendar',
-        },
-      ];
-      enqueueEmail({
+      const links = buildCalendarLinks(date, slot.start_time, slot.end_time, uid, 1);
+      sendBookingEmail({
         to: email,
         templateId:
           config.volunteerRescheduleTemplateId ||
           config.volunteerBookingConfirmationTemplateId,
+        token: newToken,
         params: {
           oldDate: formatReginaDateWithDay(booking.date),
           oldTime,
           newDate: formatReginaDateWithDay(date),
-            newTime: `${formatTimeToAmPm(slot.start_time)} to ${formatTimeToAmPm(
-              slot.end_time,
-            )}`,
-          cancelLink,
-          rescheduleLink,
-          googleCalendarLink,
-          appleCalendarLink,
-          appleCalendarCancelLink,
+          newTime: `${formatTimeToAmPm(slot.start_time)} to ${formatTimeToAmPm(
+            slot.end_time,
+          )}`,
           type: 'Volunteer Shift',
         },
-        attachments,
+        calendar: {
+          uid,
+          date,
+          startTime: slot.start_time,
+          endTime: slot.end_time,
+          sequence: 1,
+          fileName: 'shift.ics',
+        },
+        calendarLinks: links,
+        cancelEvent:
+          oldSlot?.start_time && oldSlot?.end_time
+            ? {
+                date: booking.date,
+                startTime: oldSlot.start_time,
+                endTime: oldSlot.end_time,
+                sequence: 1,
+                fileName: 'shift-cancel.ics',
+                title: 'Volunteer Shift',
+                description: 'Your volunteer shift at the Harvest Pantry',
+                location: 'Moose Jaw Food Bank',
+              }
+            : undefined,
       });
     } else {
       logger.warn(
