@@ -56,12 +56,13 @@ describe('Volunteer group stats', () => {
       monthFamilies: 75,
     });
     const query = (pool.query as jest.Mock).mock.calls[0][0];
+    expect(query).toContain('WITH bounds AS');
     expect(query).toContain('volunteer_bookings');
     expect(query).toContain('client_visits');
     expect(query).toContain('app_config');
     expect(query).toContain("vb.status = 'completed'");
-    expect(query).toContain('weight_without_cart');
-    expect(query).toContain('cart_tare');
+    expect(query).toContain('bounds.month_start');
+    expect(query).toContain('bounds.week_start');
   });
 
   it('returns zeros when no stats are available', async () => {

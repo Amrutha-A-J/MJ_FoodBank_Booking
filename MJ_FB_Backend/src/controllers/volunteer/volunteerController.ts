@@ -104,36 +104,36 @@ export async function getVolunteerStatsById(
       mtd_hours: string;
       mtd_shifts: string;
     }>(
-      `SELECT
+      `WITH bounds AS (
+         SELECT timezone('Canada/Saskatchewan', now())::date AS today,
+                date_trunc('month', timezone('Canada/Saskatchewan', now()))::date AS month_start,
+                (date_trunc('month', timezone('Canada/Saskatchewan', now()))::date + INTERVAL '1 month')::date AS month_end,
+                date_trunc('year', timezone('Canada/Saskatchewan', now()))::date AS year_start,
+                (date_trunc('year', timezone('Canada/Saskatchewan', now()))::date + INTERVAL '1 year')::date AS year_end
+       )
+       SELECT
          v.archived_hours + COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600), 0) AS lifetime_hours,
          v.archived_shifts + COALESCE(COUNT(*) FILTER (WHERE vb.status = 'completed'), 0) AS lifetime_shifts,
-         COALESCE(SUM(
-           CASE
-             WHEN date_trunc('year', vb.date) = date_trunc('year', CURRENT_DATE)
-             THEN EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600
-             ELSE 0
-           END
-         ), 0) AS ytd_hours,
+         COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600)
+           FILTER (WHERE vb.date >= bounds.year_start AND vb.date < bounds.year_end), 0) AS ytd_hours,
          COALESCE(COUNT(*) FILTER (
            WHERE vb.status = 'completed'
-             AND date_trunc('year', vb.date) = date_trunc('year', CURRENT_DATE)
+             AND vb.date >= bounds.year_start
+             AND vb.date < bounds.year_end
          ), 0) AS ytd_shifts,
-         COALESCE(SUM(
-           CASE
-             WHEN date_trunc('month', vb.date) = date_trunc('month', CURRENT_DATE)
-             THEN EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600
-             ELSE 0
-           END
-         ), 0) AS mtd_hours,
+         COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600)
+           FILTER (WHERE vb.date >= bounds.month_start AND vb.date < bounds.month_end), 0) AS mtd_hours,
          COALESCE(COUNT(*) FILTER (
            WHERE vb.status = 'completed'
-             AND date_trunc('month', vb.date) = date_trunc('month', CURRENT_DATE)
+             AND vb.date >= bounds.month_start
+             AND vb.date < bounds.month_end
          ), 0) AS mtd_shifts
        FROM volunteers v
+       CROSS JOIN bounds
        LEFT JOIN volunteer_bookings vb
          ON vb.volunteer_id = v.id
         AND vb.status = 'completed'
-        AND vb.date <= CURRENT_DATE
+        AND vb.date <= bounds.today
        LEFT JOIN volunteer_slots vs ON vs.slot_id = vb.slot_id
        WHERE v.id = $1
        GROUP BY v.archived_hours, v.archived_shifts`,
@@ -567,18 +567,19 @@ export async function getVolunteerStats(
       month_hours: string;
       total_shifts: string;
     }>(
-      `SELECT
+      `WITH bounds AS (
+         SELECT timezone('Canada/Saskatchewan', now())::date AS today,
+                date_trunc('month', timezone('Canada/Saskatchewan', now()))::date AS month_start,
+                (date_trunc('month', timezone('Canada/Saskatchewan', now()))::date + INTERVAL '1 month')::date AS month_end
+       )
+       SELECT
          v.archived_hours + COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600), 0) AS lifetime_hours,
-         COALESCE(SUM(
-           CASE
-             WHEN date_trunc('month', vb.date) = date_trunc('month', CURRENT_DATE)
-             THEN EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600
-             ELSE 0
-           END
-       ), 0) AS month_hours,
+         COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600)
+           FILTER (WHERE vb.date >= bounds.month_start AND vb.date < bounds.month_end), 0) AS month_hours,
          v.archived_shifts + COUNT(vb.*) AS total_shifts
        FROM volunteers v
-       LEFT JOIN volunteer_bookings vb ON vb.volunteer_id = v.id AND vb.status = 'completed' AND vb.date <= CURRENT_DATE
+       CROSS JOIN bounds
+       LEFT JOIN volunteer_bookings vb ON vb.volunteer_id = v.id AND vb.status = 'completed' AND vb.date <= bounds.today
        LEFT JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
        WHERE v.id = $1
        GROUP BY v.archived_hours, v.archived_shifts`,
@@ -636,20 +637,25 @@ export async function getVolunteerStats(
       month_families_served: string;
       month_pounds_handled: string;
     }>(
-      `SELECT COUNT(*) AS families_served,
+      `WITH bounds AS (
+         SELECT date_trunc('month', timezone('Canada/Saskatchewan', now()))::date AS month_start,
+                (date_trunc('month', timezone('Canada/Saskatchewan', now()))::date + INTERVAL '1 month')::date AS month_end
+       )
+       SELECT COUNT(*) AS families_served,
               COALESCE(SUM(COALESCE(weight_without_cart, weight_with_cart - cart_tare)), 0) AS pounds_handled,
               COUNT(DISTINCT client_id) FILTER (
-                WHERE date_trunc('month', date) = date_trunc('month', CURRENT_DATE)
+                WHERE date >= bounds.month_start AND date < bounds.month_end
               ) AS month_families_served,
               COALESCE(SUM(COALESCE(weight_without_cart, weight_with_cart - cart_tare)) FILTER (
-                WHERE date_trunc('month', date) = date_trunc('month', CURRENT_DATE)
+                WHERE date >= bounds.month_start AND date < bounds.month_end
               ), 0) AS month_pounds_handled
          FROM client_visits
          CROSS JOIN (
            SELECT COALESCE(value::numeric, 0) AS cart_tare
            FROM app_config
            WHERE key = 'cart_tare'
-         ) c`,
+         ) c
+         CROSS JOIN bounds`,
     );
     const familiesServed = Number(contribRes.rows[0]?.families_served ?? 0);
     const poundsHandled = Number(contribRes.rows[0]?.pounds_handled ?? 0);
