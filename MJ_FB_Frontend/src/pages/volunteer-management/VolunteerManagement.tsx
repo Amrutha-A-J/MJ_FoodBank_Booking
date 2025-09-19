@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  Suspense,
+  useCallback,
+} from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import {
   getVolunteerRoles,
@@ -476,7 +483,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
 
 
   function assignVolunteer(vol: VolunteerResult) {
-    if (!assignSlot || !selectedRole) return;
+    if (!assignSlot) return;
     if (!vol.trainedAreas.includes(assignSlot.role_id)) {
       setConfirmAssign(vol);
       return;
@@ -484,14 +491,35 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     completeAssignment(vol, false);
   }
 
+  const computeRefreshRoleIds = useCallback(
+    (slot?: RoleOption | null) => {
+      if (selectedRole) {
+        return nameToSlotIds.get(selectedRole) || [];
+      }
+      if (selectedDepartment) {
+        const rolesInDepartment =
+          groupedRoles.find(g => g.category === selectedDepartment)?.roles || [];
+        return rolesInDepartment.flatMap(
+          r => nameToSlotIds.get(r.name) || [],
+        );
+      }
+      if (slot) {
+        return [slot.id];
+      }
+      return [];
+    },
+    [groupedRoles, nameToSlotIds, selectedDepartment, selectedRole],
+  );
+
   async function completeAssignment(
     vol: VolunteerResult,
     addTraining: boolean,
     force = false,
   ) {
-    if (!assignSlot || !selectedRole) return;
+    if (!assignSlot) return;
+    const slot = assignSlot;
     const slotBookings = bookingsForDate.filter(b =>
-      bookingMatchesSlot(b, assignSlot),
+      bookingMatchesSlot(b, slot),
     );
     if (slotBookings.some(b => b.volunteer_id === vol.id)) {
       setAssignMsg('Volunteer already booked for this shift');
@@ -501,22 +529,26 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       setAssignMsg('');
       if (addTraining) {
         const newRoles = Array.from(
-          new Set([...vol.trainedAreas, assignSlot.role_id]),
+          new Set([...vol.trainedAreas, slot.role_id]),
         );
         await updateVolunteerTrainedAreas(vol.id, newRoles);
       }
       await createVolunteerBookingForVolunteer(
         vol.id,
-        assignSlot.id,
+        slot.id,
         formatDate(currentDate),
         force,
       );
+      const refreshRoleIds = computeRefreshRoleIds(slot);
       setAssignSlot(null);
       setAssignSearch('');
       setAssignResults([]);
-      const ids = nameToSlotIds.get(selectedRole) || [];
-      const data = await getVolunteerBookingsByRoles(ids);
-      setBookings(data);
+      if (refreshRoleIds.length > 0) {
+        const data = await getVolunteerBookingsByRoles(refreshRoleIds);
+        setBookings(data);
+      } else {
+        setBookings([]);
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg === 'Role is full' && !force) {
