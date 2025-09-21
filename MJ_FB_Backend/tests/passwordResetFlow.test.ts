@@ -289,6 +289,31 @@ describe('resendPasswordSetup', () => {
     expect(res.status).toBe(400);
   });
 
+  it('rate limits repeated requests within window', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ id: 9, email: 'resend@example.com', user_type: 'staff' }],
+    });
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok2');
+
+    const firstRes = await request(app)
+      .post('/auth/resend-password-setup')
+      .send({ email: 'resend@example.com' });
+    expect(firstRes.status).toBe(204);
+    expect(generatePasswordSetupToken).toHaveBeenCalledTimes(1);
+    expect(sendTemplatedEmail).toHaveBeenCalledTimes(1);
+
+    const secondRes = await request(app)
+      .post('/auth/resend-password-setup')
+      .send({ email: 'resend@example.com' });
+    expect(secondRes.status).toBe(429);
+    expect(secondRes.body).toEqual({ message: 'Too many requests' });
+    expect(pool.query).toHaveBeenCalledTimes(1);
+    expect(generatePasswordSetupToken).toHaveBeenCalledTimes(1);
+    expect(sendTemplatedEmail).toHaveBeenCalledTimes(1);
+    expect(resendLimit.has('resend@example.com')).toBe(true);
+  });
+
   it('clears rate limit after window', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rowCount: 1,
