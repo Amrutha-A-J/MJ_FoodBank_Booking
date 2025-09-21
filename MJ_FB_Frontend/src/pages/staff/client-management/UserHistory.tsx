@@ -335,6 +335,7 @@ export default function UserHistory({
                       showNotes={showNotes}
                       showFilter={!initialUser}
                       showUserHeading={!initialUser}
+                      retentionNotice="Bookings, cancellations, and visits older than one year are removed from history."
                       renderEditDialog={
                         role === 'staff'
                           ? ({ open, onClose, onUpdated }) => (

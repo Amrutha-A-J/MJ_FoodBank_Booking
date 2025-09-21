@@ -4,7 +4,15 @@ import logger from '../utils/logger';
 import { refreshPantryMonthly, refreshPantryYearly } from './pantry/pantryAggregationController';
 import { refreshWarehouseOverall } from './warehouse/warehouseOverallController';
 import { refreshSunshineBagOverall } from './sunshineBagController';
-import type { MaintenancePurgePayload } from '../schemas/maintenanceSchema';
+import type {
+  MaintenanceCleanupPayload,
+  MaintenancePurgePayload,
+} from '../schemas/maintenanceSchema';
+import {
+  cleanupOldRecords,
+  getRetentionCutoffDate,
+  RETENTION_YEARS,
+} from '../utils/bookingRetentionJob';
 
 const TABLE_NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
@@ -383,6 +391,45 @@ export async function purgeMaintenanceData(
     });
   } catch (error) {
     logger.error('Failed to purge maintenance data', error);
+    next(error);
+  }
+}
+
+export async function runBookingCleanup(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { before } = (req.body as MaintenanceCleanupPayload) ?? {};
+    let referenceDate: Date | undefined;
+    if (before) {
+      const cutoffPattern = /^\d{4}-\d{2}-\d{2}$/;
+      if (!cutoffPattern.test(before)) {
+        throw badRequest('Cutoff date must use YYYY-MM-DD format');
+      }
+      const cutoffDate = new Date(`${before}T00:00:00Z`);
+      if (Number.isNaN(cutoffDate.getTime())) {
+        throw badRequest('Cutoff date is invalid');
+      }
+      const minimumAllowed = getRetentionCutoffDate();
+      if (cutoffDate.getTime() > minimumAllowed.getTime()) {
+        throw badRequest('Cutoff date must be at least one year before today');
+      }
+      referenceDate = new Date(cutoffDate);
+      referenceDate.setFullYear(referenceDate.getFullYear() + RETENTION_YEARS);
+    }
+
+    await cleanupOldRecords(referenceDate);
+    const appliedCutoff = getRetentionCutoffDate(referenceDate ?? new Date());
+
+    res.json({
+      success: true,
+      retentionYears: RETENTION_YEARS,
+      cutoff: appliedCutoff.toISOString(),
+    });
+  } catch (error) {
+    logger.error('Failed to run booking cleanup', error);
     next(error);
   }
 }

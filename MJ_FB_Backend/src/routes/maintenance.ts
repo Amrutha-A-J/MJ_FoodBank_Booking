@@ -9,10 +9,15 @@ import {
   runVacuumForTable,
   getDeadRowStats,
   purgeMaintenanceData,
+  runBookingCleanup,
 } from '../controllers/maintenanceController';
 import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
-import { maintenanceSchema, maintenancePurgeSchema } from '../schemas/maintenanceSchema';
+import {
+  maintenanceCleanupSchema,
+  maintenanceSchema,
+  maintenancePurgeSchema,
+} from '../schemas/maintenanceSchema';
 
 const router = Router();
 
@@ -56,6 +61,14 @@ router.post(
   authorizeAccess('admin'),
   validate(maintenancePurgeSchema),
   purgeMaintenanceData,
+);
+
+router.post(
+  '/bookings/cleanup',
+  authMiddleware,
+  authorizeAccess('admin'),
+  validate(maintenanceCleanupSchema),
+  runBookingCleanup,
 );
 
 export default router;

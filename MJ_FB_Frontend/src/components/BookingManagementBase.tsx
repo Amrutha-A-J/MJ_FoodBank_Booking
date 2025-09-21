@@ -60,6 +60,7 @@ interface BookingManagementBaseProps {
   showNotes?: boolean;
   showFilter?: boolean;
   showUserHeading?: boolean;
+  retentionNotice?: React.ReactNode;
 }
 
 export default function BookingManagementBase({
@@ -74,6 +75,7 @@ export default function BookingManagementBase({
   showNotes,
   showFilter = true,
   showUserHeading = true,
+  retentionNotice,
 }: BookingManagementBaseProps) {
   const [filter, setFilter] = useState('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -282,6 +284,11 @@ export default function BookingManagementBase({
               getRowKey={b => `${b.id}-${b.date}`}
             />
           </TableContainer>
+        )}
+        {retentionNotice && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            {retentionNotice}
+          </Typography>
         )}
         {totalPages > 1 && (
           <Box

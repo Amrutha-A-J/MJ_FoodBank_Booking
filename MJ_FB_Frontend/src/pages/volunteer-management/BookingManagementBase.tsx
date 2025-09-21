@@ -111,6 +111,10 @@ export default function BookingManagementBase({ volunteerId, onUpdated }: Props)
           getRowKey={r => r.id}
         />
       )}
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        Shift history only includes records from the past year. Cancelled or
+        completed shifts older than one year are archived.
+      </Typography>
       <ManageVolunteerShiftDialog
         open={!!manageShift}
         booking={manageShift}

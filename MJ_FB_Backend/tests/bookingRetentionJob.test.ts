@@ -64,5 +64,19 @@ describe('cleanupOldRecords', () => {
       'VACUUM (ANALYZE) bookings',
     );
   });
+
+  it('allows specifying a reference date for manual cleanup', async () => {
+    const mockClient = { query: jest.fn().mockResolvedValue({}), release: jest.fn() };
+    (mockPool.connect as jest.Mock).mockResolvedValueOnce(mockClient);
+
+    const reference = new Date('2026-01-01T00:00:00Z');
+    await cleanupOldRecords(reference);
+
+    const cutoff = new Date(reference);
+    cutoff.setFullYear(cutoff.getFullYear() - 1);
+
+    expect(mockClient.query).toHaveBeenNthCalledWith(1, 'BEGIN');
+    expect(mockClient.query.mock.calls[1][1]).toEqual([cutoff]);
+  });
 });
 
