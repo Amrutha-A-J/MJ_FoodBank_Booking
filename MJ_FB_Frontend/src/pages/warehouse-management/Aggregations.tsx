@@ -226,8 +226,15 @@ export default function Aggregations() {
 
   const donorContent = (
     <>
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl sx={{ minWidth: 120 }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={{ xs: 1.5, sm: 2 }}
+        sx={{
+          mb: 2,
+          alignItems: { xs: 'stretch', sm: 'center' },
+        }}
+      >
+        <FormControl sx={{ minWidth: { xs: '100%', sm: 160 } }}>
           <InputLabel id="donor-year-label">Year</InputLabel>
           <Select
             labelId="donor-year-label"
@@ -246,6 +253,7 @@ export default function Aggregations() {
           variant="contained"
           onClick={handleExportDonors}
           disabled={donorExportLoading}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
         >
           {donorExportLoading ? <CircularProgress size={20} /> : 'Export'}
         </Button>
@@ -260,6 +268,7 @@ export default function Aggregations() {
             setDonorSearch('');
             setDonorInsertOpen(true);
           }}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
         >
           Insert Aggregate
         </Button>
@@ -324,8 +333,15 @@ export default function Aggregations() {
 
   const overallContent = (
     <>
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl sx={{ minWidth: 120 }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={{ xs: 1.5, sm: 2 }}
+        sx={{
+          mb: 2,
+          alignItems: { xs: 'stretch', sm: 'center' },
+        }}
+      >
+        <FormControl sx={{ minWidth: { xs: '100%', sm: 160 } }}>
           <InputLabel id="overall-year-label">Year</InputLabel>
           <Select
             labelId="overall-year-label"
@@ -345,6 +361,7 @@ export default function Aggregations() {
           variant="contained"
           onClick={handleExportOverall}
           disabled={exportLoading}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
         >
           {exportLoading ? <CircularProgress size={20} /> : 'Export'}
         </Button>
@@ -358,6 +375,7 @@ export default function Aggregations() {
             setInsertOutgoing('');
             setInsertOpen(true);
           }}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
         >
           Insert Aggregate
         </Button>
