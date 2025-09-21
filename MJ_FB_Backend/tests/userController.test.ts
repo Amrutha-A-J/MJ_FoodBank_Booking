@@ -583,6 +583,56 @@ describe('userController', () => {
       expect(res.clearCookie).toHaveBeenCalledWith('token', expect.any(Object));
       expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', expect.any(Object));
     });
+
+    it('rejects requests without a refresh token cookie', async () => {
+      const req: any = buildReq({ headers: {} });
+      const res: any = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        clearCookie: jest.fn(),
+      };
+
+      await refreshToken(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Missing refresh token' });
+      expect(res.clearCookie).not.toHaveBeenCalled();
+      expect(pool.query).not.toHaveBeenCalled();
+    });
+
+    it('logs and rejects when the refresh token subject does not match the payload', async () => {
+      const payload = { id: 1, role: 'staff', type: 'staff', jti: 'mismatch' };
+      const token = jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {
+        algorithm: 'HS256',
+      });
+      const future = new Date(Date.now() + 60_000).toISOString();
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ subject: 'staff:2', expires_at: future }],
+      });
+
+      const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
+
+      const req: any = buildReq({ headers: { cookie: `refreshToken=${token}` } });
+      const res: any = {
+        cookie: jest.fn(),
+        clearCookie: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      await refreshToken(req, res, jest.fn());
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Invalid refresh token' });
+      expect(res.clearCookie).toHaveBeenCalledWith('token', expect.any(Object));
+      expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', expect.any(Object));
+      expect(pool.query).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith('Refresh token subject mismatch for %s', 'staff:1');
+      expect(warnSpy).toHaveBeenLastCalledWith('Invalid refresh token');
+
+      warnSpy.mockRestore();
+    });
   });
 
   // updateUser tests
