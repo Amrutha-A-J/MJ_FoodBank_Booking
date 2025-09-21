@@ -6,6 +6,7 @@ export interface Donor {
   lastName: string;
   email?: string | null;
   phone?: string | null;
+  isPetFood: boolean;
 }
 
 export interface TopDonor {
@@ -40,12 +41,13 @@ interface DonorPayload {
   lastName: string;
   email?: string | null;
   phone?: string | null;
+  isPetFood?: boolean;
 }
 
 export async function createDonor(data: DonorPayload): Promise<Donor> {
   const res = await jsonApiFetch(`${API_BASE}/donors`, {
     method: 'POST',
-    body: data,
+    body: { ...data, isPetFood: data.isPetFood ?? false },
   });
   return handleResponse(res);
 }
@@ -61,7 +63,7 @@ export async function updateDonor(
 ): Promise<Donor> {
   const res = await jsonApiFetch(`${API_BASE}/donors/${id}`, {
     method: 'PUT',
-    body: data,
+    body: { ...data, isPetFood: data.isPetFood ?? false },
   });
   return handleResponse(res);
 }

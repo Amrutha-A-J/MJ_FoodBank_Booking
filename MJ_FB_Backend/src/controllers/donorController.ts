@@ -7,7 +7,7 @@ import asyncHandler from '../middleware/asyncHandler';
 export const listDonors = asyncHandler(async (req: Request, res: Response) => {
   const search = (req.query.search as string) ?? '';
   const result = await pool.query(
-    `SELECT id, first_name AS "firstName", last_name AS "lastName", email, phone
+    `SELECT id, first_name AS "firstName", last_name AS "lastName", email, phone, is_pet_food AS "isPetFood"
        FROM donors
        WHERE CAST(id AS TEXT) ILIKE $1
           OR first_name ILIKE $1
@@ -20,11 +20,11 @@ export const listDonors = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const addDonor = asyncHandler(async (req: Request, res: Response) => {
-  const { firstName, lastName, email, phone } = req.body;
+  const { firstName, lastName, email, phone, isPetFood = false } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO donors (first_name, last_name, email, phone) VALUES ($1, $2, $3, $4) RETURNING id, first_name AS "firstName", last_name AS "lastName", email, phone',
-      [firstName, lastName, email ?? null, phone ?? null],
+      'INSERT INTO donors (first_name, last_name, email, phone, is_pet_food) VALUES ($1, $2, $3, $4, $5) RETURNING id, first_name AS "firstName", last_name AS "lastName", email, phone, is_pet_food AS "isPetFood"',
+      [firstName, lastName, email ?? null, phone ?? null, isPetFood],
     );
     res.status(201).json(result.rows[0]);
   } catch (error: any) {
@@ -37,11 +37,11 @@ export const addDonor = asyncHandler(async (req: Request, res: Response) => {
 
 export const updateDonor = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { firstName, lastName, email, phone } = req.body;
+  const { firstName, lastName, email, phone, isPetFood = false } = req.body;
   try {
     const result = await pool.query(
-      'UPDATE donors SET first_name = $2, last_name = $3, email = $4, phone = $5 WHERE id = $1 RETURNING id, first_name AS "firstName", last_name AS "lastName", email, phone',
-      [id, firstName, lastName, email ?? null, phone ?? null],
+      'UPDATE donors SET first_name = $2, last_name = $3, email = $4, phone = $5, is_pet_food = $6 WHERE id = $1 RETURNING id, first_name AS "firstName", last_name AS "lastName", email, phone, is_pet_food AS "isPetFood"',
+      [id, firstName, lastName, email ?? null, phone ?? null, isPetFood],
     );
     if ((result.rowCount ?? 0) === 0)
       return res.status(404).json({ message: 'Donor not found' });
@@ -84,13 +84,13 @@ export const topDonors = asyncHandler(async (req: Request, res: Response) => {
 export const getDonor = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await pool.query(
-    `SELECT d.id, d.first_name AS "firstName", d.last_name AS "lastName", d.email, d.phone,
+    `SELECT d.id, d.first_name AS "firstName", d.last_name AS "lastName", d.email, d.phone, d.is_pet_food AS "isPetFood",
             COALESCE(SUM(n.weight), 0)::int AS "totalLbs",
             TO_CHAR(MAX(n.date), 'YYYY-MM-DD') AS "lastDonationISO"
        FROM donors d
        LEFT JOIN donations n ON n.donor_id = d.id
        WHERE d.id = $1
-       GROUP BY d.id, d.first_name, d.last_name, d.email, d.phone`,
+       GROUP BY d.id, d.first_name, d.last_name, d.email, d.phone, d.is_pet_food`,
     [id],
   );
   if ((result.rowCount ?? 0) === 0)

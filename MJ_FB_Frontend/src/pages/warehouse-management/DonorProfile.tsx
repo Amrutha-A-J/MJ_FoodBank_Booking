@@ -11,6 +11,8 @@ import {
   Stack,
   TextField,
   Typography,
+  Checkbox,
+  FormControlLabel,
   type AlertColor,
 } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -45,6 +47,7 @@ export default function DonorProfile() {
     lastName: '',
     email: '',
     phone: '',
+    isPetFood: false,
   });
   const [formErrors, setFormErrors] = useState<{
     firstName?: string;
@@ -94,6 +97,7 @@ export default function DonorProfile() {
         lastName: donor.lastName,
         email: donor.email ?? '',
         phone: donor.phone ?? '',
+        isPetFood: donor.isPetFood,
       });
     }
   }, [donor]);
@@ -112,6 +116,7 @@ export default function DonorProfile() {
         lastName: donor.lastName,
         email: donor.email ?? '',
         phone: donor.phone ?? '',
+        isPetFood: donor.isPetFood,
       });
     }
   };
@@ -123,6 +128,7 @@ export default function DonorProfile() {
       lastName: form.lastName.trim(),
       email: form.email.trim(),
       phone: form.phone.trim(),
+      isPetFood: form.isPetFood,
     };
     const errors: typeof formErrors = {};
     if (!trimmed.firstName) errors.firstName = 'First name is required';
@@ -140,6 +146,7 @@ export default function DonorProfile() {
         lastName: trimmed.lastName,
         email: trimmed.email || undefined,
         phone: trimmed.phone || undefined,
+        isPetFood: form.isPetFood,
       });
       setSnackbar({ open: true, message: 'Donor updated', severity: 'success' });
       setEditOpen(false);
@@ -186,6 +193,9 @@ export default function DonorProfile() {
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Phone: {phoneDisplay}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Pet food donor: {donor.isPetFood ? 'Yes' : 'No'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Total: {donor.totalLbs.toLocaleString()} lbs
@@ -262,6 +272,15 @@ export default function DonorProfile() {
               value={form.phone}
               onChange={e => setForm({ ...form, phone: e.target.value })}
               fullWidth
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={form.isPetFood}
+                  onChange={e => setForm({ ...form, isPetFood: e.target.checked })}
+                />
+              }
+              label="Pet food donor"
             />
           </Stack>
         </DialogContent>

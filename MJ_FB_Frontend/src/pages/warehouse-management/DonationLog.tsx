@@ -10,6 +10,8 @@ import {
   Stack,
   Autocomplete,
   IconButton,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
@@ -78,6 +80,7 @@ export default function DonationLog() {
     lastName: '',
     email: '',
     phone: '',
+    isPetFood: false,
   });
 
   type DonationRow = Donation & { actions?: string };
@@ -183,12 +186,14 @@ export default function DonationLog() {
     const lastName = newDonor.lastName.trim();
     const email = newDonor.email.trim();
     const phone = newDonor.phone.trim();
+    const isPetFood = newDonor.isPetFood;
     if (firstName && lastName) {
       createDonor({
         firstName,
         lastName,
         email: email || null,
         phone: phone || null,
+        isPetFood,
       })
         .then(d => {
           setDonorOptions(prev =>
@@ -202,7 +207,7 @@ export default function DonationLog() {
           showSnackbar(err.message || 'Failed to add donor', 'error');
         });
     }
-    setNewDonor({ firstName: '', lastName: '', email: '', phone: '' });
+    setNewDonor({ firstName: '', lastName: '', email: '', phone: '', isPetFood: false });
     setNewDonorOpen(false);
   }
 
@@ -372,6 +377,15 @@ export default function DonationLog() {
               value={newDonor.phone}
               onChange={e => setNewDonor({ ...newDonor, phone: e.target.value })}
               fullWidth
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={newDonor.isPetFood}
+                  onChange={e => setNewDonor({ ...newDonor, isPetFood: e.target.checked })}
+                />
+              }
+              label="Pet food donor"
             />
           </Stack>
         </DialogContent>

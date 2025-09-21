@@ -3,4 +3,5 @@ export interface Donor {
   firstName: string;
   lastName: string;
   email: string;
+  isPetFood: boolean;
 }
