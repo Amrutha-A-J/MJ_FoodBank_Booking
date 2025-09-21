@@ -8,10 +8,18 @@ export default function DonorQuickLinks() {
     '&:hover': { color: 'primary.main' },
   } as const;
   const links = [
+    { to: '/donor-management', label: 'Dashboard' },
     { to: '/donor-management/donors', label: 'Donors' },
     { to: '/donor-management/donation-log', label: 'Donor Log' },
     { to: '/donor-management/mail-lists', label: 'Mail Lists' },
   ];
+
+  const isActive = (to: string) => {
+    if (to === '/donor-management') {
+      return pathname === to || pathname === `${to}/`;
+    }
+    return pathname === to || pathname.startsWith(`${to}/`);
+  };
 
   return (
     <Stack
@@ -26,7 +34,7 @@ export default function DonorQuickLinks() {
           sx={{ ...buttonSx, flex: 1 }}
           component={RouterLink}
           to={link.to}
-          disabled={pathname === link.to}
+          disabled={isActive(link.to)}
         >
           {link.label}
         </Button>
