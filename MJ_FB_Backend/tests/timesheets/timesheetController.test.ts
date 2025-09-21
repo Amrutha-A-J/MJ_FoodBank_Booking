@@ -45,6 +45,21 @@ describe('timesheet controller', () => {
     expect(res.json).toHaveBeenCalledWith([{ id: 3 }]);
   });
 
+  it('responds with 400 for invalid query parameters', async () => {
+    (mockPool.query as jest.Mock).mockClear();
+    const req: any = {
+      user: { id: '99', role: 'admin', type: 'staff' },
+      query: { staffId: 'abc' },
+    };
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+    await listTimesheets(req, res, () => {});
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Invalid query parameters' });
+    expect(mockPool.query).not.toHaveBeenCalled();
+  });
+
   it('filters timesheets by overlapping month', async () => {
     (mockPool.query as jest.Mock).mockClear();
     (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ id: 4 }], rowCount: 1 });
