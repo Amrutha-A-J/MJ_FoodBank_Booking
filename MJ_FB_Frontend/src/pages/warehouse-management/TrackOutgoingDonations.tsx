@@ -166,7 +166,11 @@ export default function TrackOutgoingDonations() {
     <>
       <WarehouseQuickLinks />
       <Page title="Track Outgoing Donations">
-        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1}
+          sx={{ mb: 2, alignItems: { xs: 'stretch', sm: 'center' } }}
+        >
           <Button
             
             variant="contained"
@@ -175,6 +179,7 @@ export default function TrackOutgoingDonations() {
               setEditing(null);
               setRecordOpen(true);
             }}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
             Record Outgoing Donation
           </Button>
@@ -185,6 +190,7 @@ export default function TrackOutgoingDonations() {
               setReceiverName('');
               setNewReceiverOpen(true);
             }}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
             Add Receiver
           </Button>
