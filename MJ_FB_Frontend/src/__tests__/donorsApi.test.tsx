@@ -21,6 +21,7 @@ describe('donors api', () => {
       lastName: 'Helper',
       email: 'alice@example.com',
       phone: '306-555-0100',
+      isPetFood: true,
     });
 
     expect(jsonApiFetch).toHaveBeenCalledWith(
@@ -32,6 +33,7 @@ describe('donors api', () => {
           lastName: 'Helper',
           email: 'alice@example.com',
           phone: '306-555-0100',
+          isPetFood: true,
         },
       }),
     );

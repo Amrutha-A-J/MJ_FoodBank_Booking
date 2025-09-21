@@ -41,6 +41,7 @@ describe('Warehouse Donor Profile', () => {
       phone: null,
       totalLbs: 540,
       lastDonationISO: null,
+      isPetFood: false,
     });
     (getDonorDonations as jest.Mock).mockResolvedValue([
       { id: 1, date: '2024-04-01', weight: 120 },
@@ -51,6 +52,7 @@ describe('Warehouse Donor Profile', () => {
     expect(await screen.findByText('No Contact')).toBeInTheDocument();
     expect(screen.getByText('Email: Email not provided')).toBeInTheDocument();
     expect(screen.getByText('Phone: Phone not provided')).toBeInTheDocument();
+    expect(screen.getByText('Pet food donor: No')).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: '120' })).toBeInTheDocument();
   });
 
@@ -64,6 +66,7 @@ describe('Warehouse Donor Profile', () => {
         phone: null,
         totalLbs: 800,
         lastDonationISO: '2024-04-10T12:00:00Z',
+        isPetFood: false,
       })
       .mockResolvedValueOnce({
         id: 42,
@@ -73,6 +76,7 @@ describe('Warehouse Donor Profile', () => {
         phone: '306-555-0100',
         totalLbs: 800,
         lastDonationISO: '2024-04-10T12:00:00Z',
+        isPetFood: true,
       });
     (getDonorDonations as jest.Mock).mockResolvedValue([]);
     (updateDonor as jest.Mock).mockResolvedValue({});
@@ -86,6 +90,7 @@ describe('Warehouse Donor Profile', () => {
     const lastName = screen.getByLabelText(/last name/i);
     const email = screen.getByLabelText(/email \(optional\)/i);
     const phone = screen.getByLabelText(/phone \(optional\)/i);
+    const petFood = screen.getByLabelText(/pet food donor/i);
     const save = screen.getByRole('button', { name: /save donor/i });
 
     await userEvent.clear(firstName);
@@ -108,6 +113,7 @@ describe('Warehouse Donor Profile', () => {
     await userEvent.clear(email);
     await userEvent.type(email, '   ');
     await userEvent.type(phone, ' 306-555-0100 ');
+    await userEvent.click(petFood);
     await userEvent.click(save);
 
     await waitFor(() =>
@@ -116,6 +122,7 @@ describe('Warehouse Donor Profile', () => {
         lastName: 'Donor',
         email: undefined,
         phone: '306-555-0100',
+        isPetFood: true,
       }),
     );
 

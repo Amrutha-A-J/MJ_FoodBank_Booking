@@ -13,6 +13,7 @@ const donorContactSchema = z.object({
     .min(1)
     .optional()
     .nullable(),
+  isPetFood: z.boolean().default(false),
 });
 
 export const addDonorSchema = donorContactSchema;

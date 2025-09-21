@@ -41,6 +41,7 @@ describe('Warehouse Donation Log', () => {
         lastName: 'Email',
         email: null,
         phone: null,
+        isPetFood: false,
       },
       {
         id: 2,
@@ -48,6 +49,7 @@ describe('Warehouse Donation Log', () => {
         lastName: 'Donor',
         email: 'jane@example.com',
         phone: '306-555-0199',
+        isPetFood: true,
       },
     ]);
     (getDonationsByMonth as jest.Mock).mockResolvedValue([
@@ -60,6 +62,7 @@ describe('Warehouse Donation Log', () => {
           lastName: 'Email',
           email: null,
           phone: null,
+          isPetFood: false,
         },
         weight: 120,
       },
@@ -73,6 +76,7 @@ describe('Warehouse Donation Log', () => {
       lastName: 'Donor',
       email: null,
       phone: '306-555-0123',
+      isPetFood: true,
     });
   });
 
@@ -159,6 +163,7 @@ describe('Warehouse Donation Log', () => {
     await userEvent.type(firstName, ' Added ');
     await userEvent.type(lastName, ' Donor ');
     await userEvent.type(phone, ' 306-555-0123 ');
+    await userEvent.click(screen.getByLabelText(/pet food donor/i));
 
     fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
 
@@ -168,6 +173,7 @@ describe('Warehouse Donation Log', () => {
         lastName: 'Donor',
         email: null,
         phone: '306-555-0123',
+        isPetFood: true,
       }),
     );
   });
