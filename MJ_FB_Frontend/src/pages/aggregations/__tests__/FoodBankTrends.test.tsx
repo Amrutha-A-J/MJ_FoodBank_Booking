@@ -4,6 +4,9 @@ type TrendDatum = { month: string; incoming: number; outgoing: number };
 
 const mockVisitTrendChart = jest.fn();
 const mockVisitBreakdownChart = jest.fn();
+const mockMonetaryTrendChart = jest.fn();
+const mockUseMonetaryDonorInsights = jest.fn();
+const mockUseAuth = jest.fn();
 
 jest.mock('../../../components/dashboard/ClientVisitTrendChart', () => ({
   __esModule: true,
@@ -19,6 +22,24 @@ jest.mock('../../../components/dashboard/ClientVisitBreakdownChart', () => ({
     mockVisitBreakdownChart(props);
     return <div data-testid="visit-breakdown-chart" />;
   },
+}));
+
+jest.mock('../../../components/dashboard/MonetaryDonationTrendChart', () => ({
+  __esModule: true,
+  default: (props: { data: { month: string }[] }) => {
+    mockMonetaryTrendChart(props);
+    return <div data-testid="monetary-donation-trend-chart" />;
+  },
+}));
+
+jest.mock('../../../hooks/useMonetaryDonorInsights', () => ({
+  __esModule: true,
+  default: (options: unknown) => mockUseMonetaryDonorInsights(options),
+}));
+
+jest.mock('../../../hooks/useAuth', () => ({
+  __esModule: true,
+  useAuth: () => mockUseAuth(),
 }));
 
 let mockTrendPoint: TrendDatum = { month: 'Jan', incoming: 0, outgoing: 0 };
@@ -63,6 +84,47 @@ jest.mock('../../../components/EventList', () => ({
   default: () => <div data-testid="event-list" />,
 }));
 
+const donorInsightsMock = {
+  window: { startMonth: '2023-04', endMonth: '2024-03', months: 12 },
+  monthly: [
+    { month: '2023-04', totalAmount: 100, donationCount: 2, donorCount: 2, averageGift: 50 },
+    { month: '2024-03', totalAmount: 250, donationCount: 3, donorCount: 3, averageGift: 83.33 },
+  ],
+  ytd: {
+    totalAmount: 250,
+    donationCount: 3,
+    donorCount: 3,
+    averageGift: 83.33,
+    averageDonationsPerDonor: 1,
+    lastDonationISO: '2024-03-15',
+  },
+  givingTiers: {
+    currentMonth: {
+      month: '2024-03',
+      tiers: {
+        '1-100': { donorCount: 2, totalAmount: 150 },
+        '101-500': { donorCount: 1, totalAmount: 100 },
+        '501-1000': { donorCount: 0, totalAmount: 0 },
+        '1001-10000': { donorCount: 0, totalAmount: 0 },
+        '10001-30000': { donorCount: 0, totalAmount: 0 },
+      },
+    },
+    previousMonth: {
+      month: '2024-02',
+      tiers: {
+        '1-100': { donorCount: 1, totalAmount: 75 },
+        '101-500': { donorCount: 0, totalAmount: 0 },
+        '501-1000': { donorCount: 0, totalAmount: 0 },
+        '1001-10000': { donorCount: 0, totalAmount: 0 },
+        '10001-30000': { donorCount: 0, totalAmount: 0 },
+      },
+    },
+  },
+  topDonors: [],
+  firstTimeDonors: [],
+  pantryImpact: { families: 0, adults: 0, children: 0, pounds: 0 },
+};
+
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import FoodBankTrends from '../FoodBankTrends';
@@ -100,6 +162,7 @@ describe('FoodBankTrends', () => {
     jest.clearAllMocks();
     mockVisitTrendChart.mockClear();
     mockVisitBreakdownChart.mockClear();
+    mockMonetaryTrendChart.mockClear();
 
     (getPantryMonthly as jest.Mock).mockImplementation((year: number) => {
       if (year === currentYear) {
@@ -126,6 +189,73 @@ describe('FoodBankTrends', () => {
       incoming: warehouseTotals[0].donations + warehouseTotals[0].surplus + warehouseTotals[0].pigPound,
       outgoing: warehouseTotals[0].outgoingDonations,
     };
+    mockUseAuth.mockReturnValue({ access: ['donor_management'] });
+    mockUseMonetaryDonorInsights.mockReturnValue({
+      data: donorInsightsMock,
+      isLoading: false,
+      error: null,
+    });
+  });
+
+  it('renders monetary donor insights for authorized staff', async () => {
+    render(
+      <MemoryRouter>
+        <FoodBankTrends />
+      </MemoryRouter>,
+    );
+
+    const chart = await screen.findByTestId('monetary-donation-trend-chart');
+    expect(chart).toBeInTheDocument();
+    expect(mockMonetaryTrendChart).toHaveBeenCalledWith(
+      expect.objectContaining({ data: donorInsightsMock.monthly }),
+    );
+    expect(screen.getByText('Year-to-date summary')).toBeInTheDocument();
+    expect(mockUseMonetaryDonorInsights).toHaveBeenLastCalledWith({
+      months: 12,
+      enabled: true,
+    });
+  });
+
+  it('shows a permission notice when staff lacks donor access', async () => {
+    mockUseAuth.mockReturnValue({ access: [] });
+    mockUseMonetaryDonorInsights.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+    });
+
+    render(
+      <MemoryRouter>
+        <FoodBankTrends />
+      </MemoryRouter>,
+    );
+
+    const notice = await screen.findByText('Monetary donor insights require Donor Management access.');
+    expect(notice).toBeInTheDocument();
+    expect(screen.queryByTestId('monetary-donation-trend-chart')).not.toBeInTheDocument();
+    expect(mockUseMonetaryDonorInsights).toHaveBeenLastCalledWith({
+      months: 12,
+      enabled: false,
+    });
+  });
+
+  it('reports permission errors from the donor insights API', async () => {
+    const error = new Error('forbidden');
+    (error as any).status = 403;
+    mockUseMonetaryDonorInsights.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error,
+    });
+
+    render(
+      <MemoryRouter>
+        <FoodBankTrends />
+      </MemoryRouter>,
+    );
+
+    const notice = await screen.findByText('You do not have permission to view monetary donor insights.');
+    expect(notice).toBeInTheDocument();
   });
 
   it('shows warehouse totals after clicking the trend chart', async () => {

@@ -49,6 +49,13 @@ import WarehouseCompositionChart, {
 import WarehouseTrendChart, {
   type WarehouseTrendDatum,
 } from '../../components/dashboard/WarehouseTrendChart';
+import MonetaryDonationTrendChart from '../../components/dashboard/MonetaryDonationTrendChart';
+import useMonetaryDonorInsights from '../../hooks/useMonetaryDonorInsights';
+import { useAuth } from '../../hooks/useAuth';
+import type {
+  MonetaryDonorMonthlySummary,
+  MonetaryDonorTierBucket,
+} from '../../api/monetaryDonorInsights';
 
 interface PantryMonthlyRow {
   month: number;
@@ -68,6 +75,21 @@ function fmtLbs(value?: number) {
   return `${safe.toLocaleString(undefined, { maximumFractionDigits: 0 })} lbs`;
 }
 
+function formatCurrency(value?: number, fractionDigits = 0) {
+  const safe = typeof value === 'number' && !Number.isNaN(value) ? value : 0;
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: 'CAD',
+    maximumFractionDigits: fractionDigits,
+    minimumFractionDigits: fractionDigits,
+  }).format(safe);
+}
+
+function formatNumber(value?: number) {
+  const safe = typeof value === 'number' && !Number.isNaN(value) ? value : 0;
+  return safe.toLocaleString();
+}
+
 function formatVisitMonthLabel(month: string) {
   return formatLocaleDate(`${month}-01`, {
     month: 'long',
@@ -84,8 +106,16 @@ function toErrorMessage(error: unknown, fallback: string, forbidden: string) {
 }
 
 const emptyEvents: EventGroups = { today: [], upcoming: [], past: [] };
+const givingTierOrder: MonetaryDonorTierBucket[] = [
+  '1-100',
+  '101-500',
+  '501-1000',
+  '1001-10000',
+  '10001-30000',
+];
 
 export default function FoodBankTrends() {
+  const { access } = useAuth();
   const [visitStats, setVisitStats] = useState<VisitStat[]>([]);
   const [pantryLoading, setPantryLoading] = useState(true);
   const [pantryError, setPantryError] = useState<string | null>(null);
@@ -120,9 +150,32 @@ export default function FoodBankTrends() {
     severity: AlertColor;
   }>({ open: false, message: '', severity: 'error' });
 
+  const canViewDonorInsights = access.includes('donor_management');
+  const [selectedDonationMonth, setSelectedDonationMonth] = useState<
+    MonetaryDonorMonthlySummary | null
+  >(null);
+  const {
+    data: donorInsights,
+    isLoading: donorInsightsLoading,
+    error: donorInsightsError,
+  } = useMonetaryDonorInsights({ months: 12, enabled: canViewDonorInsights });
+  const donorInsightsForbidden = (donorInsightsError as ApiError | undefined)?.status === 403;
+  const donorInsightsMessage = donorInsightsError
+    ? toErrorMessage(
+        donorInsightsError,
+        'Unable to load monetary donor insights.',
+        'You do not have permission to view monetary donor insights.',
+      )
+    : null;
+
   const showError = (message: string) => {
     setSnackbar({ open: true, message, severity: 'error' });
   };
+
+  useEffect(() => {
+    if (!donorInsightsMessage || donorInsightsForbidden) return;
+    showError(donorInsightsMessage);
+  }, [donorInsightsMessage, donorInsightsForbidden]);
 
   useEffect(() => {
     let active = true;
@@ -334,6 +387,15 @@ export default function FoodBankTrends() {
     });
   }, [chartData]);
 
+  useEffect(() => {
+    const series = donorInsights?.monthly ?? [];
+    if (series.length) {
+      setSelectedDonationMonth(series[series.length - 1]);
+    } else {
+      setSelectedDonationMonth(null);
+    }
+  }, [donorInsights?.monthly]);
+
   const handleCompositionClick = useCallback(
     (data: { payload?: WarehouseCompositionDatum } | undefined) => {
       if (!data?.payload) return;
@@ -349,6 +411,12 @@ export default function FoodBankTrends() {
   );
 
   const hasWarehouseData = chartData.length > 0;
+  const ytd = donorInsights?.ytd;
+  const givingTiers = donorInsights?.givingTiers;
+  const donorInsightsNotice = !canViewDonorInsights
+    ? 'Monetary donor insights require Donor Management access.'
+    : donorInsightsMessage;
+  const showDonorNotice = !canViewDonorInsights || donorInsightsForbidden;
 
   return (
     <Page title="Food Bank Trends">
@@ -456,6 +524,142 @@ export default function FoodBankTrends() {
                   </CardContent>
                 </Card>
               </Box>
+            </SectionCard>
+
+            <SectionCard title="Monetary Donations">
+              <Stack spacing={2}>
+                <Card variant="outlined">
+                  <CardHeader title="12-Month Trend" />
+                  <CardContent sx={{ minHeight: 320, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {showDonorNotice ? (
+                      <Typography variant="body2" color="text.secondary">
+                        {donorInsightsNotice}
+                      </Typography>
+                    ) : donorInsightsLoading ? (
+                      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                        <CircularProgress size={24} />
+                      </Box>
+                    ) : donorInsights ? (
+                      <>
+                        <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                          <MonetaryDonationTrendChart
+                            data={donorInsights.monthly}
+                            onPointSelect={setSelectedDonationMonth}
+                          />
+                        </Box>
+                        {ytd ? (
+                          <Stack spacing={1.5}>
+                            <Typography variant="subtitle2">Year-to-date summary</Typography>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                              <Chip
+                                label={`Total: ${formatCurrency(ytd.totalAmount)}`}
+                                color="primary"
+                                variant="outlined"
+                              />
+                              <Chip
+                                label={`Average gift: ${formatCurrency(ytd.averageGift, 2)}`}
+                                color="info"
+                                variant="outlined"
+                              />
+                              <Chip
+                                label={`Donations: ${formatNumber(ytd.donationCount)}`}
+                                color="success"
+                                variant="outlined"
+                              />
+                              <Chip
+                                label={`Donors: ${formatNumber(ytd.donorCount)}`}
+                                color="secondary"
+                                variant="outlined"
+                              />
+                            </Stack>
+                            <Typography variant="caption" color="text.secondary">
+                              {ytd.lastDonationISO
+                                ? `Last donation: ${formatLocaleDate(ytd.lastDonationISO)}`
+                                : 'No donations recorded yet.'}
+                            </Typography>
+                          </Stack>
+                        ) : null}
+                        {selectedDonationMonth ? (
+                          <>
+                            <Divider />
+                            <Stack spacing={1.5}>
+                              <Typography variant="subtitle2">
+                                {formatVisitMonthLabel(selectedDonationMonth.month)}
+                              </Typography>
+                              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                                <Chip
+                                  label={`Total: ${formatCurrency(selectedDonationMonth.totalAmount)}`}
+                                  color="primary"
+                                  variant="outlined"
+                                />
+                                <Chip
+                                  label={`Donations: ${formatNumber(selectedDonationMonth.donationCount)}`}
+                                  color="success"
+                                  variant="outlined"
+                                />
+                                <Chip
+                                  label={`Average gift: ${formatCurrency(selectedDonationMonth.averageGift, 2)}`}
+                                  color="info"
+                                  variant="outlined"
+                                />
+                                <Chip
+                                  label={`Donors: ${formatNumber(selectedDonationMonth.donorCount)}`}
+                                  color="secondary"
+                                  variant="outlined"
+                                />
+                              </Stack>
+                            </Stack>
+                          </>
+                        ) : null}
+                      </>
+                    ) : donorInsightsMessage ? (
+                      <Typography variant="body2" color="text.secondary">
+                        {donorInsightsMessage}
+                      </Typography>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No data available.
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+                {canViewDonorInsights && !donorInsightsForbidden && givingTiers ? (
+                  <Card variant="outlined">
+                    <CardHeader title="Giving Tiers" subheader="Current vs previous month" />
+                    <CardContent>
+                      <Grid container spacing={2}>
+                        {[givingTiers.currentMonth, givingTiers.previousMonth].map(tierSet => (
+                          <Grid key={tierSet.month} size={{ xs: 12, md: 6 }}>
+                            <Stack spacing={1}>
+                              <Typography variant="subtitle2">
+                                {formatVisitMonthLabel(tierSet.month)}
+                              </Typography>
+                              <List disablePadding dense>
+                                {givingTierOrder.map(bucket => {
+                                  const bucketData = tierSet.tiers[bucket] ?? {
+                                    donorCount: 0,
+                                    totalAmount: 0,
+                                  };
+                                  return (
+                                    <ListItem key={bucket} sx={{ py: 0 }}>
+                                      <ListItemText
+                                        primary={bucket}
+                                        primaryTypographyProps={{ variant: 'body2' }}
+                                        secondary={`${formatNumber(bucketData.donorCount)} donors · ${formatCurrency(bucketData.totalAmount)}`}
+                                        secondaryTypographyProps={{ variant: 'caption', color: 'text.secondary' }}
+                                      />
+                                    </ListItem>
+                                  );
+                                })}
+                              </List>
+                            </Stack>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                ) : null}
+              </Stack>
             </SectionCard>
 
             <SectionCard title="Warehouse Overview">
