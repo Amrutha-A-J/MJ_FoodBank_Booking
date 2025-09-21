@@ -1,9 +1,10 @@
-import { apiFetch, jsonApiFetch } from '../client';
+import { apiFetch, jsonApiFetch, handleResponse } from '../client';
 import {
   createMonetaryDonor,
   updateMonetaryDonor,
   getMonetaryDonor,
   getMonetaryDonors,
+  getMonetaryDonorInsights,
   updateMonetaryDonation,
   deleteMonetaryDonation,
   importZeffyDonations,
@@ -117,6 +118,104 @@ describe('monetary donor api', () => {
         body: expect.any(FormData),
       }),
     );
+  });
+});
+
+describe('monetary donor insights api', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (apiFetch as jest.Mock).mockResolvedValue(new Response(null));
+  });
+
+  it('fetches insights and returns parsed data', async () => {
+    const mockInsights = {
+      window: { startMonth: '2023-01', endMonth: '2023-12', months: 12 },
+      monthly: [
+        {
+          month: '2023-12',
+          totalAmount: 1200,
+          donationCount: 15,
+          donorCount: 10,
+          averageGift: 80,
+        },
+      ],
+      ytd: {
+        totalAmount: 8500,
+        donationCount: 70,
+        donorCount: 45,
+        averageGift: 121.43,
+        averageDonationsPerDonor: 1.56,
+        lastDonationISO: '2023-12-28',
+      },
+      topDonors: [
+        {
+          id: 1,
+          firstName: 'Alice',
+          lastName: 'Smith',
+          email: 'alice@example.com',
+          windowAmount: 600,
+          lifetimeAmount: 2500,
+          lastDonationISO: '2023-12-01',
+        },
+      ],
+      givingTiers: {
+        currentMonth: {
+          month: '2023-12',
+          tiers: {
+            '1-100': { donorCount: 4, totalAmount: 200 },
+            '101-500': { donorCount: 3, totalAmount: 600 },
+            '501-1000': { donorCount: 2, totalAmount: 400 },
+            '1001-10000': { donorCount: 0, totalAmount: 0 },
+            '10001-30000': { donorCount: 0, totalAmount: 0 },
+          },
+        },
+        previousMonth: {
+          month: '2023-11',
+          tiers: {
+            '1-100': { donorCount: 5, totalAmount: 250 },
+            '101-500': { donorCount: 2, totalAmount: 300 },
+            '501-1000': { donorCount: 1, totalAmount: 500 },
+            '1001-10000': { donorCount: 0, totalAmount: 0 },
+            '10001-30000': { donorCount: 0, totalAmount: 0 },
+          },
+        },
+      },
+      firstTimeDonors: [
+        {
+          id: 2,
+          firstName: 'Bob',
+          lastName: 'Jones',
+          email: null,
+          firstDonationISO: '2023-12-15',
+          amount: 150,
+        },
+      ],
+      pantryImpact: { families: 25, adults: 40, children: 30, pounds: 1200 },
+    };
+
+    (handleResponse as jest.Mock).mockResolvedValueOnce(mockInsights);
+
+    const result = await getMonetaryDonorInsights();
+
+    expect(apiFetch).toHaveBeenCalledWith('/api/v1/monetary-donors/insights');
+    expect(result).toEqual(mockInsights);
+  });
+
+  it('passes optional query params', async () => {
+    (handleResponse as jest.Mock).mockResolvedValueOnce(undefined);
+
+    await getMonetaryDonorInsights({ months: 6, endMonth: '2024-03' });
+
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/v1/monetary-donors/insights?months=6&endMonth=2024-03',
+    );
+  });
+
+  it('propagates fetch errors', async () => {
+    const error = new Error('network error');
+    (apiFetch as jest.Mock).mockRejectedValueOnce(error);
+
+    await expect(getMonetaryDonorInsights()).rejects.toThrow(error);
   });
 });
 

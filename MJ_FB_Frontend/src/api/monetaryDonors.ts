@@ -35,6 +35,82 @@ export interface DonorTestEmail {
   email: string;
 }
 
+export type MonetaryDonorMonthBucket =
+  | '1-100'
+  | '101-500'
+  | '501-1000'
+  | '1001-10000'
+  | '10001-30000';
+
+export interface MonetaryDonorInsightsWindow {
+  startMonth: string;
+  endMonth: string;
+  months: number;
+}
+
+export interface MonetaryDonorMonthlySummary {
+  month: string;
+  totalAmount: number;
+  donationCount: number;
+  donorCount: number;
+  averageGift: number;
+}
+
+export interface MonetaryDonorYtdSummary {
+  totalAmount: number;
+  donationCount: number;
+  donorCount: number;
+  averageGift: number;
+  averageDonationsPerDonor: number;
+  lastDonationISO: string | null;
+}
+
+export interface MonetaryDonorTopDonor {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  windowAmount: number;
+  lifetimeAmount: number;
+  lastDonationISO: string | null;
+}
+
+export interface MonetaryDonorTierTallies {
+  month: string;
+  tiers: Record<MonetaryDonorMonthBucket, { donorCount: number; totalAmount: number }>;
+}
+
+export interface MonetaryDonorFirstTimeDonor {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  firstDonationISO: string;
+  amount: number;
+}
+
+export interface MonetaryDonorPantryImpact {
+  families: number;
+  adults: number;
+  children: number;
+  pounds: number;
+}
+
+export interface MonetaryDonorGivingTiers {
+  currentMonth: MonetaryDonorTierTallies;
+  previousMonth: MonetaryDonorTierTallies;
+}
+
+export interface MonetaryDonorInsightsResponse {
+  window: MonetaryDonorInsightsWindow;
+  monthly: MonetaryDonorMonthlySummary[];
+  ytd: MonetaryDonorYtdSummary;
+  topDonors: MonetaryDonorTopDonor[];
+  givingTiers: MonetaryDonorGivingTiers;
+  firstTimeDonors: MonetaryDonorFirstTimeDonor[];
+  pantryImpact: MonetaryDonorPantryImpact;
+}
+
 export async function getMonetaryDonors(
   search?: string,
 ): Promise<MonetaryDonor[]> {
@@ -43,6 +119,24 @@ export async function getMonetaryDonors(
       ? `${API_BASE}/monetary-donors?search=${encodeURIComponent(search)}`
       : `${API_BASE}/monetary-donors`,
   );
+  return handleResponse(res);
+}
+
+export async function getMonetaryDonorInsights(
+  params?: { months?: number; endMonth?: string },
+): Promise<MonetaryDonorInsightsResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.months !== undefined) {
+    searchParams.set('months', String(params.months));
+  }
+  if (params?.endMonth) {
+    searchParams.set('endMonth', params.endMonth);
+  }
+  const query = searchParams.toString();
+  const url = query
+    ? `${API_BASE}/monetary-donors/insights?${query}`
+    : `${API_BASE}/monetary-donors/insights`;
+  const res = await apiFetch(url);
   return handleResponse(res);
 }
 
