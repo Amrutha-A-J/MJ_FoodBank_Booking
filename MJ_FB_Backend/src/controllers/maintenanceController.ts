@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
+import { refreshPantryMonthly, refreshPantryYearly } from './pantry/pantryAggregationController';
+import { refreshWarehouseOverall } from './warehouse/warehouseOverallController';
+import { refreshSunshineBagOverall } from './sunshineBagController';
+import type { MaintenancePurgePayload } from '../schemas/maintenanceSchema';
 
 const TABLE_NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
@@ -196,6 +200,189 @@ export async function clearMaintenanceStats(
     res.sendStatus(204);
   } catch (error) {
     logger.error('Error clearing maintenance stats:', error);
+    next(error);
+  }
+}
+
+type YearMonth = { year: number; month: number };
+
+type AllowedTableConfig = {
+  dateColumn: string;
+  aggregation?: 'pantry' | 'warehouse' | 'sunshine' | 'volunteer';
+};
+
+const ALLOWED_TABLES: Record<string, AllowedTableConfig> = {
+  bookings: { dateColumn: 'date' },
+  client_visits: { dateColumn: 'date', aggregation: 'pantry' },
+  volunteer_bookings: { dateColumn: 'date', aggregation: 'volunteer' },
+  monetary_donations: { dateColumn: 'date', aggregation: 'warehouse' },
+  donations: { dateColumn: 'date', aggregation: 'warehouse' },
+  pig_pound_log: { dateColumn: 'date', aggregation: 'warehouse' },
+  outgoing_donation_log: { dateColumn: 'date', aggregation: 'warehouse' },
+  surplus_log: { dateColumn: 'date', aggregation: 'warehouse' },
+  sunshine_bag_log: { dateColumn: 'date', aggregation: 'sunshine' },
+};
+
+function badRequest(message: string) {
+  const error = new Error(message);
+  (error as Error & { status?: number }).status = 400;
+  return error;
+}
+
+function parseYearMonth(value: unknown): YearMonth {
+  if (value instanceof Date) {
+    return { year: value.getUTCFullYear(), month: value.getUTCMonth() + 1 };
+  }
+  if (typeof value === 'string') {
+    const date = new Date(`${value}T00:00:00Z`);
+    if (!Number.isNaN(date.getTime())) {
+      return { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1 };
+    }
+  }
+  throw new Error('Unable to parse month value');
+}
+
+function formatYearMonth({ year, month }: YearMonth) {
+  return `${year}-${month.toString().padStart(2, '0')}`;
+}
+
+export async function purgeMaintenanceData(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { tables, before } = req.body as MaintenancePurgePayload;
+    const uniqueTables = Array.from(new Set(tables));
+    if (uniqueTables.length === 0) {
+      throw badRequest('At least one table is required');
+    }
+
+    const cutoffPattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (!cutoffPattern.test(before)) {
+      throw badRequest('Cutoff date must use YYYY-MM-DD format');
+    }
+
+    const cutoffDate = new Date(`${before}T00:00:00Z`);
+    if (Number.isNaN(cutoffDate.getTime())) {
+      throw badRequest('Cutoff date is invalid');
+    }
+
+    const currentYear = new Date().getUTCFullYear();
+    const januaryFirst = new Date(Date.UTC(currentYear, 0, 1));
+    if (cutoffDate >= januaryFirst) {
+      throw badRequest('Cutoff date must be before January 1 of the current year');
+    }
+
+    const cutoffISO = cutoffDate.toISOString().slice(0, 10);
+
+    const monthsByTable = new Map<string, YearMonth[]>();
+    const warehouseMonths = new Map<string, YearMonth>();
+    const sunshineMonths = new Map<string, YearMonth>();
+
+    for (const table of uniqueTables) {
+      const config = ALLOWED_TABLES[table];
+      if (!config) {
+        throw badRequest(`Unsupported table: ${table}`);
+      }
+      const { rows } = await pool.query(
+        `SELECT DISTINCT DATE_TRUNC('month', ${config.dateColumn})::date AS month_start FROM ${table} WHERE ${
+          config.dateColumn
+        } < $1 ORDER BY 1`,
+        [cutoffISO],
+      );
+      const months = rows.map(row => parseYearMonth(row.month_start));
+      monthsByTable.set(table, months);
+      if (config.aggregation === 'warehouse') {
+        for (const month of months) {
+          const key = formatYearMonth(month);
+          if (!warehouseMonths.has(key)) warehouseMonths.set(key, month);
+        }
+      }
+      if (config.aggregation === 'sunshine') {
+        for (const month of months) {
+          const key = formatYearMonth(month);
+          if (!sunshineMonths.has(key)) sunshineMonths.set(key, month);
+        }
+      }
+    }
+
+    const clientVisitMonths = monthsByTable.get('client_visits') ?? [];
+    for (const { year, month } of clientVisitMonths) {
+      await refreshPantryMonthly(year, month);
+    }
+    const pantryYears = Array.from(new Set(clientVisitMonths.map(m => m.year)));
+    for (const year of pantryYears) {
+      await refreshPantryYearly(year);
+    }
+
+    for (const { year, month } of warehouseMonths.values()) {
+      await refreshWarehouseOverall(year, month);
+    }
+
+    for (const { year, month } of sunshineMonths.values()) {
+      await refreshSunshineBagOverall(year, month);
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      if (uniqueTables.includes('volunteer_bookings')) {
+        await client.query(
+          `UPDATE volunteers v
+           SET archived_hours = archived_hours + s.completed_hours,
+               archived_shifts = archived_shifts + s.completed_shifts,
+               archived_bookings = archived_bookings + s.total_bookings,
+               archived_no_shows = archived_no_shows + s.no_shows,
+               has_early_bird = has_early_bird OR s.early_bird
+           FROM (
+             SELECT vb.volunteer_id,
+                    COALESCE(SUM(CASE WHEN vb.status='completed' THEN EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600 ELSE 0 END),0) AS completed_hours,
+                    COUNT(*) FILTER (WHERE vb.status='completed') AS completed_shifts,
+                    COUNT(*) FILTER (WHERE vb.status IN ('approved','completed','no_show')) AS total_bookings,
+                    COUNT(*) FILTER (WHERE vb.status='no_show') AS no_shows,
+                    BOOL_OR(vs.start_time < '09:00:00' AND vb.status='completed') AS early_bird
+             FROM volunteer_bookings vb
+             JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+             WHERE vb.date < $1
+             GROUP BY vb.volunteer_id
+           ) s
+           WHERE v.id = s.volunteer_id`,
+          [cutoffISO],
+        );
+      }
+
+      for (const table of uniqueTables) {
+        const { dateColumn } = ALLOWED_TABLES[table];
+        await client.query(`DELETE FROM ${table} WHERE ${dateColumn} < $1`, [cutoffISO]);
+      }
+
+      await client.query('COMMIT');
+    } catch (transactionError) {
+      await client.query('ROLLBACK');
+      throw transactionError;
+    } finally {
+      client.release();
+    }
+
+    for (const table of uniqueTables) {
+      try {
+        await pool.query(`VACUUM (ANALYZE) ${table}`);
+      } catch (vacuumError) {
+        logger.error(`Failed to VACUUM table after purge: ${table}`, vacuumError);
+      }
+    }
+
+    res.json({
+      success: true,
+      cutoff: cutoffISO,
+      purged: uniqueTables.map(table => ({
+        table,
+        months: (monthsByTable.get(table) ?? []).map(formatYearMonth),
+      })),
+    });
+  } catch (error) {
+    logger.error('Failed to purge maintenance data', error);
     next(error);
   }
 }

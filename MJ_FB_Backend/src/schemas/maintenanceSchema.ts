@@ -6,3 +6,10 @@ export const maintenanceSchema = z.object({
 });
 
 export type MaintenancePayload = z.infer<typeof maintenanceSchema>;
+
+export const maintenancePurgeSchema = z.object({
+  tables: z.array(z.string()).min(1),
+  before: z.string(),
+});
+
+export type MaintenancePurgePayload = z.infer<typeof maintenancePurgeSchema>;

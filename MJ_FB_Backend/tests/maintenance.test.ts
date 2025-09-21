@@ -6,6 +6,12 @@ import {
   setMaintenanceMode,
   setMaintenanceNotice,
 } from '../src/controllers/maintenanceController';
+import {
+  refreshPantryMonthly,
+  refreshPantryYearly,
+} from '../src/controllers/pantry/pantryAggregationController';
+import { refreshWarehouseOverall } from '../src/controllers/warehouse/warehouseOverallController';
+import { refreshSunshineBagOverall } from '../src/controllers/sunshineBagController';
 import logger from '../src/utils/logger';
 
 jest.mock('../src/middleware/authMiddleware', () => ({
@@ -28,6 +34,22 @@ jest.mock('../src/middleware/authMiddleware', () => ({
   },
 }));
 
+jest.mock('../src/controllers/pantry/pantryAggregationController', () => ({
+  __esModule: true,
+  refreshPantryMonthly: jest.fn().mockResolvedValue(undefined),
+  refreshPantryYearly: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../src/controllers/warehouse/warehouseOverallController', () => ({
+  __esModule: true,
+  refreshWarehouseOverall: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../src/controllers/sunshineBagController', () => ({
+  __esModule: true,
+  refreshSunshineBagOverall: jest.fn().mockResolvedValue(undefined),
+}));
+
 const app = express();
 app.use(express.json());
 app.use('/maintenance', maintenanceRouter);
@@ -45,6 +67,15 @@ app.use(
 
 afterEach(() => {
   jest.clearAllMocks();
+  (pool.query as jest.Mock).mockResolvedValue({ rows: [], rowCount: 0 });
+  (pool.connect as jest.Mock).mockResolvedValue({
+    query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+    release: jest.fn(),
+  });
+  (refreshPantryMonthly as jest.Mock).mockResolvedValue(undefined);
+  (refreshPantryYearly as jest.Mock).mockResolvedValue(undefined);
+  (refreshWarehouseOverall as jest.Mock).mockResolvedValue(undefined);
+  (refreshSunshineBagOverall as jest.Mock).mockResolvedValue(undefined);
 });
 
 describe('maintenance routes', () => {
@@ -193,6 +224,121 @@ describe('maintenance routes', () => {
         'Failed to fetch dead row statistics',
         error,
       );
+    });
+  });
+
+  describe('purge endpoint', () => {
+    it('purges allowed tables and triggers aggregations', async () => {
+      const currentYear = new Date().getUTCFullYear();
+      const cutoff = `${currentYear - 1}-12-31`;
+
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ month_start: '2022-05-01' }] })
+        .mockResolvedValueOnce({ rows: [{ month_start: '2022-05-01' }] })
+        .mockResolvedValueOnce({ rows: [{ month_start: '2022-05-01' }] })
+        .mockResolvedValue({ rows: [], rowCount: 0 });
+
+      const clientQuery = jest.fn().mockResolvedValue({ rows: [], rowCount: 0 });
+      const release = jest.fn();
+      (pool.connect as jest.Mock).mockResolvedValueOnce({ query: clientQuery, release });
+
+      const res = await request(app)
+        .post('/maintenance/purge')
+        .send({
+          tables: ['client_visits', 'volunteer_bookings', 'pig_pound_log'],
+          before: cutoff,
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        success: true,
+        cutoff,
+        purged: [
+          { table: 'client_visits', months: ['2022-05'] },
+          { table: 'volunteer_bookings', months: ['2022-05'] },
+          { table: 'pig_pound_log', months: ['2022-05'] },
+        ],
+      });
+
+      expect(refreshPantryMonthly).toHaveBeenCalledWith(2022, 5);
+      expect(refreshPantryYearly).toHaveBeenCalledWith(2022);
+      expect(refreshWarehouseOverall).toHaveBeenCalledWith(2022, 5);
+      expect(refreshSunshineBagOverall).not.toHaveBeenCalled();
+
+      expect(clientQuery).toHaveBeenNthCalledWith(1, 'BEGIN');
+      expect(clientQuery).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE volunteers v'),
+        [cutoff],
+      );
+      expect(clientQuery).toHaveBeenCalledWith(
+        expect.stringContaining('DELETE FROM client_visits'),
+        [cutoff],
+      );
+      expect(clientQuery).toHaveBeenCalledWith(
+        expect.stringContaining('DELETE FROM volunteer_bookings'),
+        [cutoff],
+      );
+      expect(clientQuery).toHaveBeenCalledWith(
+        expect.stringContaining('DELETE FROM pig_pound_log'),
+        [cutoff],
+      );
+      expect(clientQuery).toHaveBeenCalledWith('COMMIT');
+
+      expect(pool.query).toHaveBeenCalledWith('VACUUM (ANALYZE) client_visits');
+      expect(pool.query).toHaveBeenCalledWith('VACUUM (ANALYZE) volunteer_bookings');
+      expect(pool.query).toHaveBeenCalledWith('VACUUM (ANALYZE) pig_pound_log');
+    });
+
+    it('rejects unsupported tables', async () => {
+      const currentYear = new Date().getUTCFullYear();
+      const cutoff = `${currentYear - 1}-12-31`;
+
+      const res = await request(app)
+        .post('/maintenance/purge')
+        .send({ tables: ['bad_table'], before: cutoff });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({ message: 'Unsupported table: bad_table' });
+      expect(pool.query).not.toHaveBeenCalled();
+      expect(pool.connect).not.toHaveBeenCalled();
+    });
+
+    it('rejects cutoff dates in the current year', async () => {
+      const currentYear = new Date().getUTCFullYear();
+      const cutoff = `${currentYear}-01-01`;
+
+      const res = await request(app)
+        .post('/maintenance/purge')
+        .send({ tables: ['bookings'], before: cutoff });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({
+        message: 'Cutoff date must be before January 1 of the current year',
+      });
+      expect(pool.query).not.toHaveBeenCalled();
+      expect(pool.connect).not.toHaveBeenCalled();
+    });
+
+    it('forwards errors from aggregation helpers', async () => {
+      const currentYear = new Date().getUTCFullYear();
+      const cutoff = `${currentYear - 1}-12-31`;
+      const aggregationError = new Error('aggregation failed');
+
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ month_start: '2022-05-01' }] })
+        .mockResolvedValue({ rows: [], rowCount: 0 });
+      (refreshPantryMonthly as jest.Mock).mockRejectedValueOnce(aggregationError);
+
+      const res = await request(app)
+        .post('/maintenance/purge')
+        .send({ tables: ['client_visits'], before: cutoff });
+
+      expect(res.status).toBe(500);
+      expect(logger.error).toHaveBeenCalledWith(
+        'Failed to purge maintenance data',
+        aggregationError,
+      );
+      expect(pool.connect).not.toHaveBeenCalled();
     });
   });
 });
