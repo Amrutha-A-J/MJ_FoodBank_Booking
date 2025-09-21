@@ -5,6 +5,7 @@ import { getBookings } from '../api/bookings';
 import { getEvents } from '../api/events';
 import { getPantryMonthly } from '../api/pantryAggregations';
 import { getVolunteerBookings, getVolunteerRoles } from '../api/volunteers';
+import { formatReginaDate } from '../utils/time';
 import type { VisitStat } from '../api/clientVisits';
 
 const mockVisitTrendChart = jest.fn();
