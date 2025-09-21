@@ -29,6 +29,8 @@ import SectionCard from '../../components/dashboard/SectionCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import ClientVisitTrendChart from '../../components/dashboard/ClientVisitTrendChart';
 import ClientVisitBreakdownChart from '../../components/dashboard/ClientVisitBreakdownChart';
+import MonetaryDonationTrendChart from '../../components/dashboard/MonetaryDonationTrendChart';
+import MonetaryGivingTierChart from '../../components/dashboard/MonetaryGivingTierChart';
 import EventList from '../../components/EventList';
 import { getEvents, type EventGroups } from '../../api/events';
 import { getPantryMonthly } from '../../api/pantryAggregations';
@@ -49,6 +51,10 @@ import WarehouseCompositionChart, {
 import WarehouseTrendChart, {
   type WarehouseTrendDatum,
 } from '../../components/dashboard/WarehouseTrendChart';
+import { useAuth } from '../../hooks/useAuth';
+import useMonetaryDonorInsights from '../../hooks/useMonetaryDonorInsights';
+import type { MonetaryDonorMonthlySummary } from '../../api/monetaryDonors';
+import type { MonetaryDonorMonthBucket } from '../../api/monetaryDonors';
 
 interface PantryMonthlyRow {
   month: number;
@@ -85,7 +91,23 @@ function toErrorMessage(error: unknown, fallback: string, forbidden: string) {
 
 const emptyEvents: EventGroups = { today: [], upcoming: [], past: [] };
 
+const currencyFormatter = new Intl.NumberFormat('en-CA', {
+  style: 'currency',
+  currency: 'CAD',
+});
+
+const givingTierLabels: Record<MonetaryDonorMonthBucket, string> = {
+  '1-100': '$1–$100',
+  '101-500': '$101–$500',
+  '501-1000': '$501–$1,000',
+  '1001-10000': '$1,001–$10,000',
+  '10001-30000': '$10,001–$30,000',
+};
+
 export default function FoodBankTrends() {
+  const { access } = useAuth();
+  const hasDonorInsightsAccess = access?.includes?.('donor_management') ?? false;
+
   const [visitStats, setVisitStats] = useState<VisitStat[]>([]);
   const [pantryLoading, setPantryLoading] = useState(true);
   const [pantryError, setPantryError] = useState<string | null>(null);
@@ -121,9 +143,110 @@ export default function FoodBankTrends() {
     severity: AlertColor;
   }>({ open: false, message: '', severity: 'error' });
 
+  const [selectedDonationMonth, setSelectedDonationMonth] =
+    useState<MonetaryDonorMonthlySummary | null>(null);
+
+  const donorInsights = useMonetaryDonorInsights({
+    months: 12,
+    enabled: hasDonorInsightsAccess,
+  });
+
+  const donorInsightsPermissionMessage = 'You do not have permission to view monetary donor insights.';
+
+  const donorInsightsErrorMessage = donorInsights.isError
+    ? toErrorMessage(
+        donorInsights.error,
+        'Unable to load monetary donor insights.',
+        donorInsightsPermissionMessage,
+      )
+    : null;
+
+  const donorInsightsForbidden = (donorInsights.error as ApiError | undefined)?.status === 403;
+
+  const donationTrendData = useMemo(
+    () =>
+      (donorInsights.data?.monthly ?? []).map(month => ({
+        month: month.month,
+        amount: month.totalAmount,
+        donationCount: month.donationCount,
+        donorCount: month.donorCount,
+        averageGift: month.averageGift,
+      })),
+    [donorInsights.data?.monthly],
+  );
+
+  const givingTierData = useMemo(() => {
+    const current = donorInsights.data?.givingTiers.currentMonth;
+    if (!current) return [];
+    const previous = donorInsights.data.givingTiers.previousMonth;
+
+    return (Object.entries(current.tiers) as Array<[
+      MonetaryDonorMonthBucket,
+      { donorCount: number; totalAmount: number },
+    ]>).map(([bucket, values]) => {
+      const prevValues = previous?.tiers[bucket];
+      const delta = prevValues ? values.donorCount - prevValues.donorCount : undefined;
+      return {
+        tierLabel: givingTierLabels[bucket],
+        donorCount: values.donorCount,
+        amount: values.totalAmount,
+        deltaFromPreviousMonth: delta === undefined ? undefined : delta,
+      };
+    });
+  }, [donorInsights.data?.givingTiers]);
+
+  const hasGivingTierData = useMemo(
+    () => givingTierData.some(datum => datum.donorCount > 0 || datum.amount > 0),
+    [givingTierData],
+  );
+
+  const givingTierSubtitle = useMemo(() => {
+    const currentMonth = donorInsights.data?.givingTiers.currentMonth.month;
+    if (!currentMonth) return undefined;
+    const currentLabel = formatVisitMonthLabel(currentMonth);
+    const previousMonth = donorInsights.data?.givingTiers.previousMonth?.month;
+    if (!previousMonth) return currentLabel;
+    return `${currentLabel} vs ${formatVisitMonthLabel(previousMonth)}`;
+  }, [donorInsights.data?.givingTiers]);
+
+  const ytdSummary = donorInsights.data?.ytd;
+
+  useEffect(() => {
+    if (!hasDonorInsightsAccess) {
+      setSelectedDonationMonth(null);
+      return;
+    }
+
+    const monthly = donorInsights.data?.monthly ?? [];
+    if (monthly.length) {
+      setSelectedDonationMonth(monthly[monthly.length - 1]);
+    } else {
+      setSelectedDonationMonth(null);
+    }
+  }, [donorInsights.data?.monthly, hasDonorInsightsAccess]);
+
+  const handleDonationPointSelect = useCallback(
+    (datum: { month?: string } | undefined) => {
+      if (!datum?.month) return;
+      const match = donorInsights.data?.monthly?.find(month => month.month === datum.month);
+      if (match) {
+        setSelectedDonationMonth(match);
+      }
+    },
+    [donorInsights.data?.monthly],
+  );
+
   const showError = (message: string) => {
     setSnackbar({ open: true, message, severity: 'error' });
   };
+
+  useEffect(() => {
+    if (!hasDonorInsightsAccess) return;
+    if (donorInsightsForbidden) return;
+    if (donorInsightsErrorMessage) {
+      showError(donorInsightsErrorMessage);
+    }
+  }, [donorInsightsErrorMessage, donorInsightsForbidden, hasDonorInsightsAccess]);
 
   useEffect(() => {
     let active = true;
@@ -465,6 +588,135 @@ export default function FoodBankTrends() {
                   </CardContent>
                 </Card>
               </Box>
+            </SectionCard>
+
+            <SectionCard title="Monetary Donations">
+              {!hasDonorInsightsAccess || donorInsightsForbidden ? (
+                <Typography variant="body2" color="text.secondary">
+                  {donorInsightsPermissionMessage}
+                </Typography>
+              ) : donorInsights.isLoading ? (
+                <Box display="flex" justifyContent="center" py={2}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : donorInsightsErrorMessage ? (
+                <Typography variant="body2" color="text.secondary">
+                  {donorInsightsErrorMessage}
+                </Typography>
+              ) : (
+                <Stack spacing={2}>
+                  {ytdSummary ? (
+                    <Stack spacing={1}>
+                      <Typography variant="subtitle2">Year to date</Typography>
+                      <Stack
+                        direction={{ xs: 'column', md: 'row' }}
+                        spacing={1}
+                        flexWrap="wrap"
+                        useFlexGap
+                        alignItems={{ xs: 'flex-start', md: 'center' }}
+                      >
+                        <Chip
+                          data-testid="donation-ytd-total"
+                          label={`YTD total: ${currencyFormatter.format(ytdSummary.totalAmount)}`}
+                          color="primary"
+                          variant="outlined"
+                        />
+                        <Chip
+                          data-testid="donation-ytd-average"
+                          label={`Avg gift: ${currencyFormatter.format(ytdSummary.averageGift)}`}
+                          color="success"
+                          variant="outlined"
+                        />
+                        <Chip
+                          label={`Donations: ${ytdSummary.donationCount.toLocaleString()}`}
+                          color="info"
+                          variant="outlined"
+                        />
+                        <Chip
+                          label={`Donors: ${ytdSummary.donorCount.toLocaleString()}`}
+                          color="warning"
+                          variant="outlined"
+                        />
+                      </Stack>
+                    </Stack>
+                  ) : null}
+                  <Card variant="outlined">
+                    <CardHeader
+                      title="Donation Trend (12 months)"
+                      subheader="Click a point to view monthly totals."
+                      action={
+                        donorInsights.isFetching && !donorInsights.isLoading ? (
+                          <CircularProgress size={20} />
+                        ) : undefined
+                      }
+                    />
+                    <CardContent sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}>
+                      {donationTrendData.length ? (
+                        <>
+                          <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                            <MonetaryDonationTrendChart
+                              data={donationTrendData}
+                              onPointSelect={handleDonationPointSelect}
+                            />
+                          </Box>
+                          {selectedDonationMonth ? (
+                            <Stack
+                              direction={{ xs: 'column', sm: 'row' }}
+                              spacing={1.5}
+                              alignItems={{ xs: 'flex-start', sm: 'center' }}
+                              sx={{ mt: 2 }}
+                            >
+                              <Typography variant="subtitle2" data-testid="donation-trend-month">
+                                {formatVisitMonthLabel(selectedDonationMonth.month)}
+                              </Typography>
+                              <Stack
+                                direction={{ xs: 'column', sm: 'row' }}
+                                spacing={1}
+                                flexWrap="wrap"
+                                useFlexGap
+                              >
+                                <Chip
+                                  label={`Amount: ${currencyFormatter.format(selectedDonationMonth.totalAmount)}`}
+                                  color="primary"
+                                  variant="outlined"
+                                  data-testid="donation-trend-amount"
+                                />
+                                <Chip
+                                  label={`Donations: ${selectedDonationMonth.donationCount.toLocaleString()}`}
+                                  color="info"
+                                  variant="outlined"
+                                />
+                                <Chip
+                                  label={`Donors: ${selectedDonationMonth.donorCount.toLocaleString()}`}
+                                  color="warning"
+                                  variant="outlined"
+                                />
+                                <Chip
+                                  label={`Avg gift: ${currencyFormatter.format(selectedDonationMonth.averageGift)}`}
+                                  color="success"
+                                  variant="outlined"
+                                />
+                              </Stack>
+                            </Stack>
+                          ) : null}
+                        </>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No data available.
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                  {hasGivingTierData ? (
+                    <Card variant="outlined">
+                      <CardHeader title="Giving Tiers" subheader={givingTierSubtitle} />
+                      <CardContent sx={{ minHeight: 320 }}>
+                        <MonetaryGivingTierChart data={givingTierData} />
+                      </CardContent>
+                    </Card>
+                  ) : null}
+                </Stack>
+              )}
             </SectionCard>
 
             <SectionCard title="Warehouse Overview">
