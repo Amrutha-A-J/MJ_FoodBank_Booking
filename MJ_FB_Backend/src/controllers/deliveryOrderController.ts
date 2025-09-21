@@ -178,7 +178,8 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  const { clientId, address, phone, email, selections } = parsed.data;
+  const { clientId, address, phone, selections } = parsed.data;
+  const email = parsed.data.email ?? null;
   const normalizedSelections = normalizeSelections(selections);
 
   const deliverySettings = await getDeliverySettings();
@@ -201,7 +202,7 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
 
     const currentAddress = req.user.address ?? '';
     const currentPhone = req.user.phone ?? '';
-    const currentEmail = req.user.email ?? '';
+    const currentEmail = req.user.email ?? null;
     const currentName = req.user.name?.trim() ?? '';
 
     shouldUpdateClientProfile =
