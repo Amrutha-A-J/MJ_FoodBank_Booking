@@ -1,4 +1,25 @@
+import type { VisitStat } from '../../../api/clientVisits';
+
 type TrendDatum = { month: string; incoming: number; outgoing: number };
+
+const mockVisitTrendChart = jest.fn();
+const mockVisitBreakdownChart = jest.fn();
+
+jest.mock('../../../components/dashboard/ClientVisitTrendChart', () => ({
+  __esModule: true,
+  default: (props: { data: VisitStat[] }) => {
+    mockVisitTrendChart(props);
+    return <div data-testid="visit-trend-chart" />;
+  },
+}));
+
+jest.mock('../../../components/dashboard/ClientVisitBreakdownChart', () => ({
+  __esModule: true,
+  default: (props: { data: VisitStat[] }) => {
+    mockVisitBreakdownChart(props);
+    return <div data-testid="visit-breakdown-chart" />;
+  },
+}));
 
 let mockTrendPoint: TrendDatum = { month: 'Jan', incoming: 0, outgoing: 0 };
 
@@ -55,9 +76,10 @@ import { getTopDonors } from '../../../api/donors';
 import { getTopReceivers } from '../../../api/outgoingReceivers';
 
 describe('FoodBankTrends', () => {
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
+  const fakeNow = new Date('2024-08-15T12:00:00Z');
+  const currentYear = fakeNow.getFullYear();
+  const currentMonth = fakeNow.getMonth() + 1;
+  const futureMonth = currentMonth + 1;
   const previousYear = currentYear - 1;
 
   const warehouseTotals = [
@@ -65,13 +87,25 @@ describe('FoodBankTrends', () => {
     { month: 2, donations: 900, surplus: 100, pigPound: 40, outgoingDonations: 650 },
   ];
 
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(fakeNow);
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockVisitTrendChart.mockClear();
+    mockVisitBreakdownChart.mockClear();
 
     (getPantryMonthly as jest.Mock).mockImplementation((year: number) => {
       if (year === currentYear) {
         return Promise.resolve([
           { month: currentMonth, orders: 20, adults: 35, children: 12 },
+          { month: futureMonth, orders: 999, adults: 999, children: 999 },
         ]);
       }
       if (year === previousYear) {
@@ -115,4 +149,26 @@ describe('FoodBankTrends', () => {
     expect(incomingValue).toBe(mockTrendPoint.incoming);
     expect(outgoingValue).toBe(mockTrendPoint.outgoing);
   }, 15000);
+
+  it('excludes future months from visit charts', async () => {
+    render(
+      <MemoryRouter>
+        <FoodBankTrends />
+      </MemoryRouter>,
+    );
+
+    await screen.findByTestId('visit-trend-chart');
+
+    const trendCall = mockVisitTrendChart.mock.calls.at(-1)?.[0];
+    const breakdownCall = mockVisitBreakdownChart.mock.calls.at(-1)?.[0];
+    expect(Array.isArray(trendCall?.data)).toBe(true);
+    expect(Array.isArray(breakdownCall?.data)).toBe(true);
+
+    const hasFutureMonth = (stats: VisitStat[] | undefined) =>
+      !!stats?.some(stat => stat.month === `${currentYear}-${String(futureMonth).padStart(2, '0')}`);
+
+    expect(hasFutureMonth(trendCall?.data)).toBe(false);
+    expect(hasFutureMonth(breakdownCall?.data)).toBe(false);
+    expect(screen.queryByText('Total visits: 999')).not.toBeInTheDocument();
+  });
 });
