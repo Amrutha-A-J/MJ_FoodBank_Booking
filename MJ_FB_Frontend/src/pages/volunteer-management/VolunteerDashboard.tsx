@@ -275,6 +275,12 @@ export default function VolunteerDashboard() {
     return Array.from(map.entries());
   }, [availability]);
 
+  useEffect(() => {
+    if (roleFilter && !roleOptions.some(([id]) => id === roleFilter)) {
+      setRoleFilter('');
+    }
+  }, [roleFilter, roleOptions]);
+
   async function request(role: VolunteerRole) {
     try {
       await requestVolunteerBooking(role.id, role.date);
