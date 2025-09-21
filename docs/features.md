@@ -2,6 +2,7 @@
 
 > Historical note: Items referencing the former partner portal describe previously shipped features. Partner bookings now go through staff assistance.
 
+- feat(donor-dashboard): add revenue metrics cards, donor retention visuals, and reusable trends chart component
 - feat: add maintenance mode notices
 - feat: allow manual warehouse overall aggregates
 - feat: allow manual pantry monthly aggregates
