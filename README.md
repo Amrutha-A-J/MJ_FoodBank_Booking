@@ -489,26 +489,59 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Pantry Visits allow selecting any date to view visits beyond the current week.
 - `GET /client-visits/stats?days=n` aggregates daily visit totals for the past `n` days (default 30) returning `{ date, total, adults, children }`.
 
-## Deploying to Azure
+## Deploying to AWS Lightsail
 
-The repository includes Dockerfiles for both the backend and frontend so the application can be containerized and run in Azure services such as Azure Web App for Containers or Azure Container Apps.
+Production runs on an AWS Lightsail instance with the repository checked out at `~/apps/MJ_FoodBank_Booking`. The backend PM2
+process is named `mjfb-api` and the built frontend is served by Nginx from `/var/www/mjfb-frontend` at
+[`https://app.mjfoodbank.org`](https://app.mjfoodbank.org).
 
-1. Build and push the images to an Azure Container Registry:
+### 1. Push local changes
 
 ```bash
-# Backend
-cd MJ_FB_Backend
-docker build -t <registry>.azurecr.io/mjfb-backend .
-docker push <registry>.azurecr.io/mjfb-backend
-
-# Frontend
-cd ../MJ_FB_Frontend
-docker build -t <registry>.azurecr.io/mjfb-frontend .
-docker push <registry>.azurecr.io/mjfb-frontend
+git status
+git add .
+git commit -m "frontend: <change>; backend: <change>"
+git push origin main
 ```
 
-2. Create Azure resources (Web App or Container App) pointing to the images.
+### 2. Update the server (SSH into Lightsail)
 
-3. Configure the environment variables in the Azure portal using the provided `.env.example` files. Ensure `JWT_SECRET` is set to a strong value.
+```bash
+ssh ubuntu@<lightsail-host>
+cd ~/apps/MJ_FoodBank_Booking
+git pull origin master
+```
 
-This setup prepares the project so it can be hosted on Azure with containerized services.
+#### Backend (API)
+
+```bash
+cd MJ_FB_Backend
+npm install
+NODE_OPTIONS=--max-old-space-size=4096 npm run build
+pm2 restart mjfb-api --update-env
+pm2 logs mjfb-api --lines 80
+```
+
+#### Frontend (React/Vite)
+
+```bash
+cd ../MJ_FB_Frontend
+npm install
+NODE_OPTIONS=--max-old-space-size=4096 npm run build
+
+# Deploy to Nginx web root
+sudo rm -rf /var/www/mjfb-frontend/*
+sudo cp -r dist/* /var/www/mjfb-frontend/
+sudo systemctl reload nginx
+```
+
+### 3. Post-deploy verification
+
+```bash
+curl -I https://app.mjfoodbank.org/api/v1/health
+pm2 list
+pm2 logs mjfb-api --lines 100
+sudo journalctl -u nginx -n 50 --no-pager
+```
+
+Restart the backend with `pm2 restart mjfb-api --update-env` whenever `.env` values change so the new configuration is loaded.
