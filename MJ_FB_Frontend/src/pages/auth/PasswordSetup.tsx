@@ -14,6 +14,7 @@ import {
 import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialog';
 
 export default function PasswordSetup() {
+  const LOGIN_PATH = '/login';
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') || '';
   const [password, setPassword] = useState('');
@@ -58,7 +59,7 @@ export default function PasswordSetup() {
     }
     try {
       await setPasswordApi(token, password);
-      navigate('/login');
+      navigate(LOGIN_PATH);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(msg);
@@ -115,7 +116,7 @@ export default function PasswordSetup() {
               helperText="Must be at least 8 characters and include uppercase, lowercase, and special characters."
             />
             <PasswordChecklist password={password} />
-            <Button component={RouterLink} to="/login" variant="outlined">
+            <Button component={RouterLink} to={LOGIN_PATH} variant="outlined">
               Back to login
             </Button>
           </>
