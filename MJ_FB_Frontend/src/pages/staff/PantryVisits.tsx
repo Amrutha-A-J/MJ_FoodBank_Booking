@@ -456,7 +456,12 @@ export default function PantryVisits() {
             year: 'numeric',
           })},`}
         </Typography>
-        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={{ xs: 1.5, sm: 2 }}
+          alignItems={{ xs: 'flex-start', md: 'center' }}
+          sx={{ mb: 2 }}
+        >
           <Typography variant="body2">
             {`Clients: ${summary.clients}`}
           </Typography>
