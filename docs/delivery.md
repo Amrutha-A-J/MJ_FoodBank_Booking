@@ -3,6 +3,8 @@
 ## Overview
 
 - Clients with the **delivery** role see **Book Delivery** and **Delivery History** in the navigation.
+- Only delivery-role clients and staff can submit or cancel delivery orders. Volunteers—including those linked to delivery
+  clients—cannot reach the delivery endpoints because the backend requires `req.user.role === 'delivery'`.
 - Book Delivery fetches delivery categories and items from `/api/v1/delivery/categories`. Each category exposes a `maxItems` value that caps the total quantity shoppers can request from that category.
 - The request form requires the delivery address, phone number, and email. Duplicate item selections are merged automatically before the order is submitted.
 - Delivery History lists each request in reverse chronological order so clients can confirm what they previously asked for, review status updates, and see any scheduled drop-off details.
@@ -46,3 +48,4 @@ Staff see a **Deliveries** page in the staff navigation. The view lists the newe
 - Staff can review a client’s delivery history by calling `GET /api/v1/delivery/orders/history?clientId=<id>` with a staff token. This endpoint returns the same payload the client sees in the app.
 - Staff → Client Management → History now loads `/api/v1/delivery/orders?clientId=<id>` only when the selected account has the **delivery** role. In that case the booking timeline is replaced with a full-width delivery history that summarizes each hamper’s status, scheduled date, contact details, and requested items so the pantry and delivery teams stay aligned during follow-up calls. Non-delivery clients continue to see their booking timeline.
 - Staff may submit a request on a client’s behalf by sending the same payload to `POST /api/v1/delivery/orders`; include the `clientId` in the body so the order is recorded correctly.
+- Volunteers cannot submit or cancel delivery orders, even if they are linked to a delivery client account, because the API enforces the delivery role on `req.user`.
