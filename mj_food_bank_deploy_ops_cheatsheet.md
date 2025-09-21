@@ -52,6 +52,110 @@ curl -I https://app.mjfoodbank.org/api/v1/health
 sudo journalctl -u nginx -n 50
 ```
 
+### 2D) Post-deploy smoke checklist (production)
+> Use the Ops test accounts in 1Password (Ops Test Staff, Ops Test Client, Ops Test Volunteer). Replace placeholder IDs in the examples before running them.
+
+1. **Confirm client booking create/reschedule/cancel APIs**
+   ```bash
+   # Sign in as Ops Test Client to capture session cookies
+   curl -c client.cookies -X POST https://app.mjfoodbank.org/api/v1/auth/login \
+     -H 'content-type: application/json' \
+     -d '{"clientId":"<CLIENT_ID>","password":"<CLIENT_PASSWORD>"}'
+
+   # Create a pantry booking for the next available slot
+   curl -b client.cookies -X POST https://app.mjfoodbank.org/api/v1/bookings \
+     -H 'content-type: application/json' \
+     -d '{"slotId":<SLOT_ID>,"date":"<YYYY-MM-DD>","note":"post-deploy check"}'
+   # ✅ Expect 201 with JSON containing `id`, `slot_id`, and status `approved`.
+
+   # Fetch booking history to confirm it lists the new visit
+   curl -b client.cookies 'https://app.mjfoodbank.org/api/v1/bookings/history?past=false'
+   # ✅ Expect 200 with a JSON array including the booking ID created above.
+
+   # Use the token from the booking confirmation email (or `/bookings/history` payload) to test reschedule and cancel
+   curl -X POST https://app.mjfoodbank.org/api/v1/bookings/reschedule/<RESCHEDULE_TOKEN> \
+     -H 'content-type: application/json' \
+     -d '{"slotId":<NEW_SLOT_ID>,"date":"<YYYY-MM-DD>"}'
+   # ✅ Expect 200 with `message: "Booking rescheduled"`, refreshed `rescheduleToken`, and new slot times.
+
+   curl -X POST https://app.mjfoodbank.org/api/v1/bookings/cancel/<CANCEL_TOKEN>
+   # ✅ Expect 200 with `{ "message": "Booking cancelled" }`; confirm the booking disappears from the upcoming list.
+   ```
+
+2. **Validate volunteer booking endpoints**
+   ```bash
+   # Sign in as Ops Test Volunteer
+   curl -c volunteer.cookies -X POST https://app.mjfoodbank.org/api/v1/auth/login \
+     -H 'content-type: application/json' \
+     -d '{"email":"ops.volunteer@example.com","password":"<VOLUNTEER_PASSWORD>"}'
+
+   # Book the next available volunteer shift
+   curl -b volunteer.cookies -X POST https://app.mjfoodbank.org/api/v1/volunteer-bookings \
+     -H 'content-type: application/json' \
+     -d '{"roleId":<VOLUNTEER_SLOT_ID>,"date":"<YYYY-MM-DD>","note":"post-deploy check"}'
+   # ✅ Expect 201 with a `booking` payload showing status `approved`.
+
+   # Exercise reschedule and cancel via tokenized routes
+   curl -X POST https://app.mjfoodbank.org/api/v1/volunteer-bookings/reschedule/<VOL_RESCHEDULE_TOKEN> \
+     -H 'content-type: application/json' \
+     -d '{"roleId":<NEW_VOLUNTEER_SLOT_ID>,"date":"<YYYY-MM-DD>"}'
+   # ✅ Expect 200 with `{ "message": "Booking rescheduled", "rescheduleToken": "..." }` and updated slot times.
+
+   curl -X PATCH https://app.mjfoodbank.org/api/v1/volunteer-bookings/<BOOKING_ID>/cancel
+   # ✅ Expect 200 with `{ "message": "Booking cancelled" }` and the booking is removed from `/volunteer-bookings/mine`.
+   ```
+
+3. **Verify pantry schedule availability APIs**
+   ```bash
+   # Staff token from Ops Test Staff account
+   curl -c staff.cookies -X POST https://app.mjfoodbank.org/api/v1/auth/login \
+     -H 'content-type: application/json' \
+     -d '{"email":"ops.staff@example.com","password":"<STAFF_PASSWORD>"}'
+
+   curl -b staff.cookies 'https://app.mjfoodbank.org/api/v1/slots/range?start=<YYYY-MM-DD>&end=<YYYY-MM-DD>'
+   # ✅ Expect 200 with `slots` array covering the requested date range.
+   ```
+
+4. **Exercise pantry visit CRUD**
+   ```bash
+   # Create visit
+   curl -b staff.cookies -X POST https://app.mjfoodbank.org/api/v1/client-visits \
+     -H 'content-type: application/json' \
+     -d '{"date":"<YYYY-MM-DD>","clientId":<CLIENT_ID>,"adults":2,"children":1,"weightWithCart":0,"weightWithoutCart":0}'
+   # ✅ Expect 201 with the new visit object (including `id` and `clientName`).
+
+   # Update visit
+   curl -b staff.cookies -X PUT https://app.mjfoodbank.org/api/v1/client-visits/<VISIT_ID> \
+     -H 'content-type: application/json' \
+     -d '{"date":"<YYYY-MM-DD>","clientId":<CLIENT_ID>,"adults":3,"children":0,"weightWithCart":0,"weightWithoutCart":0}'
+   # ✅ Expect 200 with the updated visit payload.
+
+   # Verify toggle and delete
+   curl -b staff.cookies -X PATCH https://app.mjfoodbank.org/api/v1/client-visits/<VISIT_ID>/verify
+   # ✅ Expect 200 with the visit payload showing `verified: true`.
+
+   curl -b staff.cookies -X DELETE https://app.mjfoodbank.org/api/v1/client-visits/<VISIT_ID>
+   # ✅ Expect 200 with `{ "message": "Deleted" }` and the visit removed from `/client-visits` listing.
+   ```
+
+5. **Record a warehouse donation log entry**
+   ```bash
+   curl -b staff.cookies -X POST https://app.mjfoodbank.org/api/v1/warehouse/donations \
+     -H 'content-type: application/json' \
+     -d '{"date":"<YYYY-MM-DD>","donorId":<DONOR_ID>,"weight":25}'
+   # ✅ Expect 201 with donation `id`, donor details, and weight.
+
+   curl -b staff.cookies 'https://app.mjfoodbank.org/api/v1/warehouse/donations?month=<YYYY-MM>'
+   # ✅ Expect 200 with the new donation present; remove it when finished:
+   curl -b staff.cookies -X DELETE https://app.mjfoodbank.org/api/v1/warehouse/donations/<DONATION_ID>
+   ```
+
+6. **UI spot checks (optional but fast)**
+   - `/client/book` → create/reschedule/cancel workflow completes without console errors.
+   - `/volunteer/schedule` → booking cards render the shift created above.
+   - `/staff/pantry/schedule` → reflects slot updates and cleared bookings.
+   - `/staff/warehouse/donation-log` → shows the QA donation entry and supports delete after verification.
+
 ---
 
 ## 3) PM2 Essentials

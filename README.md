@@ -508,3 +508,15 @@ docker push <registry>.azurecr.io/mjfb-frontend
 3. Configure the environment variables in the Azure portal using the provided `.env.example` files. Ensure `JWT_SECRET` is set to a strong value.
 
 This setup prepares the project so it can be hosted on Azure with containerized services.
+
+### Post-deploy verification
+
+Run the production smoke checklist after any deployment to confirm critical APIs and UI flows are up:
+
+1. **Client bookings** – `POST /api/v1/bookings`, `GET /api/v1/bookings/history`, `POST /api/v1/bookings/reschedule/:token`, and `POST /api/v1/bookings/cancel/:token` all return 2xx responses and show the booking in the client dashboard.
+2. **Volunteer bookings** – `POST /api/v1/volunteer-bookings`, `POST /api/v1/volunteer-bookings/reschedule/:token`, and `PATCH /api/v1/volunteer-bookings/:id/cancel` succeed for the Ops test volunteer account.
+3. **Pantry schedule** – `GET /api/v1/slots/range?start=<YYYY-MM-DD>&end=<YYYY-MM-DD>` returns the expected slot window for staff, and `/staff/pantry/schedule` renders without errors.
+4. **Pantry visits CRUD** – Staff can `POST`, `PUT`, `PATCH /verify`, and `DELETE` against `/api/v1/client-visits`, with matching updates visible on `/staff/pantry/visits`.
+5. **Warehouse donation log** – `POST /api/v1/warehouse/donations` creates a new entry and it appears on `/staff/warehouse/donation-log`.
+
+Full curl examples and expected payloads live in [`mj_food_bank_deploy_ops_cheatsheet.md`](./mj_food_bank_deploy_ops_cheatsheet.md#2d-post-deploy-smoke-checklist-production).
