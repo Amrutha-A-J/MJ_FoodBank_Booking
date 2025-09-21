@@ -10,6 +10,9 @@ describe('DonorQuickLinks', () => {
       </MemoryRouter>
     );
     expect(
+      screen.getByRole('link', { name: /Dashboard/i })
+    ).toHaveAttribute('href', '/donor-management');
+    expect(
       screen.getByRole('link', { name: /Donors/i })
     ).toHaveAttribute('href', '/donor-management/donors');
     expect(
@@ -21,7 +24,9 @@ describe('DonorQuickLinks', () => {
   });
 
   it.each([
+    ['/donor-management', /Dashboard/i],
     ['/donor-management/donors', /Donors/i],
+    ['/donor-management/donors/123', /Donors/i],
     ['/donor-management/donation-log', /Donor Log/i],
     ['/donor-management/mail-lists', /Mail Lists/i],
   ])('disables current page link %s', (path, label) => {
@@ -34,6 +39,17 @@ describe('DonorQuickLinks', () => {
       'aria-disabled',
       'true'
     );
+  });
+
+  it('keeps other quick links enabled when viewing dashboard', () => {
+    render(
+      <MemoryRouter initialEntries={['/donor-management']}>
+        <DonorQuickLinks />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('link', { name: /Donors/i })).not.toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('link', { name: /Donor Log/i })).not.toHaveAttribute('aria-disabled', 'true');
   });
 });
 
