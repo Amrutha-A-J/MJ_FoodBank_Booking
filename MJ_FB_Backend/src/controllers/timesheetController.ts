@@ -35,11 +35,31 @@ export async function listTimesheets(
   try {
     if (!req.user || req.user.type !== 'staff')
       return res.status(401).json({ message: 'Unauthorized' });
-    const staffId = req.query.staffId
-      ? Number(req.query.staffId)
-      : undefined;
-    const year = req.query.year ? Number(req.query.year) : undefined;
-    const month = req.query.month ? Number(req.query.month) : undefined;
+    const parseQueryInteger = (value: unknown) => {
+      if (value === undefined) return { defined: false, value: undefined };
+      if (Array.isArray(value)) return { defined: true, value: null };
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) {
+        return { defined: true, value: null };
+      }
+      return { defined: true, value: parsed };
+    };
+
+    const staffIdParsed = parseQueryInteger(req.query.staffId);
+    const yearParsed = parseQueryInteger(req.query.year);
+    const monthParsed = parseQueryInteger(req.query.month);
+
+    if (
+      staffIdParsed.value === null ||
+      yearParsed.value === null ||
+      monthParsed.value === null
+    ) {
+      return res.status(400).json({ message: 'Invalid query parameters' });
+    }
+
+    const staffId = staffIdParsed.value;
+    const year = yearParsed.value;
+    const month = monthParsed.value;
     const rows = await getTimesheets(staffId, year, month);
     res.json(rows);
   } catch (err) {
