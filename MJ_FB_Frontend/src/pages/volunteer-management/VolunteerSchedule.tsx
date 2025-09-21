@@ -459,9 +459,10 @@ export default function VolunteerSchedule() {
         {selectedCategoryId ? (
           <>
             <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
+              direction={{ xs: "column", md: "row" }}
+              spacing={2}
+              justifyContent={{ xs: "flex-start", md: "space-between" }}
+              alignItems={{ xs: "stretch", md: "center" }}
               mb={2}
             >
               <Button
@@ -470,6 +471,7 @@ export default function VolunteerSchedule() {
                 variant="outlined"
                 color="primary"
                 disabled={currentDate <= todayStart}
+                sx={{ width: { xs: "100%", md: "auto" } }}
               >
                 Previous
               </Button>
@@ -485,7 +487,11 @@ export default function VolunteerSchedule() {
                     ? " (Weekend)"
                     : ""}
               </Typography>
-              <Stack direction="row" spacing={1} alignItems="center">
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={{ xs: 1.5, sm: 1 }}
+                alignItems={{ xs: "stretch", sm: "center" }}
+              >
                 <Button
                   size="large"
                   onClick={() =>
@@ -495,6 +501,7 @@ export default function VolunteerSchedule() {
                   }
                   variant="outlined"
                   color="primary"
+                  sx={{ width: { xs: "100%", sm: "auto" } }}
                 >
                   Today
                 </Button>
@@ -515,7 +522,13 @@ export default function VolunteerSchedule() {
                         setCurrentDate(next < todayStart ? todayStart : next);
                       }
                     }}
-                    slotProps={{ textField: { size: "medium" } }}
+                    slotProps={{
+                      textField: {
+                        size: "medium",
+                        fullWidth: true,
+                      },
+                    }}
+                    sx={{ width: { xs: "100%", sm: "auto" } }}
                   />
                 </LocalizationProvider>
                 <Button
@@ -523,6 +536,7 @@ export default function VolunteerSchedule() {
                   onClick={() => changeDay(1)}
                   variant="outlined"
                   color="primary"
+                  sx={{ width: { xs: "100%", sm: "auto" } }}
                 >
                   Next
                 </Button>
