@@ -136,6 +136,10 @@ export default function VolunteerBookingHistory() {
           getRowKey={h => h.id}
         />
       )}
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        Bookings and cancellations older than one year are archived and no
+        longer appear here.
+      </Typography>
 
       <FormDialog open={!!cancelBooking} onClose={() => setCancelBooking(null)} maxWidth="xs">
         <DialogCloseButton onClose={() => setCancelBooking(null)} />

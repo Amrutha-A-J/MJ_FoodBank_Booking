@@ -13,3 +13,9 @@ export const maintenancePurgeSchema = z.object({
 });
 
 export type MaintenancePurgePayload = z.infer<typeof maintenancePurgeSchema>;
+
+export const maintenanceCleanupSchema = z.object({
+  before: z.string().optional(),
+});
+
+export type MaintenanceCleanupPayload = z.infer<typeof maintenanceCleanupSchema>;

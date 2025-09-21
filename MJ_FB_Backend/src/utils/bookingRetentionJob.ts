@@ -2,14 +2,19 @@ import pool from '../db';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 
-const RETENTION_YEARS = 1;
+export const RETENTION_YEARS = 1;
 
-export async function cleanupOldRecords(): Promise<void> {
+export function getRetentionCutoffDate(reference: Date = new Date()): Date {
+  const cutoff = new Date(reference);
+  cutoff.setFullYear(cutoff.getFullYear() - RETENTION_YEARS);
+  return cutoff;
+}
+
+export async function cleanupOldRecords(referenceDate: Date = new Date()): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const cutoff = new Date();
-    cutoff.setFullYear(cutoff.getFullYear() - RETENTION_YEARS);
+    const cutoff = getRetentionCutoffDate(referenceDate);
 
     await client.query(
       `UPDATE volunteers v

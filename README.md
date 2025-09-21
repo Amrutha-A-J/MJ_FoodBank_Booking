@@ -208,7 +208,7 @@ npm run test:frontend  # frontend tests
 - A nightly cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved bookings as `no_show`.
 - A nightly volunteer no-show cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show` after `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours.
 - Failures in these nightly cleanup jobs trigger alerts via Telegram when `TELEGRAM_BOT_TOKEN` and `TELEGRAM_ALERT_CHAT_ID` are set.
-- A nightly retention job deletes `bookings` and `volunteer_bookings` older than one year and rolls their volunteer hours and counts into aggregate fields.
+- A nightly retention job deletes `bookings` and `volunteer_bookings` older than one year and rolls their volunteer hours and counts into aggregate fields. Confirm with pantry and volunteer leads before shortening this retention window. Admins can trigger the same cleanup via `POST /maintenance/bookings/cleanup`, which enforces the one-year minimum.
 - A nightly token cleanup job runs at `0 3 * * *` Regina time to delete expired password setup and email verification tokens more than 10 days past `expires_at`.
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
