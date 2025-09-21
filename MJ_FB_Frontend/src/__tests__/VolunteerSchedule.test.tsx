@@ -265,15 +265,27 @@ describe("VolunteerSchedule", () => {
       },
     ]);
 
+    jest.setSystemTime(new Date("2024-01-29T14:00:00Z"));
     useMediaQueryMock.mockReturnValue(true);
-    renderWithProviders(<VolunteerSchedule />);
 
-    fireEvent.mouseDown(screen.getByLabelText('Department'));
-    fireEvent.click(await screen.findByText('Front'));
+    try {
+      renderWithProviders(<VolunteerSchedule />);
 
-    expect(await screen.findByText(/No bookings\.?/)).toBeInTheDocument();
-    expect(screen.queryByRole("table")).toBeNull();
-    useMediaQueryMock.mockImplementation(actualUseMediaQuery);
+      fireEvent.mouseDown(screen.getByLabelText("Department"));
+      fireEvent.click(await screen.findByText("Front"));
+
+      fireEvent.click(await screen.findByRole("button", { name: "Today" }));
+
+      expect(
+        await screen.findByRole("heading", { name: "Greeter" }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText("9:00 AM - 12:00 PM"),
+      ).toBeInTheDocument();
+      expect(screen.queryByRole("table")).toBeNull();
+    } finally {
+      useMediaQueryMock.mockImplementation(actualUseMediaQuery);
+    }
   });
 
   it('books a slot via cell click', async () => {
