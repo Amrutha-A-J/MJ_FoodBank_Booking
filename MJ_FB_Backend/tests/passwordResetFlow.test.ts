@@ -50,6 +50,10 @@ app.use('/users', usersRouter);
 describe('requestPasswordReset', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    authLimiter.resetKey('::ffff:127.0.0.1');
+    authLimiter.resetKey('127.0.0.1');
+    authLimiter.resetKey('::1');
+    authLimiter.resetKey('::/56');
   });
 
   it('looks up volunteer by email across user tables', async () => {
@@ -131,6 +135,17 @@ describe('requestPasswordReset', () => {
       .send({ clientId: '  12  ' });
     expect(res.status).toBe(204);
     expect((pool.query as jest.Mock).mock.calls[0][1][0]).toBe(12);
+  });
+
+  it('rejects non-numeric client identifiers', async () => {
+    const res = await request(app)
+      .post('/auth/request-password-reset')
+      .send({ clientId: '123abc' });
+
+    expect(res.status).toBe(204);
+    expect(pool.query).not.toHaveBeenCalled();
+    expect(generatePasswordSetupToken).not.toHaveBeenCalled();
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
   });
 
   it('skips sending email when client lacks email', async () => {
