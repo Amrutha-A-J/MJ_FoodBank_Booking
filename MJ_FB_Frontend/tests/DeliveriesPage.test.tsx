@@ -97,4 +97,36 @@ describe('Pantry Deliveries page', () => {
     expect(await screen.findByText('Delivery marked completed.')).toBeInTheDocument();
     expect(screen.getByText(/Client 5678/)).toBeInTheDocument();
   });
+
+  it('shows an error and keeps the order when marking completion fails', async () => {
+    mockedMarkCompleted.mockRejectedValue({});
+    const user = userEvent.setup();
+
+    try {
+      render(
+        <MemoryRouter>
+          <Deliveries />
+        </MemoryRouter>,
+      );
+
+      const buttons = await screen.findAllByRole('button', { name: /mark completed/i });
+      await user.click(buttons[0]);
+
+      expect(mockedMarkCompleted).toHaveBeenCalledWith(101);
+
+      expect(screen.getByText(/Client 1234 · Jane Doe/)).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(buttons[0]).toBeEnabled();
+      });
+
+      expect(
+        await screen.findByText(
+          'We could not mark this delivery as completed. Please try again.',
+        ),
+      ).toBeInTheDocument();
+    } finally {
+      mockedMarkCompleted.mockReset();
+    }
+  });
 });
