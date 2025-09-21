@@ -8,12 +8,18 @@ jest.mock('../../../api/maintenance', () => ({
   getMaintenanceSettings: jest.fn().mockResolvedValue({ maintenanceMode: false, upcomingNotice: '' }),
   updateMaintenanceSettings: jest.fn().mockResolvedValue(undefined),
   clearMaintenanceStats: jest.fn().mockResolvedValue(undefined),
+  vacuumDatabase: jest.fn().mockResolvedValue({ message: 'Vacuum started' }),
+  vacuumTable: jest.fn().mockResolvedValue({ message: 'Table vacuum started' }),
+  getVacuumDeadRows: jest.fn().mockResolvedValue({ message: 'Dead rows fetched' }),
 }));
 
 import {
   getMaintenanceSettings,
   updateMaintenanceSettings,
   clearMaintenanceStats,
+  vacuumDatabase,
+  vacuumTable,
+  getVacuumDeadRows,
 } from '../../../api/maintenance';
 
 describe('Maintenance', () => {
@@ -37,5 +43,18 @@ describe('Maintenance', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Clear Maintenance Stats' }));
     await waitFor(() => expect(clearMaintenanceStats).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('tab', { name: /vacuum/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /vacuum database/i }));
+    await waitFor(() => expect(vacuumDatabase).toHaveBeenCalled());
+
+    fireEvent.change(screen.getByLabelText(/table name/i), { target: { value: 'users' } });
+    fireEvent.click(screen.getByRole('button', { name: /vacuum table/i }));
+    await waitFor(() => expect(vacuumTable).toHaveBeenCalledWith('users'));
+
+    fireEvent.change(screen.getByLabelText(/table filter/i), { target: { value: 'orders' } });
+    fireEvent.click(screen.getByRole('button', { name: /check dead rows/i }));
+    await waitFor(() => expect(getVacuumDeadRows).toHaveBeenCalledWith('orders'));
   });
 });

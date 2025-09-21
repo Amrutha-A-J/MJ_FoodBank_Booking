@@ -47,3 +47,37 @@ export async function clearMaintenanceStats(): Promise<void> {
   const res = await apiFetch(`${API_BASE}/maintenance/stats`, { method: 'DELETE' });
   await handleResponse(res);
 }
+
+export interface VacuumResponse {
+  message?: string;
+}
+
+export interface DeadRowInfo {
+  table: string;
+  deadRows: number;
+}
+
+export interface DeadRowsLookupResponse {
+  message?: string;
+  tables?: DeadRowInfo[];
+}
+
+export async function vacuumDatabase(): Promise<VacuumResponse> {
+  const res = await apiFetch(`${API_BASE}/maintenance/vacuum`, {
+    method: 'POST',
+  });
+  return handleResponse(res);
+}
+
+export async function vacuumTable(table: string): Promise<VacuumResponse> {
+  const res = await apiFetch(`${API_BASE}/maintenance/vacuum/${encodeURIComponent(table)}`, {
+    method: 'POST',
+  });
+  return handleResponse(res);
+}
+
+export async function getVacuumDeadRows(table?: string): Promise<DeadRowsLookupResponse> {
+  const query = table ? `?table=${encodeURIComponent(table)}` : '';
+  const res = await apiFetch(`${API_BASE}/maintenance/vacuum/dead-rows${query}`);
+  return handleResponse(res);
+}
