@@ -185,7 +185,11 @@ All schema changes must be implemented via migrations in `MJ_FB_Backend/src/migr
 ```bash
 npm run test:backend   # backend tests
 npm run test:frontend  # frontend tests
+npm run test:critical  # priority backend booking and volunteer flow tests
 ```
+
+- Use `npm run test:critical` to run the focused backend suite covering booking creation, cancellations, rescheduling, history,
+  slot availability, volunteer scheduling, and outgoing donation flows.
 
 - Update `AGENTS.md` with new repository instructions.
 - Reflect user-facing or setup changes in this `README.md`.

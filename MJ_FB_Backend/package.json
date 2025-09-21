@@ -61,6 +61,7 @@
     "start": "node dist/server.js",
     "pretest": "node -e \"if (!process.version.startsWith('v22')) { console.error('Node v22 is required'); process.exit(1); }\"",
     "test": "jest",
+    "test:critical": "jest tests/bookingController.test.ts tests/bookingCancelByToken.test.ts tests/bookingRescheduleEmail.test.ts tests/volunteerBooking.test.ts tests/volunteerReschedule.test.ts tests/bookingHistoryVisits.test.ts tests/slots.test.ts tests/clientVisitController.test.ts tests/outgoingDonationController.test.ts",
     "migrate": "tsx src/runMigrations.ts",
     "migration:create": "node-pg-migrate create -m src/migrations -j ts",
     "seed:delivery": "tsx --env-file=.env src/utils/deliverySeeder.ts",
