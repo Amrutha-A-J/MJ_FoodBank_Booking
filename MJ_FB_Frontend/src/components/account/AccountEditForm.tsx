@@ -78,6 +78,16 @@ export default function AccountEditForm({
   }
 
   const title = `${form.firstName} ${form.lastName}`.trim();
+  const showPasswordField = form.onlineAccess && !form.hasPassword;
+
+  function FormSection({ title, children }: { title: string; children: ReactNode }) {
+    return (
+      <Stack spacing={2} component="section">
+        <Typography variant="subtitle1">{title}</Typography>
+        {children}
+      </Stack>
+    );
+  }
 
   return (
     <>
@@ -90,8 +100,7 @@ export default function AccountEditForm({
             </Stack>
           )}
 
-          <Stack spacing={2}>
-            <Typography variant="subtitle1">Account</Typography>
+          <FormSection title="Account">
             {showOnlineAccessToggle && (
               <Tooltip
                 title={existingPasswordTooltip}
@@ -117,7 +126,7 @@ export default function AccountEditForm({
                 </span>
               </Tooltip>
             )}
-            {form.onlineAccess && !form.hasPassword && (
+            {showPasswordField && (
               <PasswordField
                 fullWidth
                 label={passwordLabel}
@@ -126,10 +135,9 @@ export default function AccountEditForm({
                 inputProps={{ 'data-testid': passwordFieldTestId }}
               />
             )}
-          </Stack>
+          </FormSection>
 
-          <Stack spacing={2}>
-            <Typography variant="subtitle1">Contact</Typography>
+          <FormSection title="Contact">
             <TextField
               fullWidth
               label="First Name"
@@ -160,7 +168,7 @@ export default function AccountEditForm({
               onChange={e => updateForm('phone', e.target.value)}
               inputProps={{ 'data-testid': 'phone-input' }}
             />
-          </Stack>
+          </FormSection>
         </Stack>
       </DialogContent>
       <DialogActions>
