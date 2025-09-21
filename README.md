@@ -495,6 +495,8 @@ Production runs on an AWS Lightsail instance with the repository checked out at 
 process is named `mjfb-api` and the built frontend is served by Nginx from `/var/www/mjfb-frontend` at
 [`https://app.mjfoodbank.org`](https://app.mjfoodbank.org).
 
+Follow these manual steps for every deployment.
+
 ### 1. Push local changes
 
 ```bash
@@ -504,7 +506,7 @@ git commit -m "frontend: <change>; backend: <change>"
 git push origin main
 ```
 
-### 2. Update the server (SSH into Lightsail)
+### 2. Server Pull & Build (SSH into Lightsail instance)
 
 ```bash
 ssh ubuntu@<lightsail-host>
@@ -512,17 +514,17 @@ cd ~/apps/MJ_FoodBank_Booking
 git pull origin master
 ```
 
-#### Backend (API)
+#### 2A) Backend (API)
 
 ```bash
 cd MJ_FB_Backend
 npm install
-NODE_OPTIONS=--max-old-space-size=4096 npm run build
+NODE_OPTIONS=--max-old-space-size=4096 npm run build   # if TS → dist
 pm2 restart mjfb-api --update-env
 pm2 logs mjfb-api --lines 80
 ```
 
-#### Frontend (React/Vite)
+#### 2B) Frontend (React/Vite)
 
 ```bash
 cd ../MJ_FB_Frontend
