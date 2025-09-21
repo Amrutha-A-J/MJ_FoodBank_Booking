@@ -137,19 +137,28 @@ describe('bookingRepository', () => {
     expect(rows[0].note).toBe('remember ID');
   });
 
-  it('fetchBookings joins monthly aggregate views', async () => {
+  it('fetchBookings joins monthly visits view', async () => {
     setQueryResults({ rows: [] });
     await fetchBookings(undefined, undefined, undefined);
     const query = (mockPool.query as jest.Mock).mock.calls[0][0];
     expect(query).toMatch(/LEFT JOIN\s+monthly_client_visits\s+v\s+ON/);
-    expect(query).toMatch(/LEFT JOIN\s+monthly_approved_bookings\s+ab\s+ON/);
   });
 
-  it('fetchBookings returns aggregate counts', async () => {
-    setQueryResults({ rows: [{ id: 1, visits_this_month: 2, approved_bookings_this_month: 3 }] });
+  it('fetchBookings counts approved bookings using correlated subquery', async () => {
+    setQueryResults({ rows: [] });
+    await fetchBookings(undefined, undefined, undefined);
+    const query = (mockPool.query as jest.Mock).mock.calls[0][0];
+    expect(query).toMatch(/LEFT JOIN LATERAL/);
+    expect(query).toMatch(/SELECT COUNT\(\*\)::int AS approved_count/);
+    expect(query).toMatch(/b2\.status = 'approved'/);
+    expect(query).toMatch(/DATE_TRUNC\('month', b2\.date\) = DATE_TRUNC\('month', b\.date\)/);
+  });
+
+  it('fetchBookings returns aggregate counts for fresh approved booking', async () => {
+    setQueryResults({ rows: [{ id: 1, visits_this_month: 0, approved_bookings_this_month: 1 }] });
     const rows = await fetchBookings(undefined, undefined, undefined);
-    expect(rows[0].visits_this_month).toBe(2);
-    expect(rows[0].approved_bookings_this_month).toBe(3);
+    expect(rows[0].visits_this_month).toBe(0);
+    expect(rows[0].approved_bookings_this_month).toBe(1);
   });
 
   it('fetchBookingsForReminder selects only necessary fields', async () => {

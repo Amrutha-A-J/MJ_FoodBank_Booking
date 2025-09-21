@@ -270,7 +270,7 @@ export async function fetchBookings(
         COALESCE(u.phone, nc.phone) as user_phone,
         u.client_id, u.profile_link,
         COALESCE(v.visits, 0) AS visits_this_month,
-        COALESCE(ab.approved, 0) AS approved_bookings_this_month,
+        COALESCE(ab.approved_count, 0) AS approved_bookings_this_month,
         s.start_time, s.end_time
         FROM bookings b
         LEFT JOIN clients u ON b.user_id = u.client_id
@@ -278,8 +278,14 @@ export async function fetchBookings(
         INNER JOIN slots s ON b.slot_id = s.id
         LEFT JOIN monthly_client_visits v ON v.client_id = u.client_id
           AND DATE_TRUNC('month', b.date) = v.month
-        LEFT JOIN monthly_approved_bookings ab ON ab.client_id = u.client_id
-          AND DATE_TRUNC('month', b.date) = ab.month
+        LEFT JOIN LATERAL (
+          SELECT COUNT(*)::int AS approved_count
+          FROM bookings b2
+          WHERE u.client_id IS NOT NULL
+            AND b2.user_id = u.client_id
+            AND b2.status = 'approved'
+            AND DATE_TRUNC('month', b2.date) = DATE_TRUNC('month', b.date)
+        ) ab ON TRUE
       ${whereClause}
       ORDER BY b.date ASC, s.start_time ASC`,
     params,
