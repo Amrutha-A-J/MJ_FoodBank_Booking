@@ -54,9 +54,11 @@ function normalizeIdentifiers({ email, clientId }: IdentifierPayload) {
   if (typeof rawClientId === 'number' && Number.isFinite(rawClientId)) {
     normalizedClientId = rawClientId;
   } else if (typeof rawClientId === 'string' && rawClientId !== '') {
-    const parsed = Number.parseInt(rawClientId, 10);
-    if (!Number.isNaN(parsed)) {
-      normalizedClientId = parsed;
+    if (/^\d+$/.test(rawClientId)) {
+      const parsed = Number.parseInt(rawClientId, 10);
+      if (!Number.isNaN(parsed)) {
+        normalizedClientId = parsed;
+      }
     }
   }
 
