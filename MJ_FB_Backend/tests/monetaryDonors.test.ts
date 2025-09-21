@@ -47,6 +47,173 @@ beforeEach(() => {
 
 const authRow = { id: 1, first_name: 'Test', last_name: 'User', email: 't@example.com', role: 'staff' };
 
+describe('Monetary donor insights', () => {
+  it('returns insights with expected SQL and formatting', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({
+        rows: [
+          { month: '2024-01', totalAmount: 0, donationCount: 0, donorCount: 0, averageGift: 0 },
+          { month: '2024-02', totalAmount: '500', donationCount: '5', donorCount: '3', averageGift: '100.5' },
+          { month: '2024-03', totalAmount: '250', donationCount: '2', donorCount: '2', averageGift: '125.0' },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            totalAmount: '750',
+            donationCount: '7',
+            donorCount: '4',
+            averageGift: '107.14',
+            averageDonationsPerDonor: '1.75',
+            lastDonationISO: '2024-03-22',
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 3,
+            firstName: 'Jamie',
+            lastName: 'Donor',
+            email: 'j@example.com',
+            windowAmount: '400',
+            lifetimeAmount: '1200',
+            lastDonationISO: '2024-03-20',
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          { month: '2024-02', tier: '1-100', donorCount: '2', totalAmount: '150' },
+          { month: '2024-02', tier: '101-500', donorCount: '1', totalAmount: '200' },
+          { month: '2024-03', tier: '1-100', donorCount: '1', totalAmount: '50' },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 7,
+            firstName: 'New',
+            lastName: 'Supporter',
+            email: null,
+            firstDonationISO: '2024-03-05',
+            amount: '75',
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          { families: '120', adults: '200', children: '150', pounds: '5000' },
+        ],
+      });
+
+    const res = await request(app)
+      .get('/monetary-donors/insights?months=3&endMonth=2024-03')
+      .set('Authorization', 'Bearer token');
+
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('generate_series'),
+      ['2024-01-01', '2024-03-01', '2024-04-01'],
+    );
+    expect(pool.query).toHaveBeenNthCalledWith(
+      3,
+      expect.stringContaining('WITH ytd AS'),
+      ['2024-01-01', '2024-04-01'],
+    );
+    expect(pool.query).toHaveBeenNthCalledWith(
+      5,
+      expect.stringContaining('tiers AS'),
+      ['2024-02-01', '2024-03-01', '2024-04-01'],
+    );
+
+    expect(res.body.window).toEqual({ startMonth: '2024-01', endMonth: '2024-03', months: 3 });
+    expect(res.body.monthly).toEqual([
+      { month: '2024-01', totalAmount: 0, donationCount: 0, donorCount: 0, averageGift: 0 },
+      { month: '2024-02', totalAmount: 500, donationCount: 5, donorCount: 3, averageGift: 100.5 },
+      { month: '2024-03', totalAmount: 250, donationCount: 2, donorCount: 2, averageGift: 125 },
+    ]);
+    expect(res.body.ytd).toEqual({
+      totalAmount: 750,
+      donationCount: 7,
+      donorCount: 4,
+      averageGift: 107.14,
+      averageDonationsPerDonor: 1.75,
+      lastDonationISO: '2024-03-22',
+    });
+    expect(res.body.topDonors).toEqual([
+      {
+        id: 3,
+        firstName: 'Jamie',
+        lastName: 'Donor',
+        email: 'j@example.com',
+        windowAmount: 400,
+        lifetimeAmount: 1200,
+        lastDonationISO: '2024-03-20',
+      },
+    ]);
+
+    expect(res.body.givingTiers.currentMonth).toMatchObject({
+      month: '2024-03',
+      tiers: {
+        '1-100': { donorCount: 1, totalAmount: 50 },
+        '101-500': { donorCount: 0, totalAmount: 0 },
+      },
+    });
+    expect(res.body.givingTiers.previousMonth).toMatchObject({
+      month: '2024-02',
+      tiers: {
+        '1-100': { donorCount: 2, totalAmount: 150 },
+        '101-500': { donorCount: 1, totalAmount: 200 },
+      },
+    });
+
+    expect(res.body.firstTimeDonors).toEqual([
+      {
+        id: 7,
+        firstName: 'New',
+        lastName: 'Supporter',
+        email: null,
+        firstDonationISO: '2024-03-05',
+        amount: 75,
+      },
+    ]);
+
+    expect(res.body.pantryImpact).toEqual({ families: 120, adults: 200, children: 150, pounds: 5000 });
+  });
+
+  it('validates query parameters', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock).mockResolvedValue({ rowCount: 1, rows: [authRow] });
+
+    const invalidMonths = await request(app)
+      .get('/monetary-donors/insights?months=0')
+      .set('Authorization', 'Bearer token');
+    expect(invalidMonths.status).toBe(400);
+
+    const invalidEnd = await request(app)
+      .get('/monetary-donors/insights?endMonth=2024/02')
+      .set('Authorization', 'Bearer token');
+    expect(invalidEnd.status).toBe(400);
+  });
+
+  it('handles database errors', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce(new Error('db failed'));
+
+    const res = await request(app)
+      .get('/monetary-donors/insights')
+      .set('Authorization', 'Bearer token');
+
+    expect(res.status).toBe(500);
+  });
+});
+
 describe('Monetary donor CRUD', () => {
   it('lists donors', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
