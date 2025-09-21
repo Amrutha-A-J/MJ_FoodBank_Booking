@@ -4,13 +4,9 @@ const DONORS_COLUMN = 'is_pet_food';
 const WAREHOUSE_COLUMN = 'pet_food';
 
 export async function up(pgm: MigrationBuilder): Promise<void> {
-  pgm.addColumn('donors', {
-    [DONORS_COLUMN]: {
-      type: 'boolean',
-      notNull: true,
-      default: false,
-    },
-  });
+  pgm.sql(
+    `ALTER TABLE donors ADD COLUMN IF NOT EXISTS ${DONORS_COLUMN} BOOLEAN DEFAULT FALSE NOT NULL;`,
+  );
 
   pgm.addColumn('warehouse_overall', {
     [WAREHOUSE_COLUMN]: {
