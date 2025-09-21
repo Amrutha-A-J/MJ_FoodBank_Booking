@@ -178,7 +178,7 @@ export default function FoodBankTrends() {
   const givingTierData = useMemo(() => {
     const current = donorInsights.data?.givingTiers.currentMonth;
     if (!current) return [];
-    const previous = donorInsights.data.givingTiers.previousMonth;
+    const previous = donorInsights.data?.givingTiers.previousMonth;
 
     return (Object.entries(current.tiers) as Array<[
       MonetaryDonorMonthBucket,

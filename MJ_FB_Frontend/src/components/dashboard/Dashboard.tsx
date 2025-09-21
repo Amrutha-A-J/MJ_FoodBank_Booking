@@ -132,6 +132,9 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
 
   const todayStr = formatReginaDate(new Date());
   const volCancellations = volBookings.filter(b => b.status === 'cancelled');
+  const todaysVolunteerCancellations = volCancellations.filter(
+    b => formatReginaDate(toDate(b.date)) === todayStr,
+  );
   const stats = {
     appointments: bookings.filter(
       b =>
@@ -139,7 +142,6 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
         formatReginaDate(toDate(b.date)) === todayStr,
     ).length,
     volunteers: volunteerCount,
-  };
 
   return (
     <Box
@@ -233,7 +235,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
       </SectionCard>
       <SectionCard title="Volunteer Shift Changes" sx={{ order: 3 }}>
         <List>
-          {volCancellations.slice(0, 5).map(c => (
+          {todaysVolunteerCancellations.slice(0, 5).map(c => (
             <ListItem key={c.id}>
               <ListItemText
                 primary={`${c.volunteer_name || 'Unknown'} - ${formatTime(

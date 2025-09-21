@@ -194,6 +194,50 @@ describe('StaffDashboard', () => {
     });
   });
 
+  it("shows only today's volunteer shift changes", async () => {
+    const today = formatReginaDate(new Date());
+    const tomorrow = formatReginaDate(
+      new Date(Date.now() + 24 * 60 * 60 * 1000),
+    );
+    (getBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookings as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'cancelled',
+        date: today,
+        start_time: '09:00:00',
+        volunteer_name: 'Charlie',
+      },
+      {
+        id: 2,
+        status: 'cancelled',
+        date: tomorrow,
+        start_time: '10:00:00',
+        volunteer_name: 'Dana',
+      },
+    ]);
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({
+      today: [],
+      upcoming: [],
+      past: [],
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Dashboard role="staff" />
+        </MemoryRouter>,
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Volunteer Shift Changes')).toBeInTheDocument();
+      expect(screen.getByText(/Charlie/)).toBeInTheDocument();
+      expect(screen.queryByText(/Dana/)).toBeNull();
+    });
+  });
+
   it('omits future months from visit charts', async () => {
     (getBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerBookings as jest.Mock).mockResolvedValue([]);
