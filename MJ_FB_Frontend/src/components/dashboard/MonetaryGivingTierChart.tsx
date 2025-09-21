@@ -10,7 +10,8 @@ import {
   Legend,
   LabelList,
 } from 'recharts';
-import type { TooltipProps, LabelProps } from 'recharts';
+import type { LabelProps } from 'recharts';
+import type { TooltipContentProps } from 'recharts/types/component/Tooltip';
 
 export interface MonetaryGivingTierDatum {
   tierLabel: string;
@@ -24,7 +25,7 @@ const currencyFormatter = new Intl.NumberFormat('en-CA', {
   currency: 'CAD',
 });
 
-function TierTooltip({ active, payload, label }: TooltipProps<number, string>) {
+function TierTooltip({ active, payload, label }: Partial<TooltipContentProps<number, string>>) {
   if (!active || !payload || payload.length === 0) {
     return null;
   }
@@ -72,10 +73,12 @@ function DeltaBadge({ value, x = 0, y = 0, width = 0, height = 0 }: LabelProps) 
   const badgeText = `${value > 0 ? '+' : ''}${value}`;
   const badgeWidth = badgeText.length * 7 + 20;
   const badgeHeight = 22;
+  const numericX = typeof x === 'number' ? x : parseFloat(x ?? '0');
+  const numericY = typeof y === 'number' ? y : parseFloat(y ?? '0');
   const numericWidth = typeof width === 'number' ? width : parseFloat(width ?? '0');
   const numericHeight = typeof height === 'number' ? height : parseFloat(height ?? '0');
-  const badgeX = x + numericWidth + 12;
-  const badgeY = y + (numericHeight ? numericHeight / 2 - badgeHeight / 2 : -badgeHeight / 2);
+  const badgeX = numericX + numericWidth + 12;
+  const badgeY = numericY + (numericHeight ? numericHeight / 2 - badgeHeight / 2 : -badgeHeight / 2);
 
   return (
     <g>

@@ -10,7 +10,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import type { TooltipProps } from 'recharts';
+import type { TooltipContentProps } from 'recharts/types/component/Tooltip';
 import type { CategoricalChartFunc } from 'recharts/types/chart/types';
 import type { MouseHandlerDataParam } from 'recharts/types/synchronisation/types';
 
@@ -73,7 +73,7 @@ function buildChartData<T extends MonetaryDonationTrendDatum>(data: T[]): ChartD
   return chartData;
 }
 
-function TrendTooltip({ active, payload, label }: TooltipProps<number, string>) {
+function TrendTooltip({ active, payload, label }: Partial<TooltipContentProps<number, string>>) {
   if (!active || !payload || payload.length === 0) {
     return null;
   }
