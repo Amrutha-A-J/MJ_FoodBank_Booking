@@ -1,5 +1,31 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
-import type { DeliveryOrder, DeliveryOutstandingOrder } from '../types';
+import type {
+  DeliveryOrder,
+  DeliveryOutstandingOrder,
+  DeliveryOrderStatus,
+} from '../types';
+
+export interface CreateDeliveryOrderPayload {
+  clientId: number;
+  address: string;
+  phone: string;
+  email?: string | null;
+  notes?: string | null;
+  scheduledFor?: string | null;
+  status?: DeliveryOrderStatus;
+  selections?: { itemId: number; quantity: number }[];
+}
+
+export async function createDeliveryOrder(
+  payload: CreateDeliveryOrderPayload,
+): Promise<DeliveryOrder> {
+  const res = await apiFetch(`${API_BASE}/delivery/orders`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<DeliveryOrder>(res);
+}
 
 export async function getOutstandingDeliveryOrders(): Promise<DeliveryOutstandingOrder[]> {
   const res = await apiFetch(`${API_BASE}/delivery/orders/outstanding`);
