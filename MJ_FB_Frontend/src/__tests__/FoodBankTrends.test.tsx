@@ -48,6 +48,7 @@ jest.mock('../components/dashboard/WarehouseCompositionChart', () => ({
             donations: 1200,
             surplus: 300,
             pigPound: 150,
+            petFood: 100,
             outgoing: 800,
           },
         })
@@ -96,6 +97,7 @@ describe('FoodBankTrends page', () => {
         donations: 1200,
         surplus: 300,
         pigPound: 150,
+        petFood: 100,
         outgoingDonations: 800,
       },
     ]);
@@ -175,6 +177,8 @@ describe('FoodBankTrends page', () => {
     expect(screen.getByText('300 lbs')).toBeInTheDocument();
     expect(screen.getByText('Pig Pound')).toBeInTheDocument();
     expect(screen.getByText('150 lbs')).toBeInTheDocument();
+    expect(screen.getByText('Pet Food')).toBeInTheDocument();
+    expect(screen.getByText('100 lbs')).toBeInTheDocument();
     expect(screen.getByText('Outgoing')).toBeInTheDocument();
     expect(screen.getByText('800 lbs')).toBeInTheDocument();
   });

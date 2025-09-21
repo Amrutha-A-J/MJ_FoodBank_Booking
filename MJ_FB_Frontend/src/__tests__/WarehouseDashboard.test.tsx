@@ -69,7 +69,7 @@ describe('WarehouseDashboard', () => {
     jest.clearAllMocks();
     mockGetWarehouseOverallYears.mockResolvedValue([2024]);
     mockGetWarehouseOverall.mockResolvedValue([
-      { month: 1, donations: 100, surplus: 20, pigPound: 10, outgoingDonations: 50 },
+      { month: 1, donations: 100, surplus: 20, pigPound: 10, petFood: 5, outgoingDonations: 50 },
     ]);
     mockGetTopDonors.mockResolvedValue(donors);
     mockGetTopReceivers.mockResolvedValue([

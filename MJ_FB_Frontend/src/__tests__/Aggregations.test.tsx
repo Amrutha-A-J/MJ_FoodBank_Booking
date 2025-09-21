@@ -105,6 +105,7 @@ describe('Aggregations page', () => {
     fireEvent.change(screen.getByLabelText(/total donations/i), { target: { value: '1' } });
     fireEvent.change(screen.getByLabelText(/surplus/i), { target: { value: '2' } });
     fireEvent.change(screen.getByLabelText(/pig pound/i), { target: { value: '3' } });
+    fireEvent.change(screen.getByLabelText(/pet food/i), { target: { value: '5' } });
     fireEvent.change(screen.getByLabelText(/outgoing donations/i), {
       target: { value: '4' },
     });
@@ -118,6 +119,7 @@ describe('Aggregations page', () => {
         donations: 1,
         surplus: 2,
         pigPound: 3,
+        petFood: 5,
         outgoingDonations: 4,
       }),
     );

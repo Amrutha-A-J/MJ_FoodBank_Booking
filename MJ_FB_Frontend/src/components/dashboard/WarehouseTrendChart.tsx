@@ -16,6 +16,7 @@ export interface WarehouseTrendDatum {
   month: string;
   incoming: number;
   outgoing: number;
+  petFood: number;
 }
 
 type ChartState = MouseHandlerDataParam & {
@@ -34,7 +35,7 @@ export default function WarehouseTrendChart<T extends WarehouseTrendDatum>({
   const theme = useTheme();
   const chartData =
     data.length === 1
-      ? [...data, { month: '', incoming: 0, outgoing: 0 } as T]
+      ? [...data, { month: '', incoming: 0, outgoing: 0, petFood: 0 } as T]
       : data;
 
   const handleClick: CategoricalChartFunc = state => {
@@ -67,6 +68,15 @@ export default function WarehouseTrendChart<T extends WarehouseTrendDatum>({
           dataKey="outgoing"
           name="Outgoing"
           stroke={theme.palette.error.main}
+          strokeWidth={2}
+          dot={{ r: 4, cursor: 'pointer' }}
+          activeDot={{ r: 5 }}
+        />
+        <Line
+          type="monotone"
+          dataKey="petFood"
+          name="Pet Food"
+          stroke={theme.palette.secondary.main}
           strokeWidth={2}
           dot={{ r: 4, cursor: 'pointer' }}
           activeDot={{ r: 5 }}

@@ -55,6 +55,7 @@ export default function Aggregations() {
   const [insertDonations, setInsertDonations] = useState('');
   const [insertSurplus, setInsertSurplus] = useState('');
   const [insertPigPound, setInsertPigPound] = useState('');
+  const [insertPetFood, setInsertPetFood] = useState('');
   const [insertOutgoing, setInsertOutgoing] = useState('');
   const [insertLoading, setInsertLoading] = useState(false);
   const [donorInsertOpen, setDonorInsertOpen] = useState(false);
@@ -175,6 +176,7 @@ export default function Aggregations() {
       donations: row?.donations || 0,
       surplus: row?.surplus || 0,
       pigPound: row?.pigPound || 0,
+      petFood: row?.petFood || 0,
       outgoingDonations: row?.outgoingDonations || 0,
     };
   });
@@ -184,9 +186,10 @@ export default function Aggregations() {
       donations: acc.donations + r.donations,
       surplus: acc.surplus + r.surplus,
       pigPound: acc.pigPound + r.pigPound,
+      petFood: acc.petFood + r.petFood,
       outgoingDonations: acc.outgoingDonations + r.outgoingDonations,
     }),
-    { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 },
+    { donations: 0, surplus: 0, pigPound: 0, petFood: 0, outgoingDonations: 0 },
   );
 
   async function handleExportOverall() {
@@ -372,6 +375,7 @@ export default function Aggregations() {
             setInsertDonations('');
             setInsertSurplus('');
             setInsertPigPound('');
+            setInsertPetFood('');
             setInsertOutgoing('');
             setInsertOpen(true);
           }}
@@ -393,6 +397,7 @@ export default function Aggregations() {
               { field: 'donations', header: 'Donations' },
               { field: 'surplus', header: 'Surplus' },
               { field: 'pigPound', header: 'Pig Pound' },
+              { field: 'petFood', header: 'Pet Food' },
               { field: 'outgoingDonations', header: 'Outgoing Donations' },
             ];
 
@@ -406,6 +411,7 @@ export default function Aggregations() {
               donations: totals.donations,
               surplus: totals.surplus,
               pigPound: totals.pigPound,
+              petFood: totals.petFood,
               outgoingDonations: totals.outgoingDonations,
             });
 
@@ -554,6 +560,13 @@ export default function Aggregations() {
               size="medium"
             />
             <TextField
+              label="Pet Food"
+              type="number"
+              value={insertPetFood}
+              onChange={e => setInsertPetFood(e.target.value)}
+              size="medium"
+            />
+            <TextField
               label="Outgoing Donations"
               type="number"
               value={insertOutgoing}
@@ -578,6 +591,7 @@ export default function Aggregations() {
                   donations: Number(insertDonations) || 0,
                   surplus: Number(insertSurplus) || 0,
                   pigPound: Number(insertPigPound) || 0,
+                  petFood: Number(insertPetFood) || 0,
                   outgoingDonations: Number(insertOutgoing) || 0,
                 });
                 setSnackbar({ open: true, message: 'Aggregate saved', severity: 'success' });

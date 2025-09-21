@@ -5,6 +5,7 @@ export interface WarehouseOverall {
   donations: number;
   surplus: number;
   pigPound: number;
+  petFood: number;
   outgoingDonations: number;
 }
 
@@ -29,6 +30,7 @@ export interface ManualWarehouseOverall {
   donations: number;
   surplus: number;
   pigPound: number;
+  petFood: number;
   outgoingDonations: number;
 }
 
