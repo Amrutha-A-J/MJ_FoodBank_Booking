@@ -15,7 +15,7 @@ describe('warehouseOverallController', () => {
   describe('refreshWarehouseOverall', () => {
     it('aggregates monthly totals and refreshes donor data', async () => {
       (mockDb.query as jest.Mock)
-        .mockResolvedValueOnce({ rows: [{ total: 120 }] })
+        .mockResolvedValueOnce({ rows: [{ donations: 100, petFood: 20 }] })
         .mockResolvedValueOnce({ rows: [{ total: 45 }] })
         .mockResolvedValueOnce({ rows: [{ total: 15 }] })
         .mockResolvedValueOnce({ rows: [{ total: 8 }] })
@@ -31,11 +31,7 @@ describe('warehouseOverallController', () => {
       const startDate = new Date(Date.UTC(2024, 4, 1)).toISOString().slice(0, 10);
       const endDate = new Date(Date.UTC(2024, 5, 1)).toISOString().slice(0, 10);
 
-      expect(mockDb.query).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining('FROM donations'),
-        [startDate, endDate],
-      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(1, expect.stringContaining('FROM donations d'), [startDate, endDate]);
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('FROM surplus_log'),
@@ -59,7 +55,7 @@ describe('warehouseOverallController', () => {
       expect(mockDb.query).toHaveBeenNthCalledWith(
         6,
         expect.stringContaining('INSERT INTO warehouse_overall'),
-        [2024, 5, 120, 45, 15, 8],
+        [2024, 5, 100, 45, 15, 8, 20],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
         7,
@@ -88,7 +84,7 @@ describe('warehouseOverallController', () => {
       expect(mockDb.query).toHaveBeenNthCalledWith(
         6,
         expect.stringContaining('INSERT INTO warehouse_overall'),
-        [2024, 6, 0, 0, 0, 0],
+        [2024, 6, 0, 0, 0, 0, 0],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
         7,
@@ -102,7 +98,7 @@ describe('warehouseOverallController', () => {
   describe('listWarehouseOverall', () => {
     it('returns data for the requested year', async () => {
       const rows = [
-        { month: 1, donations: 10, surplus: 2, pigPound: 3, outgoingDonations: 4 },
+        { month: 1, donations: 10, petFood: 1, surplus: 2, pigPound: 3, outgoingDonations: 4 },
       ];
       (mockDb.query as jest.Mock).mockResolvedValueOnce({ rows });
       const req = { query: { year: '2022' } } as any;

@@ -42,6 +42,7 @@ describe('POST /warehouse-overall/manual', () => {
       year,
       month: 5,
       donations: 10,
+      petFood: 4,
       surplus: 2,
       pigPound: 1,
       outgoingDonations: 3,
@@ -53,7 +54,7 @@ describe('POST /warehouse-overall/manual', () => {
     expect(res.body).toEqual({ message: 'Saved' });
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO warehouse_overall'),
-      [year, 5, 10, 2, 1, 3],
+      [year, 5, 10, 2, 1, 3, 4],
     );
   });
 
@@ -62,16 +63,16 @@ describe('POST /warehouse-overall/manual', () => {
 
     await request(app)
       .post('/warehouse-overall/manual')
-      .send({ year, month: 5, donations: 1, surplus: 2, pigPound: 3, outgoingDonations: 4 });
+      .send({ year, month: 5, donations: 1, petFood: 2, surplus: 2, pigPound: 3, outgoingDonations: 4 });
 
     const res = await request(app)
       .post('/warehouse-overall/manual')
-      .send({ year, month: 5, donations: 5, surplus: 6, pigPound: 7, outgoingDonations: 8 });
+      .send({ year, month: 5, donations: 5, petFood: 6, surplus: 6, pigPound: 7, outgoingDonations: 8 });
 
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenLastCalledWith(
       expect.any(String),
-      [year, 5, 5, 6, 7, 8],
+      [year, 5, 5, 6, 7, 8, 6],
     );
   });
 });

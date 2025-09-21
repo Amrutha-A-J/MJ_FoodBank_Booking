@@ -11,9 +11,12 @@ export async function refreshWarehouseOverall(year: number, month: number) {
 
   const [donationsRes, surplusRes, pigRes, outgoingRes, donorAggRes] = await Promise.all([
     pool.query(
-      `SELECT COALESCE(SUM(weight)::int, 0) AS total
-         FROM donations
-         WHERE date >= $1 AND date < $2`,
+      `SELECT
+           COALESCE(SUM(CASE WHEN COALESCE(o.is_pet_food, FALSE) THEN COALESCE(d.weight, 0) ELSE 0 END)::int, 0) AS "petFood",
+           COALESCE(SUM(CASE WHEN NOT COALESCE(o.is_pet_food, FALSE) THEN COALESCE(d.weight, 0) ELSE 0 END)::int, 0) AS "donations"
+         FROM donations d
+         LEFT JOIN donors o ON d.donor_id = o.id
+         WHERE d.date >= $1 AND d.date < $2`,
       [startDate, endDate],
     ),
     pool.query(
@@ -44,20 +47,22 @@ export async function refreshWarehouseOverall(year: number, month: number) {
     ),
   ]);
 
-  const donations = Number(donationsRes.rows[0]?.total ?? 0);
+  const donations = Number(donationsRes.rows[0]?.donations ?? 0);
+  const petFood = Number(donationsRes.rows[0]?.petFood ?? 0);
   const surplus = Number(surplusRes.rows[0]?.total ?? 0);
   const pigPound = Number(pigRes.rows[0]?.total ?? 0);
   const outgoingDonations = Number(outgoingRes.rows[0]?.total ?? 0);
 
   await pool.query(
-    `INSERT INTO warehouse_overall (year, month, donations, surplus, pig_pound, outgoing_donations)
-       VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO warehouse_overall (year, month, donations, surplus, pig_pound, outgoing_donations, pet_food)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (year, month)
        DO UPDATE SET donations = EXCLUDED.donations,
                      surplus = EXCLUDED.surplus,
                      pig_pound = EXCLUDED.pig_pound,
-                     outgoing_donations = EXCLUDED.outgoing_donations`,
-    [year, month, donations, surplus, pigPound, outgoingDonations],
+                     outgoing_donations = EXCLUDED.outgoing_donations,
+                     pet_food = EXCLUDED.pet_food`,
+    [year, month, donations, surplus, pigPound, outgoingDonations, petFood],
   );
 
   // Refresh donor aggregations for the given month
@@ -80,19 +85,21 @@ export const manualWarehouseOverall = asyncHandler(async (req: Request, res: Res
   const month = Number(req.body.month);
   if (!year || !month) return res.status(400).json({ message: 'Year and month required' });
   const donations = Number(req.body.donations) || 0;
+  const petFood = Number(req.body.petFood) || 0;
   const surplus = Number(req.body.surplus) || 0;
   const pigPound = Number(req.body.pigPound) || 0;
   const outgoingDonations = Number(req.body.outgoingDonations) || 0;
 
   await pool.query(
-    `INSERT INTO warehouse_overall (year, month, donations, surplus, pig_pound, outgoing_donations)
-       VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO warehouse_overall (year, month, donations, surplus, pig_pound, outgoing_donations, pet_food)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (year, month)
        DO UPDATE SET donations = EXCLUDED.donations,
                      surplus = EXCLUDED.surplus,
                      pig_pound = EXCLUDED.pig_pound,
-                     outgoing_donations = EXCLUDED.outgoing_donations`,
-    [year, month, donations, surplus, pigPound, outgoingDonations],
+                     outgoing_donations = EXCLUDED.outgoing_donations,
+                     pet_food = EXCLUDED.pet_food`,
+    [year, month, donations, surplus, pigPound, outgoingDonations, petFood],
   );
 
   res.json({ message: 'Saved' });
@@ -103,7 +110,7 @@ export const listWarehouseOverall = asyncHandler(async (req: Request, res: Respo
     parseInt((req.query.year as string) ?? '', 10) ||
     new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
   const result = await pool.query(
-    `SELECT month, donations, surplus, pig_pound as "pigPound", outgoing_donations as "outgoingDonations"
+    `SELECT month, donations, pet_food as "petFood", surplus, pig_pound as "pigPound", outgoing_donations as "outgoingDonations"
        FROM warehouse_overall
        WHERE year = $1
        ORDER BY month`,
@@ -122,7 +129,7 @@ export const exportWarehouseOverall = asyncHandler(async (req: Request, res: Res
     parseInt((req.query.year as string) ?? '', 10) ||
     new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
   const result = await pool.query(
-    `SELECT month, donations, surplus, pig_pound as "pigPound", outgoing_donations as "outgoingDonations"
+    `SELECT month, donations, pet_food as "petFood", surplus, pig_pound as "pigPound", outgoing_donations as "outgoingDonations"
        FROM warehouse_overall
        WHERE year = $1
        ORDER BY month`,
@@ -156,18 +163,20 @@ export const exportWarehouseOverall = asyncHandler(async (req: Request, res: Res
     [
       { value: 'Month', ...headerStyle },
       { value: 'Donations', ...headerStyle },
+      { value: 'Pet Food Donations', ...headerStyle },
       { value: 'Surplus', ...headerStyle },
       { value: 'Pig Pound', ...headerStyle },
       { value: 'Outgoing Donations', ...headerStyle },
     ],
   ];
 
-  let totals = { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 };
+  let totals = { donations: 0, petFood: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 };
 
   for (let m = 1; m <= 12; m++) {
     const row =
       dataByMonth.get(m) || {
         donations: 0,
+        petFood: 0,
         surplus: 0,
         pigPound: 0,
         outgoingDonations: 0,
@@ -175,12 +184,14 @@ export const exportWarehouseOverall = asyncHandler(async (req: Request, res: Res
     rows.push([
       { value: monthNames[m - 1] },
       { value: row.donations },
+      { value: row.petFood },
       { value: row.surplus },
       { value: row.pigPound },
       { value: row.outgoingDonations },
     ]);
     totals = {
       donations: totals.donations + row.donations,
+      petFood: totals.petFood + row.petFood,
       surplus: totals.surplus + row.surplus,
       pigPound: totals.pigPound + row.pigPound,
       outgoingDonations: totals.outgoingDonations + row.outgoingDonations,
@@ -190,6 +201,7 @@ export const exportWarehouseOverall = asyncHandler(async (req: Request, res: Res
   rows.push([
     { value: 'Total', fontWeight: 'bold' },
     { value: totals.donations, fontWeight: 'bold' },
+    { value: totals.petFood, fontWeight: 'bold' },
     { value: totals.surplus, fontWeight: 'bold' },
     { value: totals.pigPound, fontWeight: 'bold' },
     { value: totals.outgoingDonations, fontWeight: 'bold' },
