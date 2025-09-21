@@ -23,12 +23,6 @@ export default function PasswordSetup() {
   const [tokenInvalid, setTokenInvalid] = useState(false);
   const navigate = useNavigate();
 
-  const loginPathMap: Record<PasswordSetupInfo['userType'], string> = {
-    client: '/login',
-    volunteer: '/login/volunteer',
-    staff: '/login/staff',
-  };
-
   useEffect(() => {
     if (!token) {
       setError('Invalid or expired token.');
@@ -63,8 +57,8 @@ export default function PasswordSetup() {
       return;
     }
     try {
-      const loginPath = await setPasswordApi(token, password);
-      navigate(loginPath);
+      await setPasswordApi(token, password);
+      navigate('/login');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(msg);
@@ -121,11 +115,7 @@ export default function PasswordSetup() {
               helperText="Must be at least 8 characters and include uppercase, lowercase, and special characters."
             />
             <PasswordChecklist password={password} />
-            <Button
-              component={RouterLink}
-              to={info ? loginPathMap[info.userType] : '/login'}
-              variant="outlined"
-            >
+            <Button component={RouterLink} to="/login" variant="outlined">
               Back to login
             </Button>
           </>
