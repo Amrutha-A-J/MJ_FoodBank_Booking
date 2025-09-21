@@ -1,6 +1,6 @@
-type TrendDatum = { month: string; incoming: number; outgoing: number };
+type TrendDatum = { month: string; incoming: number; outgoing: number; petFood: number };
 
-let mockTrendPoint: TrendDatum = { month: 'Jan', incoming: 0, outgoing: 0 };
+let mockTrendPoint: TrendDatum = { month: 'Jan', incoming: 0, outgoing: 0, petFood: 0 };
 
 jest.mock('../../../api/warehouseOverall', () => ({
   getWarehouseOverall: jest.fn(),
@@ -52,8 +52,8 @@ import { getEvents } from '../../../api/events';
 
 describe('WarehouseDashboard', () => {
   const mockTotals = [
-    { month: 1, donations: 1000, surplus: 200, pigPound: 50, outgoingDonations: 800 },
-    { month: 2, donations: 1200, surplus: 150, pigPound: 60, outgoingDonations: 900 },
+    { month: 1, donations: 1000, surplus: 200, pigPound: 50, petFood: 110, outgoingDonations: 800 },
+    { month: 2, donations: 1200, surplus: 150, pigPound: 60, petFood: 90, outgoingDonations: 900 },
   ];
 
   beforeEach(() => {
@@ -67,8 +67,13 @@ describe('WarehouseDashboard', () => {
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
     mockTrendPoint = {
       month: 'Jan',
-      incoming: mockTotals[0].donations,
+      incoming:
+        mockTotals[0].donations +
+        mockTotals[0].surplus +
+        mockTotals[0].pigPound +
+        mockTotals[0].petFood,
       outgoing: mockTotals[0].outgoingDonations,
+      petFood: mockTotals[0].petFood,
     };
   });
 
@@ -86,11 +91,14 @@ describe('WarehouseDashboard', () => {
 
     const incomingChip = await screen.findByTestId('warehouse-trend-incoming');
     const outgoingChip = await screen.findByTestId('warehouse-trend-outgoing');
+    const petFoodChip = await screen.findByTestId('warehouse-trend-pet-food');
 
     const incomingValue = Number((incomingChip.textContent ?? '').replace(/[^0-9]/g, ''));
     const outgoingValue = Number((outgoingChip.textContent ?? '').replace(/[^0-9]/g, ''));
+    const petFoodValue = Number((petFoodChip.textContent ?? '').replace(/[^0-9]/g, ''));
 
     expect(incomingValue).toBe(mockTrendPoint.incoming);
     expect(outgoingValue).toBe(mockTrendPoint.outgoing);
+    expect(petFoodValue).toBe(mockTrendPoint.petFood);
   }, 15000);
 });

@@ -58,6 +58,7 @@ interface MonthlyTotal {
   donationsLbs: number;
   surplusLbs: number;
   pigPoundLbs: number;
+  petFoodLbs: number;
   outgoingLbs: number;
 }
 
@@ -113,6 +114,7 @@ export default function WarehouseDashboard() {
     donations: number;
     surplus: number;
     pigPound: number;
+    petFood: number;
     outgoing: number;
   } | null>(null);
   const [selectedTrendPoint, setSelectedTrendPoint] = useState<WarehouseTrendDatum | null>(null);
@@ -183,6 +185,7 @@ export default function WarehouseDashboard() {
           donationsLbs: t.donations,
           surplusLbs: t.surplus,
           pigPoundLbs: t.pigPound,
+          petFoodLbs: t.petFood,
           outgoingLbs: t.outgoingDonations,
         })),
       );
@@ -206,7 +209,14 @@ export default function WarehouseDashboard() {
   const currentMonth = useMemo(() => {
     const thisMonth = toDate().getMonth() + 1;
     const monthsWithData = totals
-      .filter(t => t.donationsLbs || t.surplusLbs || t.pigPoundLbs || t.outgoingLbs)
+      .filter(
+        t =>
+          t.donationsLbs ||
+          t.surplusLbs ||
+          t.pigPoundLbs ||
+          t.petFoodLbs ||
+          t.outgoingLbs,
+      )
       .map(t => t.month);
     if (monthsWithData.includes(thisMonth)) return thisMonth;
     return monthsWithData.length ? Math.max(...monthsWithData) : thisMonth;
@@ -218,7 +228,8 @@ export default function WarehouseDashboard() {
   const totalIncoming =
     (currentTotals?.donationsLbs ?? 0) +
     (currentTotals?.surplusLbs ?? 0) +
-    (currentTotals?.pigPoundLbs ?? 0);
+    (currentTotals?.pigPoundLbs ?? 0) +
+    (currentTotals?.petFoodLbs ?? 0);
   const outgoing = currentTotals?.outgoingLbs ?? 0;
   const prevOutgoing = prevTotals?.outgoingLbs ?? 0;
   const anomalyRatio = totalIncoming ? outgoing / totalIncoming : 0;
@@ -229,15 +240,20 @@ export default function WarehouseDashboard() {
       Array.from({ length: 12 }, (_, i) => {
         const m = i + 1;
         const t = totals.find(tt => tt.month === m);
-        const incoming = t?.donationsLbs ?? 0;
+        const donations = t?.donationsLbs ?? 0;
+        const surplus = t?.surplusLbs ?? 0;
+        const pigPound = t?.pigPoundLbs ?? 0;
+        const petFood = t?.petFoodLbs ?? 0;
+        const incoming = donations + surplus + pigPound + petFood;
         const outgoing = t?.outgoingLbs ?? 0;
         return {
           month: monthName(m),
           incoming,
           outgoing,
-          donations: incoming,
-          surplus: t?.surplusLbs ?? 0,
-          pigPound: t?.pigPoundLbs ?? 0,
+          donations,
+          surplus,
+          pigPound,
+          petFood,
         };
       }),
     [totals],
@@ -248,7 +264,12 @@ export default function WarehouseDashboard() {
       if (!prev) return null;
       const match = chartData.find(d => d.month === prev.month);
       return match
-        ? { month: match.month, incoming: match.incoming, outgoing: match.outgoing }
+        ? {
+            month: match.month,
+            incoming: match.incoming,
+            outgoing: match.outgoing,
+            petFood: match.petFood,
+          }
         : null;
     });
   }, [chartData]);
@@ -291,6 +312,7 @@ export default function WarehouseDashboard() {
       donations: data.payload.donations ?? 0,
       surplus: data.payload.surplus ?? 0,
       pigPound: data.payload.pigPound ?? 0,
+      petFood: data.payload.petFood ?? 0,
       outgoing: data.payload.outgoing ?? 0,
     });
   }, []);
@@ -300,6 +322,7 @@ export default function WarehouseDashboard() {
     { title: 'Incoming (Donations)', value: currentTotals?.donationsLbs ?? 0, prev: prevTotals?.donationsLbs ?? 0 },
     { title: 'Surplus Logged', value: currentTotals?.surplusLbs ?? 0, prev: prevTotals?.surplusLbs ?? 0 },
     { title: 'Pig Pound', value: currentTotals?.pigPoundLbs ?? 0, prev: prevTotals?.pigPoundLbs ?? 0 },
+    { title: 'Pet Food', value: currentTotals?.petFoodLbs ?? 0, prev: prevTotals?.petFoodLbs ?? 0 },
     { title: 'Outgoing Shipments', value: outgoing, prev: prevOutgoing },
   ];
 
@@ -416,6 +439,7 @@ export default function WarehouseDashboard() {
                       month: datum.month,
                       incoming: datum.incoming,
                       outgoing: datum.outgoing,
+                      petFood: datum.petFood,
                     })
                   }
                 />
@@ -443,6 +467,12 @@ export default function WarehouseDashboard() {
                       color="error"
                       variant="outlined"
                       data-testid="warehouse-trend-outgoing"
+                    />
+                    <Chip
+                      label={`Pet Food: ${fmtLbs(selectedTrendPoint.petFood)}`}
+                      color="secondary"
+                      variant="outlined"
+                      data-testid="warehouse-trend-pet-food"
                     />
                   </Stack>
                 </Stack>
@@ -583,6 +613,10 @@ export default function WarehouseDashboard() {
             <Divider component="li" />
             <ListItem>
               <ListItemText primary="Pig Pound" secondary={fmtLbs(selectedComposition?.pigPound)} />
+            </ListItem>
+            <Divider component="li" />
+            <ListItem>
+              <ListItemText primary="Pet Food" secondary={fmtLbs(selectedComposition?.petFood)} />
             </ListItem>
             <Divider component="li" />
             <ListItem>

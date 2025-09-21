@@ -14,6 +14,7 @@ export interface WarehouseCompositionDatum {
   donations: number;
   surplus: number;
   pigPound: number;
+  petFood: number;
   outgoing: number;
 }
 
@@ -51,6 +52,13 @@ export default function WarehouseCompositionChart({ data, onBarClick }: Warehous
           name="Pig Pound"
           stackId="a"
           fill={theme.palette.info.main}
+          onClick={onBarClick}
+        />
+        <Bar
+          dataKey="petFood"
+          name="Pet Food"
+          stackId="a"
+          fill={theme.palette.secondary.main}
           onClick={onBarClick}
         />
         <Bar

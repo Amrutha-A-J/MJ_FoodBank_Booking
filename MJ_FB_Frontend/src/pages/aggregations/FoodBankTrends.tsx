@@ -110,6 +110,7 @@ export default function FoodBankTrends() {
     donations: number;
     surplus: number;
     pigPound: number;
+    petFood: number;
     outgoing: number;
   } | null>(null);
   const [selectedWarehousePoint, setSelectedWarehousePoint] = useState<WarehouseTrendDatum | null>(null);
@@ -315,11 +316,13 @@ export default function FoodBankTrends() {
         incoming:
           (total.donations ?? 0) +
           (total.surplus ?? 0) +
-          (total.pigPound ?? 0),
+          (total.pigPound ?? 0) +
+          (total.petFood ?? 0),
         outgoing: total.outgoingDonations ?? 0,
         donations: total.donations ?? 0,
         surplus: total.surplus ?? 0,
         pigPound: total.pigPound ?? 0,
+        petFood: total.petFood ?? 0,
       })),
     [warehouseTotals],
   );
@@ -329,7 +332,12 @@ export default function FoodBankTrends() {
       if (!prev) return null;
       const match = chartData.find(d => d.month === prev.month);
       return match
-        ? { month: match.month, incoming: match.incoming, outgoing: match.outgoing }
+        ? {
+            month: match.month,
+            incoming: match.incoming,
+            outgoing: match.outgoing,
+            petFood: match.petFood,
+          }
         : null;
     });
   }, [chartData]);
@@ -342,6 +350,7 @@ export default function FoodBankTrends() {
         donations: data.payload.donations ?? 0,
         surplus: data.payload.surplus ?? 0,
         pigPound: data.payload.pigPound ?? 0,
+        petFood: data.payload.petFood ?? 0,
         outgoing: data.payload.outgoing ?? 0,
       });
     },
@@ -508,6 +517,7 @@ export default function FoodBankTrends() {
                                   month: datum.month,
                                   incoming: datum.incoming,
                                   outgoing: datum.outgoing,
+                                  petFood: datum.petFood,
                                 })
                               }
                             />
@@ -535,6 +545,12 @@ export default function FoodBankTrends() {
                                   color="error"
                                   variant="outlined"
                                   data-testid="warehouse-trend-outgoing"
+                                />
+                                <Chip
+                                  label={`Pet Food: ${fmtLbs(selectedWarehousePoint.petFood)}`}
+                                  color="secondary"
+                                  variant="outlined"
+                                  data-testid="warehouse-trend-pet-food"
                                 />
                               </Stack>
                             </Stack>
@@ -714,6 +730,13 @@ export default function FoodBankTrends() {
               <ListItemText
                 primary="Pig Pound"
                 secondary={fmtLbs(selectedComposition?.pigPound)}
+              />
+            </ListItem>
+            <Divider component="li" />
+            <ListItem>
+              <ListItemText
+                primary="Pet Food"
+                secondary={fmtLbs(selectedComposition?.petFood)}
               />
             </ListItem>
             <Divider component="li" />

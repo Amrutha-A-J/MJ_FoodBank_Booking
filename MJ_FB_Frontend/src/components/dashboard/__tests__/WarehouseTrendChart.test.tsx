@@ -3,8 +3,8 @@ import WarehouseTrendChart, { type WarehouseTrendDatum } from '../WarehouseTrend
 
 describe('WarehouseTrendChart', () => {
   const sampleData: WarehouseTrendDatum[] = [
-    { month: 'Jan', incoming: 1200, outgoing: 900 },
-    { month: 'Feb', incoming: 1500, outgoing: 1100 },
+    { month: 'Jan', incoming: 1200, outgoing: 900, petFood: 150 },
+    { month: 'Feb', incoming: 1500, outgoing: 1100, petFood: 200 },
   ];
 
   it('invokes onPointSelect when a chart point is clicked', () => {

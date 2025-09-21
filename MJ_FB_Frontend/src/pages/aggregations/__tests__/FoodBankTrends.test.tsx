@@ -1,6 +1,6 @@
 import type { VisitStat } from '../../../api/clientVisits';
 
-type TrendDatum = { month: string; incoming: number; outgoing: number };
+type TrendDatum = { month: string; incoming: number; outgoing: number; petFood: number };
 
 const mockVisitTrendChart = jest.fn();
 const mockVisitBreakdownChart = jest.fn();
@@ -82,10 +82,10 @@ describe('FoodBankTrends', () => {
   const futureMonth = currentMonth + 1;
   const previousYear = currentYear - 1;
 
-  const warehouseTotals = [
-    { month: 1, donations: 1000, surplus: 150, pigPound: 50, outgoingDonations: 700 },
-    { month: 2, donations: 900, surplus: 100, pigPound: 40, outgoingDonations: 650 },
-  ];
+const warehouseTotals = [
+  { month: 1, donations: 1000, surplus: 150, pigPound: 50, petFood: 120, outgoingDonations: 700 },
+  { month: 2, donations: 900, surplus: 100, pigPound: 40, petFood: 90, outgoingDonations: 650 },
+];
 
   beforeAll(() => {
     jest.useFakeTimers();
@@ -123,8 +123,13 @@ describe('FoodBankTrends', () => {
     (getTopReceivers as jest.Mock).mockResolvedValue([]);
     mockTrendPoint = {
       month: 'Jan',
-      incoming: warehouseTotals[0].donations + warehouseTotals[0].surplus + warehouseTotals[0].pigPound,
+      incoming:
+        warehouseTotals[0].donations +
+        warehouseTotals[0].surplus +
+        warehouseTotals[0].pigPound +
+        warehouseTotals[0].petFood,
       outgoing: warehouseTotals[0].outgoingDonations,
+      petFood: warehouseTotals[0].petFood,
     };
   });
 
@@ -142,12 +147,15 @@ describe('FoodBankTrends', () => {
 
     const incomingChip = await screen.findByTestId('warehouse-trend-incoming');
     const outgoingChip = await screen.findByTestId('warehouse-trend-outgoing');
+    const petFoodChip = await screen.findByTestId('warehouse-trend-pet-food');
 
     const incomingValue = Number((incomingChip.textContent ?? '').replace(/[^0-9]/g, ''));
     const outgoingValue = Number((outgoingChip.textContent ?? '').replace(/[^0-9]/g, ''));
+    const petFoodValue = Number((petFoodChip.textContent ?? '').replace(/[^0-9]/g, ''));
 
     expect(incomingValue).toBe(mockTrendPoint.incoming);
     expect(outgoingValue).toBe(mockTrendPoint.outgoing);
+    expect(petFoodValue).toBe(mockTrendPoint.petFood);
   }, 15000);
 
   it('excludes future months from visit charts', async () => {
