@@ -528,6 +528,120 @@ describe('deliveryOrderController', () => {
       expect(res.status).toHaveBeenCalledWith(201);
     });
 
+    it('accepts orders without an email address', async () => {
+      const submittedAt = new Date('2024-07-21T18:15:00Z');
+      (mockDb.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ count: '0' }], rowCount: 1 })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              itemId: 52,
+              categoryId: 9,
+              itemName: 'Fresh Produce Box',
+              categoryName: 'Produce',
+              maxItems: 2,
+            },
+          ],
+          rowCount: 1,
+        })
+        .mockResolvedValueOnce({ rowCount: 1, rows: [] })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: 91,
+              clientId: 555,
+              address: '789 Pine Ave',
+              phone: '555-3333',
+              email: null,
+              status: 'pending',
+              scheduledFor: null,
+              notes: null,
+              createdAt: submittedAt,
+            },
+          ],
+          rowCount: 1,
+        });
+
+      const req = {
+        user: {
+          role: 'delivery',
+          id: '555',
+          type: 'user',
+          address: '456 Old Ave',
+          phone: '555-0000',
+          email: 'old@example.com',
+        },
+        body: {
+          clientId: 555,
+          address: '789 Pine Ave',
+          phone: '555-3333',
+          selections: [{ itemId: 52, quantity: 1 }],
+        },
+      } as any;
+
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      await createDeliveryOrder(req, res, jest.fn());
+      await flushPromises();
+
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        3,
+        expect.stringContaining('UPDATE clients'),
+        ['789 Pine Ave', '555-3333', null, 555],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        4,
+        expect.stringContaining('INSERT INTO delivery_orders'),
+        [555, '789 Pine Ave', '555-3333', null, 'pending', null, null],
+      );
+
+      expect(req.user).toMatchObject({
+        address: '789 Pine Ave',
+        phone: '555-3333',
+        email: null,
+      });
+
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith({
+        id: 91,
+        clientId: 555,
+        address: '789 Pine Ave',
+        phone: '555-3333',
+        email: null,
+        status: 'pending',
+        scheduledFor: null,
+        notes: null,
+        createdAt: submittedAt.toISOString(),
+        items: [
+          {
+            itemId: 52,
+            quantity: 1,
+            itemName: 'Fresh Produce Box',
+            categoryId: 9,
+            categoryName: 'Produce',
+          },
+        ],
+      });
+
+      expect(sendTemplatedEmail).toHaveBeenCalledWith({
+        to: 'ops@example.com',
+        templateId: config.deliveryRequestTemplateId,
+        params: {
+          orderId: 91,
+          clientId: 555,
+          clientName: '',
+          address: '789 Pine Ave',
+          phone: '555-3333',
+          email: null,
+          itemList: '<strong>Produce</strong> - Fresh Produce Box<br>',
+          createdAt: submittedAt.toISOString(),
+        },
+      });
+    });
+
     it('rejects a third order in the same month', async () => {
       (mockDb.query as jest.Mock).mockResolvedValueOnce({
         rows: [{ count: String(MOCK_MONTHLY_LIMIT) }],

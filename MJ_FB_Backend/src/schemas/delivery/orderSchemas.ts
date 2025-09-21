@@ -31,7 +31,12 @@ export const createDeliveryOrderSchema = z.object({
     .positive('clientId must be positive'),
   address: nonEmptyString('Address'),
   phone: nonEmptyString('Phone'),
-  email: z.string().trim().email('A valid email address is required'),
+  email: z
+    .string()
+    .trim()
+    .email('A valid email address is required')
+    .nullish()
+    .transform(value => value ?? null),
   status: deliveryOrderStatusSchema.optional(),
   scheduledFor: z
     .string()
