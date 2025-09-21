@@ -401,7 +401,7 @@ export default function BookDelivery() {
               const remaining = remainingSelections(category);
               const selectedId = category.items.find(item => selectedItems[item.id])?.id;
               const title = Number.isFinite(limit)
-                ? `${category.name} (Select ${limit})`
+                ? `${category.name} (Select up to ${limit})`
                 : category.name;
               return (
                 <Card key={category.id}>
@@ -414,7 +414,7 @@ export default function BookDelivery() {
                     )}
                     {Number.isFinite(limit) && (
                       <Typography color="error" sx={{ mb: 2 }}>
-                        {`Select exactly ${limit} ${limit === 1 ? 'choice' : 'choices'}.`}
+                        {`Select up to ${limit} ${limit === 1 ? 'choice' : 'choices'}.`}
                       </Typography>
                     )}
                     {limit === 1 ? (

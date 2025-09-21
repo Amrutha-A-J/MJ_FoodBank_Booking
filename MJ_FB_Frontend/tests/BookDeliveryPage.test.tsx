@@ -86,9 +86,13 @@ describe('BookDelivery page', () => {
       </MemoryRouter>,
     );
 
-    const categoryTitle = await screen.findByText('Fresh $tart (Select 2)');
+    const categoryTitle = await screen.findByText('Fresh $tart (Select up to 2)');
     expect(categoryTitle).toBeInTheDocument();
     const dollarMatches = categoryTitle.textContent?.match(/\$/g) ?? [];
     expect(dollarMatches).toHaveLength(1);
+
+    expect(
+      screen.getByText('Select up to 2 choices.'),
+    ).toBeInTheDocument();
   });
 });
