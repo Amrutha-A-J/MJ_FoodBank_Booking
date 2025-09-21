@@ -289,6 +289,68 @@ describe('PantrySchedule navigation', () => {
   });
 });
 
+describe('PantrySchedule small screen cards', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T08:00:00-06:00'));
+    (bookingApi.getSlots as jest.Mock).mockResolvedValue([
+      {
+        id: '1',
+        startTime: '09:00:00',
+        endTime: '09:30:00',
+        available: 1,
+        maxCapacity: 1,
+      },
+    ]);
+    (bookingApi.getBookings as jest.Mock).mockResolvedValue([]);
+    (bookingApi.getHolidays as jest.Mock).mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('renders cards and opens assign dialog from empty slot', async () => {
+    const matchMediaSpy = jest
+      .spyOn(window, 'matchMedia')
+      .mockImplementation((query: string) => ({
+        matches: true,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      }));
+
+    try {
+      render(
+        <MemoryRouter>
+          <PantrySchedule />
+        </MemoryRouter>,
+      );
+
+      const slotHeader = await screen.findByText('9:00 AM - 9:30 AM');
+      expect(slotHeader).toBeInTheDocument();
+      expect(screen.queryByRole('columnheader', { name: 'Slot 1' })).toBeNull();
+
+      const cardContent = slotHeader.closest('.MuiCardContent-root');
+      expect(cardContent).not.toBeNull();
+      const grid = (cardContent as HTMLElement).querySelector('[class*="MuiBox-root"]');
+      expect(grid).not.toBeNull();
+      const clickableCell = (grid as HTMLElement).firstElementChild as HTMLElement | null;
+      expect(clickableCell).not.toBeNull();
+
+      fireEvent.click(clickableCell as HTMLElement);
+
+      expect(await screen.findByRole('dialog', { name: 'Assign User' })).toBeInTheDocument();
+    } finally {
+      matchMediaSpy.mockRestore();
+    }
+  });
+});
+
 describe('PantrySchedule Wednesday evening slot', () => {
   beforeEach(() => {
     jest.useFakeTimers();
