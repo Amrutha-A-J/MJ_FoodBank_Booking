@@ -57,6 +57,32 @@ describe('Pantry Deliveries page', () => {
     mockedGetOutstanding.mockResolvedValue(mockOrders);
   });
 
+  it('shows an error state when outstanding delivery orders fail to load', async () => {
+    const errorMessage = 'We could not load outstanding delivery orders. Please try again.';
+    mockedGetOutstanding.mockRejectedValueOnce({});
+
+    render(
+      <MemoryRouter>
+        <Deliveries />
+      </MemoryRouter>,
+    );
+
+    expect(mockedGetOutstanding).toHaveBeenCalled();
+
+    expect(await screen.findByText('No deliveries to display')).toBeInTheDocument();
+    expect(
+      screen.getByText('Resolve the issue above and refresh to try again.'),
+    ).toBeInTheDocument();
+
+    await waitFor(() => {
+      const alerts = screen.getAllByRole('alert');
+      expect(alerts).toHaveLength(2);
+      alerts.forEach(alert => {
+        expect(alert).toHaveTextContent(errorMessage);
+      });
+    });
+  });
+
   it('renders outstanding delivery orders with contact details and items', async () => {
     render(
       <MemoryRouter>
