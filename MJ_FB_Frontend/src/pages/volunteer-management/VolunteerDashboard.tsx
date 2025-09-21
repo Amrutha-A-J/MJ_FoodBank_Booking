@@ -525,17 +525,29 @@ export default function VolunteerDashboard() {
             </SectionCard>
 
             <SectionCard title="Available in My Roles">
-              <Stack direction="row" spacing={1} alignItems="center" mb={2}>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={1.5}
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+                justifyContent={{ xs: 'flex-start', md: 'space-between' }}
+                flexWrap={{ sm: 'wrap', md: 'nowrap' }}
+                rowGap={1.5}
+                mb={2}
+              >
                 <ToggleButtonGroup
                   size="medium"
                   value={dateMode}
                   exclusive
                   onChange={(_, v) => v && setDateMode(v)}
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
                   <ToggleButton value="today">Today</ToggleButton>
                   <ToggleButton value="week">Week</ToggleButton>
                 </ToggleButtonGroup>
-                <FormControl size="medium" sx={{ minWidth: 120 }}>
+                <FormControl
+                  size="medium"
+                  sx={{ minWidth: { sm: 160 }, width: { xs: '100%', sm: 'auto' } }}
+                >
                   <InputLabel id="role-filter-label">Role</InputLabel>
                   <Select
                     labelId="role-filter-label"
