@@ -347,22 +347,27 @@ export default function PantrySchedule({
   return (
     <Page title="Pantry Schedule" header={<PantryQuickLinks />}>
       <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
+        direction={{ xs: "column", md: "row" }}
+        spacing={{ xs: 2, md: 1.5 }}
+        justifyContent={{ xs: "flex-start", md: "space-between" }}
+        alignItems={{ xs: "stretch", md: "center" }}
         sx={{ mb: 2 }}
       >
         <Button
           onClick={() => changeDay(-1)}
           variant="outlined"
           color="primary"
+          fullWidth={isSmallScreen}
         >
           Previous
         </Button>
         <Typography
           component="h3"
           variant="h5"
-          sx={{ fontWeight: theme.typography.fontWeightBold }}
+          sx={{
+            fontWeight: theme.typography.fontWeightBold,
+            textAlign: { xs: "center", md: "left" },
+          }}
         >
           {dateStr} - {dayName}
           {isHoliday
@@ -371,7 +376,11 @@ export default function PantrySchedule({
               ? " (Weekend)"
               : ""}
         </Typography>
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          alignItems={{ xs: "stretch", sm: "center" }}
+        >
           <Button
             onClick={() =>
               setCurrentDate(
@@ -379,8 +388,9 @@ export default function PantrySchedule({
               )
             }
             variant="outlined"
-            
+
             color="primary"
+            fullWidth={isSmallScreen}
           >
             Today
           </Button>
@@ -398,13 +408,19 @@ export default function PantrySchedule({
                   );
                 }
               }}
-              slotProps={{ textField: { size: "small" } }}
+              slotProps={{
+                textField: {
+                  size: "small",
+                  fullWidth: isSmallScreen,
+                },
+              }}
             />
           </LocalizationProvider>
           <Button
             onClick={() => changeDay(1)}
             variant="outlined"
             color="primary"
+            fullWidth={isSmallScreen}
           >
             Next
           </Button>
