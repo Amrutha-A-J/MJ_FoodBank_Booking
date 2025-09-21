@@ -142,6 +142,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
         formatReginaDate(toDate(b.date)) === todayStr,
     ).length,
     volunteers: volunteerCount,
+  };
 
   return (
     <Box
