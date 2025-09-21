@@ -7,6 +7,10 @@ Volunteers are prompted to install the app on their first visit to volunteer pag
 
 Client bookings include a confirmation step that lists the selected date, time, and current-month visit count on separate lines, with an optional client note field for staff.
 
+## Donor Dashboard
+
+Staff with **donor_management** permission can review donor revenue, retention, and trend visualizations from **Donor Management → Dashboard**. The dashboard reuses the trends chart component introduced for donor insights so future analytics can plug into the same visualization pattern.
+
 ## Node Version
 
 Use **Node.js 22+**. Run `nvm use` to switch to the version pinned in the repository’s `.nvmrc`.

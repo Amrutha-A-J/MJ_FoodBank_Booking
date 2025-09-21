@@ -124,7 +124,24 @@ Returns a list of donors with their total donated weight for each month of the s
 Every donor in the system is included even if they have no donations in that year; months
 without records report `0`.
 
+## Monetary Donor Insights Endpoint
 
+`GET /monetary-donors/insights?months=NUMBER&endMonth=YYYY-MM`
+
+Returns windowed metrics used by the donor dashboard. Authentication requires a staff session with the `donor_management` access flag.
+
+- `months` (optional, default 6) – number of months to include, clamped between 1 and 24.
+- `endMonth` (optional) – ISO year-month for the final month in the window. If omitted, the API uses the previous calendar month.
+
+Response JSON:
+
+- `window` – `{ startMonth, endMonth, months }` reflecting the reporting range.
+- `monthly` – array of `{ month, totalAmount, donationCount, donorCount, averageGift }` summarizing each month in the range.
+- `ytd` – year-to-date totals with `totalAmount`, `donationCount`, `donorCount`, `averageGift`, `averageDonationsPerDonor`, and `lastDonationISO`.
+- `topDonors` – top five donors in the window including `id`, `firstName`, `lastName`, `email`, `windowAmount`, `lifetimeAmount`, and `lastDonationISO`.
+- `givingTiers` – current and previous month tallies for donor tiers (`1-100`, `101-500`, `501-1000`, `1001-10000`, `10001-30000`) with `donorCount` and `totalAmount` per tier.
+- `firstTimeDonors` – donors whose first recorded gift falls in the most recent month, with donation date and amount.
+- `pantryImpact` – pantry families, adults, children, and pounds served for the selected month.
 
 ## Warehouse Overall Available Years Endpoint
 
