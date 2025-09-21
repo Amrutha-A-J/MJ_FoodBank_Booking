@@ -8,6 +8,7 @@ import {
   ListItem,
   ListItemText,
   Tooltip,
+  Box,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import Page from '../../components/Page';
@@ -89,36 +90,52 @@ export default function MailLists() {
       <DonorQuickLinks />
       <Page title="Mail Lists">
         <Stack spacing={2}>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Typography>{`Month: ${month}`}</Typography>
-          <Typography>{`Year: ${year}`}</Typography>
-          <Tooltip
-            title="No donors to email for last month"
-            disableHoverListener={!noDonors}
-            disableFocusListener={!noDonors}
-            disableTouchListener={!noDonors}
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            useFlexGap
+            alignItems={{ xs: 'stretch', md: 'center' }}
+            sx={{ flexWrap: { md: 'wrap' } }}
           >
-            <span>
-              <Button
-                variant="contained"
-                onClick={() => setConfirmSend(true)}
-                disabled={!lists || noDonors}
+            <Typography>{`Month: ${month}`}</Typography>
+            <Typography>{`Year: ${year}`}</Typography>
+            <Tooltip
+              title="No donors to email for last month"
+              disableHoverListener={!noDonors}
+              disableFocusListener={!noDonors}
+              disableTouchListener={!noDonors}
+            >
+              <Box
+                component="span"
+                sx={{ display: 'inline-flex', width: { xs: '100%', md: 'auto' } }}
               >
-                {`Send emails for (${monthName})`}
-              </Button>
-              </span>
-          </Tooltip>
-          <Button
-            variant="outlined"
-            onClick={() => setConfirmTestSend(true)}
-            disabled={!lists}
-          >
-            Send test emails
-          </Button>
-          {noDonors && (
-            <Typography color="text.secondary">No donors to email for last month</Typography>
-          )}
-        </Stack>
+                <Button
+                  variant="contained"
+                  onClick={() => setConfirmSend(true)}
+                  disabled={!lists || noDonors}
+                  sx={{ width: { xs: '100%', md: 'auto' } }}
+                >
+                  {`Send emails for (${monthName})`}
+                </Button>
+              </Box>
+            </Tooltip>
+            <Button
+              variant="outlined"
+              onClick={() => setConfirmTestSend(true)}
+              disabled={!lists}
+              sx={{ width: { xs: '100%', md: 'auto' } }}
+            >
+              Send test emails
+            </Button>
+            {noDonors && (
+              <Typography
+                color="text.secondary"
+                sx={{ width: { xs: '100%', md: 'auto' } }}
+              >
+                No donors to email for last month
+              </Typography>
+            )}
+          </Stack>
         {lists &&
           RANGES.map(range => (
             <Paper key={range} sx={{ p: 2 }}>
