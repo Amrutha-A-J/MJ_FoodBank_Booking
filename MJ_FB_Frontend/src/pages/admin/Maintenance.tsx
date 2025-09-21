@@ -404,10 +404,13 @@ export default function Maintenance() {
                     <DatePicker
                       label="Cutoff Date"
                       value={purgeCutoff}
-                      onChange={value => setPurgeCutoff(value)}
+                      onChange={value => setPurgeCutoff((value as Dayjs | null) ?? null)}
                       maxDate={latestAllowedDate}
                       disableFuture
-                      shouldDisableDate={date => !!date && (date.isSame(januaryFirst) || date.isAfter(januaryFirst))}
+                      shouldDisableDate={date => {
+                        const typedDate = date as Dayjs | null;
+                        return !!typedDate && (typedDate.isSame(januaryFirst) || typedDate.isAfter(januaryFirst));
+                      }}
                       slotProps={{
                         textField: {
                           fullWidth: true,
