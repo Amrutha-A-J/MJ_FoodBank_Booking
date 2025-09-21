@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import Deliveries from '../src/pages/pantry/Deliveries';
@@ -58,21 +58,59 @@ describe('Pantry Deliveries page', () => {
   });
 
   it('renders outstanding delivery orders with contact details and items', async () => {
-    render(
-      <MemoryRouter>
-        <Deliveries />
-      </MemoryRouter>,
-    );
+    const originalFormatGetter = Object.getOwnPropertyDescriptor(
+      Intl.DateTimeFormat.prototype,
+      'format',
+    )?.get;
+    if (!originalFormatGetter) throw new Error('Intl.DateTimeFormat format getter not found');
 
-    expect(await screen.findByText(/Client 1234 · Jane Doe/)).toBeInTheDocument();
-    expect(screen.getAllByText(/Order #:/i)).toHaveLength(2);
-    expect(screen.getByText('101')).toBeInTheDocument();
-    expect(screen.getByText(/123 Main St/)).toBeInTheDocument();
-    expect(screen.getByText(/306-555-1234/)).toBeInTheDocument();
-    expect(screen.getByText(/2 × Canned Beans/)).toBeInTheDocument();
-    expect(screen.getByText(/Bakery/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /record delivery/i })).toBeInTheDocument();
-    expect(screen.getByText(/No items listed\./)).toBeInTheDocument();
+    const formatSpy = jest
+      .spyOn(Intl.DateTimeFormat.prototype, 'format', 'get')
+      .mockImplementation(function mockFormatGetter(this: Intl.DateTimeFormat) {
+        const options = typeof this.resolvedOptions === 'function' ? this.resolvedOptions() : undefined;
+        if (options?.dateStyle === 'medium' && options?.timeStyle === 'short') {
+          return () => 'formatted submitted date';
+        }
+        if (options?.dateStyle === 'medium' && !options?.timeStyle) {
+          return () => 'formatted scheduled date';
+        }
+        return originalFormatGetter.call(this);
+      });
+
+    try {
+      render(
+        <MemoryRouter>
+          <Deliveries />
+        </MemoryRouter>,
+      );
+
+      const firstOrderHeader = await screen.findByText(/Client 1234 · Jane Doe/);
+      const firstOrderCard = firstOrderHeader.closest('.MuiCard-root');
+      expect(firstOrderCard).not.toBeNull();
+      if (!firstOrderCard) throw new Error('First order card not found');
+
+      expect(within(firstOrderCard).getByText('Submitted formatted submitted date')).toBeInTheDocument();
+      expect(within(firstOrderCard).getByText(/Scheduled for:/i)).toBeInTheDocument();
+      expect(within(firstOrderCard).getByText('formatted scheduled date')).toBeInTheDocument();
+
+      const secondOrderHeader = screen.getByText(/Client 5678/);
+      const secondOrderCard = secondOrderHeader.closest('.MuiCard-root');
+      expect(secondOrderCard).not.toBeNull();
+      if (!secondOrderCard) throw new Error('Second order card not found');
+
+      expect(within(secondOrderCard).queryByText(/Scheduled for:/i)).toBeNull();
+
+      expect(screen.getAllByText(/Order #:/i)).toHaveLength(2);
+      expect(screen.getByText('101')).toBeInTheDocument();
+      expect(screen.getByText(/123 Main St/)).toBeInTheDocument();
+      expect(screen.getByText(/306-555-1234/)).toBeInTheDocument();
+      expect(screen.getByText(/2 × Canned Beans/)).toBeInTheDocument();
+      expect(screen.getByText(/Bakery/)).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /record delivery/i })).toBeInTheDocument();
+      expect(screen.getByText(/No items listed\./)).toBeInTheDocument();
+    } finally {
+      formatSpy.mockRestore();
+    }
   });
 
   it('marks a delivery as completed and removes it from the list', async () => {
