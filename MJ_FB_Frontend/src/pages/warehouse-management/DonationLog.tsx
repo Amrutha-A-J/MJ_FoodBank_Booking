@@ -220,7 +220,13 @@ export default function DonationLog() {
     <>
       <WarehouseQuickLinks />
       <Page title="Donation Log">
-        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          rowGap={1}
+          columnGap={1}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          sx={{ mb: 2 }}
+        >
           <Button
             variant="contained"
             onClick={e => {
@@ -247,6 +253,7 @@ export default function DonationLog() {
             value={month}
             onChange={e => setMonth(e.target.value)}
             InputLabelProps={{ shrink: true }}
+            sx={{ width: { xs: '100%', sm: 'auto' }, minWidth: { sm: 220 } }}
           />
         </Stack>
 
