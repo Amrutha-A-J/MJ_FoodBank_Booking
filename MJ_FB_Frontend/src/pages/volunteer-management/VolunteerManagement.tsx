@@ -818,9 +818,10 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
           {selectedRole && roleInfos.length > 0 ? (
             <>
               <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
+                direction={{ xs: 'column', lg: 'row' }}
+                justifyContent={{ xs: 'flex-start', lg: 'space-between' }}
+                alignItems={{ xs: 'stretch', lg: 'center' }}
+                spacing={{ xs: 2, lg: 0 }}
                 mt={2}
               >
                 <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">
@@ -833,7 +834,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 >
                   {formatDate(currentDate)}
                 </Typography>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1}
+                  alignItems={{ xs: 'stretch', sm: 'center' }}
+                >
                   <Button
                     onClick={() => setCurrentDate(todayStart)}
                     variant="outlined"
@@ -874,9 +879,10 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
           ) : selectedDepartment ? (
             <>
               <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
+                direction={{ xs: 'column', lg: 'row' }}
+                justifyContent={{ xs: 'flex-start', lg: 'space-between' }}
+                alignItems={{ xs: 'stretch', lg: 'center' }}
+                spacing={{ xs: 2, lg: 0 }}
                 mt={2}
               >
                 <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">
@@ -889,7 +895,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 >
                   {formatDate(currentDate)}
                 </Typography>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1}
+                  alignItems={{ xs: 'stretch', sm: 'center' }}
+                >
                   <Button
                     onClick={() => setCurrentDate(todayStart)}
                     variant="outlined"
