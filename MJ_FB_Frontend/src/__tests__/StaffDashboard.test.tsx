@@ -5,7 +5,6 @@ import { getBookings } from '../api/bookings';
 import { getEvents } from '../api/events';
 import { getPantryMonthly } from '../api/pantryAggregations';
 import { getVolunteerBookings, getVolunteerRoles } from '../api/volunteers';
-import { formatReginaDate } from '../utils/time';
 import type { VisitStat } from '../api/clientVisits';
 
 const mockVisitTrendChart = jest.fn();
@@ -148,28 +147,28 @@ describe('StaffDashboard', () => {
     });
   });
 
-  it('shows only today\'s cancellations', async () => {
-    const today = formatReginaDate(new Date());
-    const yesterday = formatReginaDate(
-      new Date(Date.now() - 24 * 60 * 60 * 1000),
-    );
-    (getBookings as jest.Mock).mockResolvedValue([
+  it('shows volunteer shift cancellations', async () => {
+    (getBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookings as jest.Mock).mockResolvedValue([
       {
         id: 1,
         status: 'cancelled',
-        date: today,
         start_time: '09:00:00',
-        user_name: 'Alice',
+        volunteer_name: 'Alice',
       },
       {
         id: 2,
-        status: 'cancelled',
-        date: yesterday,
+        status: 'approved',
         start_time: '10:00:00',
-        user_name: 'Bob',
+        volunteer_name: 'Bob',
+      },
+      {
+        id: 3,
+        status: 'cancelled',
+        start_time: '11:00:00',
+        volunteer_name: 'Charlie',
       },
     ]);
-    (getVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({
       today: [],
@@ -186,8 +185,11 @@ describe('StaffDashboard', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Recent Cancellations')).toBeInTheDocument();
+      expect(
+        screen.getByText('Volunteer Shift Changes'),
+      ).toBeInTheDocument();
       expect(screen.getByText(/Alice/)).toBeInTheDocument();
+      expect(screen.getByText(/Charlie/)).toBeInTheDocument();
       expect(screen.queryByText(/Bob/)).toBeNull();
     });
   });

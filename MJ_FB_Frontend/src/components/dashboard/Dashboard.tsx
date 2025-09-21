@@ -12,7 +12,6 @@ import {
 } from '@mui/material';
 import CalendarToday from '@mui/icons-material/CalendarToday';
 import People from '@mui/icons-material/People';
-import CancelIcon from '@mui/icons-material/Cancel';
 import EventAvailable from '@mui/icons-material/EventAvailable';
 import Announcement from '@mui/icons-material/Announcement';
 import { getBookings, getSlotsRange } from '../../api/bookings';
@@ -132,7 +131,6 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   }, []);
 
   const todayStr = formatReginaDate(new Date());
-  const cancellations = bookings.filter(b => b.status === 'cancelled');
   const volCancellations = volBookings.filter(b => b.status === 'cancelled');
   const todaysVolunteerCancellations = volCancellations.filter(
     b => formatReginaDate(toDate(b.date)) === todayStr,
@@ -144,12 +142,6 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
         formatReginaDate(toDate(b.date)) === todayStr,
     ).length,
     volunteers: volunteerCount,
-    cancellations:
-      cancellations.filter(
-        b => formatReginaDate(toDate(b.date)) === todayStr,
-      ).length +
-      todaysVolunteerCancellations.length,
-  };
 
   return (
     <Box
@@ -181,15 +173,8 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
           <Grid size={{ xs: 12, md: 4 }}>
             <Stat
               icon={<People color="primary" />}
-              label="Volunteers Scheduled"
+              label="Volunteer Shifts Filled"
               value={stats.volunteers}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Stat
-              icon={<CancelIcon color="error" />}
-              label="Cancellations"
-              value={stats.cancellations}
             />
           </Grid>
         </Grid>
@@ -248,23 +233,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
           </Stack>
         </Stack>
       </SectionCard>
-      <SectionCard title="Recent Cancellations" sx={{ order: 3 }}>
-        <List>
-          {cancellations
-            .filter(c => formatReginaDate(toDate(c.date)) === todayStr)
-            .slice(0, 5)
-            .map(c => (
-              <ListItem key={c.id}>
-                <ListItemText
-                  primary={`${c.user_name || 'Unknown'} - ${formatTime(
-                    c.start_time || '',
-                  )}`}
-                />
-              </ListItem>
-            ))}
-        </List>
-      </SectionCard>
-      <SectionCard title="Volunteer Shift Changes" sx={{ order: 4 }}>
+      <SectionCard title="Volunteer Shift Changes" sx={{ order: 3 }}>
         <List>
           {todaysVolunteerCancellations.slice(0, 5).map(c => (
             <ListItem key={c.id}>
