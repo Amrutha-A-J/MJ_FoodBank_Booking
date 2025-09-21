@@ -144,8 +144,11 @@ export default function FoodBankTrends() {
           ...prevRows.map(row => ({ ...row, year: currentYear - 1 })),
           ...currRows.map(row => ({ ...row, year: currentYear })),
         ];
+        const filtered = combined.filter(
+          row => row.year < currentYear || row.month <= currentMonth,
+        );
         const minKey = currentYear * 12 + currentMonth - 11;
-        const stats: VisitStat[] = combined
+        const stats: VisitStat[] = filtered
           .filter(row => row.year * 12 + row.month >= minKey)
           .sort((a, b) => a.year * 12 + a.month - (b.year * 12 + b.month))
           .map(row => ({

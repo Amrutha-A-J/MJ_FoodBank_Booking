@@ -103,12 +103,21 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
       getPantryMonthly(currentYear - 1, currentMonth),
     ])
       .then(([curr, prev]) => {
+        const prevRows = Array.isArray(prev)
+          ? (prev as PantryMonthlyRow[])
+          : [];
+        const currRows = Array.isArray(curr)
+          ? (curr as PantryMonthlyRow[])
+          : [];
         const combined = [
-          ...prev.map((r: PantryMonthlyRow) => ({ ...r, year: currentYear - 1 })),
-          ...curr.map((r: PantryMonthlyRow) => ({ ...r, year: currentYear })),
+          ...prevRows.map(r => ({ ...r, year: currentYear - 1 })),
+          ...currRows.map(r => ({ ...r, year: currentYear })),
         ];
+        const filtered = combined.filter(
+          r => r.year < currentYear || r.month <= currentMonth,
+        );
         const minKey = currentYear * 12 + currentMonth - 11;
-        const stats: VisitStat[] = combined
+        const stats: VisitStat[] = filtered
           .filter(r => r.year * 12 + r.month >= minKey)
           .sort((a, b) => a.year * 12 + a.month - (b.year * 12 + b.month))
           .map(r => ({
