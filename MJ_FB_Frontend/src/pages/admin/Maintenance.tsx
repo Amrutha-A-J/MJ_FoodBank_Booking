@@ -1,7 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   Box,
+  Checkbox,
+  FormControl,
   FormControlLabel,
+  FormGroup,
+  FormHelperText,
+  FormLabel,
   Switch,
   TextField,
   Tabs,
@@ -9,7 +14,14 @@ import {
   Typography,
   Paper,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Grid from '@mui/material/GridLegacy';
 import Page from '../../components/Page';
 import ErrorBoundary from '../../components/ErrorBoundary';
@@ -21,8 +33,30 @@ import {
   vacuumDatabase,
   vacuumTable,
   getVacuumDeadRows,
+  purgeOldRecords,
   type MaintenanceSettings,
 } from '../../api/maintenance';
+import dayjs, { type Dayjs } from '../../utils/date';
+
+const PURGE_TARGETS = [
+  { key: 'bookings', label: 'Pantry bookings' },
+  { key: 'client_visits', label: 'Pantry visits' },
+  { key: 'volunteer_bookings', label: 'Volunteer bookings' },
+  { key: 'donations', label: 'Food donations' },
+  { key: 'monetary_donations', label: 'Monetary donations' },
+  { key: 'pig_pound_log', label: 'Pig pound log' },
+  { key: 'outgoing_donation_log', label: 'Outgoing donation log' },
+  { key: 'surplus_log', label: 'Surplus log' },
+  { key: 'sunshine_bag_log', label: 'Sunshine bag log' },
+] as const;
+
+type PurgeTableKey = (typeof PURGE_TARGETS)[number]['key'];
+
+function getPurgeLabel(key: string) {
+  const target = PURGE_TARGETS.find(item => item.key === key);
+  if (target) return target.label;
+  return key.replace(/_/g, ' ');
+}
 
 export default function Maintenance() {
   const [activeTab, setActiveTab] = useState(0);
@@ -37,6 +71,11 @@ export default function Maintenance() {
   const [isVacuumingDatabase, setIsVacuumingDatabase] = useState(false);
   const [isVacuumingTable, setIsVacuumingTable] = useState(false);
   const [isCheckingDeadRows, setIsCheckingDeadRows] = useState(false);
+  const [selectedPurgeTables, setSelectedPurgeTables] = useState<PurgeTableKey[]>([]);
+  const [purgeCutoff, setPurgeCutoff] = useState<Dayjs | null>(null);
+  const [purgeTouched, setPurgeTouched] = useState(false);
+  const [isPurging, setIsPurging] = useState(false);
+  const [confirmPurgeOpen, setConfirmPurgeOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -138,6 +177,72 @@ export default function Maintenance() {
     }
   }
 
+  const januaryFirst = dayjs().startOf('year');
+  const latestAllowedDate = januaryFirst.subtract(1, 'day');
+  const hasValidCutoff =
+    !!purgeCutoff && purgeCutoff.isValid() && purgeCutoff.isBefore(januaryFirst);
+  const tablesError =
+    purgeTouched && selectedPurgeTables.length === 0 ? 'Select at least one data set' : '';
+  let dateError = '';
+  if (purgeTouched) {
+    if (!purgeCutoff) {
+      dateError = 'Select a cutoff date';
+    } else if (!purgeCutoff.isValid()) {
+      dateError = 'Cutoff date is invalid';
+    } else if (!purgeCutoff.isBefore(januaryFirst)) {
+      dateError = `Pick a date before January 1, ${januaryFirst.year()}`;
+    }
+  }
+  const isPurgeFormValid = selectedPurgeTables.length > 0 && hasValidCutoff;
+
+  function handleTogglePurgeTable(key: PurgeTableKey) {
+    setSelectedPurgeTables(prev =>
+      prev.includes(key) ? prev.filter(item => item !== key) : [...prev, key],
+    );
+  }
+
+  function handleOpenPurgeConfirm() {
+    setPurgeTouched(true);
+    if (!isPurgeFormValid) return;
+    setConfirmPurgeOpen(true);
+  }
+
+  function handleCancelPurge() {
+    if (isPurging) return;
+    setConfirmPurgeOpen(false);
+  }
+
+  async function handleConfirmPurge() {
+    if (!isPurgeFormValid || !purgeCutoff) return;
+    try {
+      setIsPurging(true);
+      setError('');
+      setMessage('');
+      const cutoff = purgeCutoff.format('YYYY-MM-DD');
+      const result = await purgeOldRecords({
+        tables: selectedPurgeTables,
+        before: cutoff,
+      });
+      const tableSummaries =
+        result.purged?.map(item => {
+          const label = getPurgeLabel(item.table);
+          if (item.months && item.months.length > 0) {
+            return `${label} (${item.months.join(', ')})`;
+          }
+          return label;
+        }) ?? [];
+      const fallbackSummary = selectedPurgeTables.map(getPurgeLabel).join(', ');
+      const summary = tableSummaries.length > 0 ? tableSummaries.join(', ') : fallbackSummary;
+      setMessage(`Deleted records before ${result.cutoff ?? cutoff} for ${summary}.`);
+      setConfirmPurgeOpen(false);
+      setPurgeTouched(false);
+    } catch (err: any) {
+      setError(err.message || String(err));
+    } finally {
+      setIsPurging(false);
+    }
+  }
+
   return (
     <ErrorBoundary>
       <Page title="Maintenance">
@@ -152,6 +257,11 @@ export default function Maintenance() {
             >
               <Tab label="Maintenance Mode" id="maintenance-tab-0" aria-controls="maintenance-tabpanel-0" />
               <Tab label="Vacuum" id="maintenance-tab-1" aria-controls="maintenance-tabpanel-1" />
+              <Tab
+                label="Delete Older Records"
+                id="maintenance-tab-2"
+                aria-controls="maintenance-tabpanel-2"
+              />
             </Tabs>
             <TabPanel value={activeTab} index={0}>
               <Grid container spacing={2}>
@@ -257,7 +367,113 @@ export default function Maintenance() {
                 </Grid>
               </Grid>
             </TabPanel>
+            <TabPanel value={activeTab} index={2}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography variant="h6">Delete Older Records</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    Select the data sets and a cutoff date to purge legacy rows. Aggregates refresh
+                    automatically after the purge completes.
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControl component="fieldset" error={!!tablesError} variant="standard" disabled={isPurging}>
+                    <FormLabel component="legend">Data sets</FormLabel>
+                    <FormGroup>
+                      {PURGE_TARGETS.map(target => (
+                        <FormControlLabel
+                          key={target.key}
+                          control={
+                            <Checkbox
+                              checked={selectedPurgeTables.includes(target.key)}
+                              onChange={() => handleTogglePurgeTable(target.key)}
+                              name={`purge-${target.key}`}
+                            />
+                          }
+                          label={target.label}
+                        />
+                      ))}
+                    </FormGroup>
+                    <FormHelperText>
+                      {tablesError || 'Choose each data set you want to delete before the cutoff date.'}
+                    </FormHelperText>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                      label="Cutoff Date"
+                      value={purgeCutoff}
+                      onChange={value => setPurgeCutoff(value)}
+                      maxDate={latestAllowedDate}
+                      disableFuture
+                      shouldDisableDate={date => !!date && (date.isSame(januaryFirst) || date.isAfter(januaryFirst))}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          size: 'medium',
+                          helperText:
+                            dateError || `Only dates before Jan 1, ${januaryFirst.year()} are allowed.`,
+                          error: !!dateError,
+                        },
+                      }}
+                    />
+                  </LocalizationProvider>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="body2" color="text.secondary">
+                    Purging also archives volunteer hours and refreshes pantry, warehouse, and sunshine bag
+                    aggregates for affected months.
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={handleOpenPurgeConfirm}
+                    loading={isPurging}
+                    disabled={isPurging}
+                  >
+                    Delete Older Records
+                  </Button>
+                  <Button onClick={() => setPurgeCutoff(null)} disabled={isPurging}>
+                    Clear Cutoff
+                  </Button>
+                </Grid>
+              </Grid>
+            </TabPanel>
           </Paper>
+          <Dialog open={confirmPurgeOpen} onClose={handleCancelPurge} aria-labelledby="purge-confirm-title">
+            <DialogTitle id="purge-confirm-title">Delete older records?</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                This will permanently delete records before{' '}
+                {purgeCutoff ? purgeCutoff.format('YYYY-MM-DD') : 'the selected date'} for the selected data sets. This action
+                cannot be undone.
+              </DialogContentText>
+              <Box component="ul" sx={{ pl: 3, mt: 1 }}>
+                {selectedPurgeTables.map(table => (
+                  <Box key={table} component="li">
+                    {getPurgeLabel(table)}
+                  </Box>
+                ))}
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCancelPurge} disabled={isPurging}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmPurge}
+                variant="contained"
+                color="error"
+                loading={isPurging}
+                disabled={isPurging}
+              >
+                Confirm Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
           <FeedbackSnackbar
             open={!!error || !!message}
             onClose={() => {
