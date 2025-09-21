@@ -8,6 +8,7 @@ module.exports = {
     '<rootDir>/src/pages/admin/__tests__/**/*.test.tsx',
     '<rootDir>/src/pages/**/__tests__/**/*.test.tsx',
     '<rootDir>/src/__tests__/**/*.test.tsx',
+    '<rootDir>/src/components/__tests__/**/*.test.tsx',
     '<rootDir>/src/api/__tests__/**/*.test.ts',
     '<rootDir>/src/hooks/**/*.test.tsx',
     '<rootDir>/tests/**/*.test.tsx',
