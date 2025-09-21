@@ -38,6 +38,22 @@ export type DeliveryOrderStatus =
   | 'completed'
   | 'cancelled';
 
+export interface DeliveryOrderSelectionInput {
+  itemId: number;
+  quantity: number;
+}
+
+export interface CreateDeliveryOrderPayload {
+  clientId: number;
+  address: string;
+  phone: string;
+  email?: string | null;
+  status?: DeliveryOrderStatus;
+  scheduledFor?: string | null;
+  notes?: string | null;
+  selections?: DeliveryOrderSelectionInput[];
+}
+
 export interface DeliveryOrderItem {
   itemId: number;
   quantity: number;

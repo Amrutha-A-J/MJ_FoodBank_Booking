@@ -133,6 +133,9 @@ const DeliveryDashboard = React.lazy(
 const PantryDeliveries = React.lazy(
   () => import('./pages/pantry/Deliveries')
 );
+const RecordDelivery = React.lazy(
+  () => import('./pages/pantry/RecordDelivery')
+);
 
 const Spinner = () => <CircularProgress />;
 
@@ -247,6 +250,12 @@ export default function App() {
                   )}
                   {showStaff && (
                     <Route path="/pantry/deliveries" element={<PantryDeliveries />} />
+                  )}
+                  {showStaff && (
+                    <Route
+                      path="/pantry/deliveries/record"
+                      element={<RecordDelivery />}
+                    />
                   )}
                   {showStaff && (
                     <Route path="/pantry/visits" element={<PantryVisits />} />
