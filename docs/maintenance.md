@@ -18,8 +18,13 @@ message if maintenance mode is currently enabled.
 
 ## Historical data purge
 
-Admins can trigger a manual cleanup of legacy records via `POST /api/v1/maintenance/purge`.
-The request body must include:
+Admins can trigger a manual cleanup of legacy records from **Admin → Maintenance → Delete Older
+Records**. Select one or more data sets, pick a cutoff date before the current year, and confirm the
+deletion. The UI enforces the whitelist and cutoff rules, shows the affected tables in the
+confirmation dialog, and reports success or failure in a snackbar.
+
+The same cleanup is available directly through `POST /api/v1/maintenance/purge`. The request body
+must include:
 
 - `tables`: an array of whitelisted table names such as `bookings`, `client_visits`,
   `volunteer_bookings`, `donations`, `monetary_donations`, `pig_pound_log`,

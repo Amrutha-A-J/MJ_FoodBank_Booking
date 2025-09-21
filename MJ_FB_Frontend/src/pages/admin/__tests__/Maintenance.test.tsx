@@ -11,7 +11,31 @@ jest.mock('../../../api/maintenance', () => ({
   vacuumDatabase: jest.fn().mockResolvedValue({ message: 'Vacuum started' }),
   vacuumTable: jest.fn().mockResolvedValue({ message: 'Table vacuum started' }),
   getVacuumDeadRows: jest.fn().mockResolvedValue({ message: 'Dead rows fetched' }),
+  purgeOldRecords: jest.fn().mockResolvedValue({
+    success: true,
+    cutoff: '2023-12-31',
+    purged: [
+      { table: 'bookings', months: ['2023-01', '2023-02'] },
+      { table: 'client_visits', months: ['2023-01'] },
+    ],
+  }),
 }));
+
+jest.mock('@mui/x-date-pickers', () => {
+  const TextField = require('@mui/material/TextField').default;
+  const { default: dayjs } = require('../../../utils/date');
+  return {
+    LocalizationProvider: ({ children }: any) => <>{children}</>,
+    DatePicker: ({ label, value, onChange, slotProps }: any) => (
+      <TextField
+        label={label}
+        value={value ? value.format('YYYY-MM-DD') : ''}
+        onChange={e => onChange(e.target.value ? dayjs(e.target.value) : null)}
+        {...(slotProps?.textField || {})}
+      />
+    ),
+  };
+});
 
 import {
   getMaintenanceSettings,
@@ -20,9 +44,19 @@ import {
   vacuumDatabase,
   vacuumTable,
   getVacuumDeadRows,
+  purgeOldRecords,
 } from '../../../api/maintenance';
 
 describe('Maintenance', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-06-15T12:00:00Z'));
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   it('renders and handles actions', async () => {
     render(
       <ThemeProvider theme={theme}>
@@ -56,5 +90,79 @@ describe('Maintenance', () => {
     fireEvent.change(screen.getByLabelText(/table filter/i), { target: { value: 'orders' } });
     fireEvent.click(screen.getByRole('button', { name: /check dead rows/i }));
     await waitFor(() => expect(getVacuumDeadRows).toHaveBeenCalledWith('orders'));
+  });
+
+  it('validates purge inputs before confirming', async () => {
+    render(
+      <ThemeProvider theme={theme}>
+        <Maintenance />
+      </ThemeProvider>,
+    );
+
+    await waitFor(() => expect(getMaintenanceSettings).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('tab', { name: /delete older records/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /delete older records/i }));
+
+    expect(await screen.findByText(/select at least one data set/i)).toBeInTheDocument();
+    expect(screen.getByText(/select a cutoff date/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText(/Pantry bookings/i));
+    fireEvent.change(screen.getByLabelText(/cutoff date/i), { target: { value: '2024-01-15' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /delete older records/i }));
+
+    expect(await screen.findByText(/pick a date before january 1, 2024/i)).toBeInTheDocument();
+  });
+
+  it('submits purge request after confirmation and shows success', async () => {
+    render(
+      <ThemeProvider theme={theme}>
+        <Maintenance />
+      </ThemeProvider>,
+    );
+
+    await waitFor(() => expect(getMaintenanceSettings).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('tab', { name: /delete older records/i }));
+    fireEvent.click(screen.getByLabelText(/Pantry bookings/i));
+    fireEvent.click(screen.getByLabelText(/Pantry visits/i));
+    fireEvent.change(screen.getByLabelText(/cutoff date/i), { target: { value: '2023-12-31' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /delete older records/i }));
+
+    const confirmButton = await screen.findByRole('button', { name: /confirm delete/i });
+    fireEvent.click(confirmButton);
+
+    await waitFor(() =>
+      expect(purgeOldRecords).toHaveBeenCalledWith({
+        tables: ['bookings', 'client_visits'],
+        before: '2023-12-31',
+      }),
+    );
+
+    expect(await screen.findByText(/Deleted records before 2023-12-31/i)).toBeInTheDocument();
+  });
+
+  it('surfaces purge errors from the backend', async () => {
+    (purgeOldRecords as jest.Mock).mockRejectedValueOnce(new Error('Failed to purge'));
+
+    render(
+      <ThemeProvider theme={theme}>
+        <Maintenance />
+      </ThemeProvider>,
+    );
+
+    await waitFor(() => expect(getMaintenanceSettings).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('tab', { name: /delete older records/i }));
+    fireEvent.click(screen.getByLabelText(/Pantry bookings/i));
+    fireEvent.change(screen.getByLabelText(/cutoff date/i), { target: { value: '2023-11-30' } });
+    fireEvent.click(screen.getByRole('button', { name: /delete older records/i }));
+
+    fireEvent.click(await screen.findByRole('button', { name: /confirm delete/i }));
+
+    expect(await screen.findByText('Failed to purge')).toBeInTheDocument();
   });
 });

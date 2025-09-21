@@ -6,6 +6,7 @@ import {
   vacuumDatabase,
   vacuumTable,
   getVacuumDeadRows,
+  purgeOldRecords,
 } from '../maintenance';
 
 jest.mock('../client', () => ({
@@ -62,5 +63,17 @@ describe('maintenance api', () => {
   it('fetches dead rows for a table', async () => {
     await getVacuumDeadRows('orders');
     expect(apiFetch).toHaveBeenCalledWith('/api/v1/maintenance/vacuum/dead-rows?table=orders');
+  });
+
+  it('purges old records', async () => {
+    (handleResponse as jest.Mock).mockResolvedValue({ success: true });
+    await purgeOldRecords({ tables: ['bookings'], before: '2023-12-31' });
+    expect(jsonApiFetch).toHaveBeenCalledWith(
+      '/api/v1/maintenance/purge',
+      expect.objectContaining({
+        method: 'POST',
+        body: { tables: ['bookings'], before: '2023-12-31' },
+      }),
+    );
   });
 });

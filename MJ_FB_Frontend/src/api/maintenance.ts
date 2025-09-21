@@ -62,6 +62,22 @@ export interface DeadRowsLookupResponse {
   tables?: DeadRowInfo[];
 }
 
+export interface PurgeRequestPayload {
+  tables: string[];
+  before: string;
+}
+
+export interface PurgedTableSummary {
+  table: string;
+  months?: string[];
+}
+
+export interface PurgeResponse {
+  success: boolean;
+  cutoff: string;
+  purged: PurgedTableSummary[];
+}
+
 export async function vacuumDatabase(): Promise<VacuumResponse> {
   const res = await apiFetch(`${API_BASE}/maintenance/vacuum`, {
     method: 'POST',
@@ -79,5 +95,13 @@ export async function vacuumTable(table: string): Promise<VacuumResponse> {
 export async function getVacuumDeadRows(table?: string): Promise<DeadRowsLookupResponse> {
   const query = table ? `?table=${encodeURIComponent(table)}` : '';
   const res = await apiFetch(`${API_BASE}/maintenance/vacuum/dead-rows${query}`);
+  return handleResponse(res);
+}
+
+export async function purgeOldRecords(payload: PurgeRequestPayload): Promise<PurgeResponse> {
+  const res = await jsonApiFetch(`${API_BASE}/maintenance/purge`, {
+    method: 'POST',
+    body: payload,
+  });
   return handleResponse(res);
 }
