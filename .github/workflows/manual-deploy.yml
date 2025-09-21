@@ -1,0 +1,84 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch or commit to deploy"
+        required: true
+        default: "master"
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://app.mjfoodbank.org
+    steps:
+      - name: Checkout (for context)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 2
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script_stop: true
+          command_timeout: 60m
+          script: |
+            set -Eeuo pipefail
+
+            cd ~/apps/MJ_FoodBank_Booking
+            BRANCH="${{ inputs.branch }}"
+            PREVIOUS_COMMIT="$(git rev-parse HEAD)"
+
+            rollback() {
+              echo "Deployment failed — rolling back to ${PREVIOUS_COMMIT}"
+              cd ~/apps/MJ_FoodBank_Booking
+              git reset --hard "${PREVIOUS_COMMIT}"
+
+              cd MJ_FB_Backend
+              npm ci
+              NODE_OPTIONS=--max-old-space-size=4096 npm run build
+              pm2 restart mjfb-api --update-env
+
+              cd ../MJ_FB_Frontend
+              npm ci
+              NODE_OPTIONS=--max-old-space-size=4096 npm run build
+              sudo rm -rf /var/www/mjfb-frontend/*
+              sudo cp -r dist/* /var/www/mjfb-frontend/
+              sudo systemctl reload nginx
+              exit 1
+            }
+            trap rollback ERR
+
+            git fetch origin --prune
+            git checkout "${BRANCH}"
+            git reset --hard "origin/${BRANCH}"
+
+            cd MJ_FB_Backend
+            npm ci
+            NODE_OPTIONS=--max-old-space-size=4096 npm run build
+            pm2 restart mjfb-api --update-env
+            pm2 logs mjfb-api --lines 80 --nostream
+
+            cd ../MJ_FB_Frontend
+            npm ci
+            NODE_OPTIONS=--max-old-space-size=4096 npm run build
+            sudo rm -rf /var/www/mjfb-frontend/*
+            sudo cp -r dist/* /var/www/mjfb-frontend/
+            sudo systemctl reload nginx
+
+            curl -I https://app.mjfoodbank.org/api/v1/health
+            sudo journalctl -u nginx -n 50 --no-pager
+
+            trap - ERR
+            echo "Deployment completed successfully."
