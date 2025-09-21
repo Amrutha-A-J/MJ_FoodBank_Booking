@@ -97,4 +97,26 @@ describe('Pantry Deliveries page', () => {
     expect(await screen.findByText('Delivery marked completed.')).toBeInTheDocument();
     expect(screen.getByText(/Client 5678/)).toBeInTheDocument();
   });
+
+  it('renders an error state when outstanding delivery orders fail to load', async () => {
+    const errorMessage = 'We could not load outstanding delivery orders. Please try again.';
+    mockedGetOutstanding.mockRejectedValueOnce(new Error(''));
+
+    render(
+      <MemoryRouter>
+        <Deliveries />
+      </MemoryRouter>,
+    );
+
+    const alerts = await screen.findAllByText(errorMessage);
+    expect(alerts).toHaveLength(2);
+
+    const errorAlerts = screen
+      .getAllByRole('alert')
+      .filter(alert => alert.textContent?.includes(errorMessage));
+    expect(errorAlerts).toHaveLength(2);
+
+    expect(await screen.findByText('No deliveries to display')).toBeInTheDocument();
+    expect(screen.queryByText('No outstanding deliveries')).not.toBeInTheDocument();
+  });
 });
