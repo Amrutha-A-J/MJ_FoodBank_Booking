@@ -15,3 +15,18 @@ A scheduled window displays an upcoming maintenance banner to clients.
 
 Clients see the upcoming notice if a maintenance window is scheduled and the maintenance
 message if maintenance mode is currently enabled.
+
+## Historical data purge
+
+Admins can trigger a manual cleanup of legacy records via `POST /api/v1/maintenance/purge`.
+The request body must include:
+
+- `tables`: an array of whitelisted table names such as `bookings`, `client_visits`,
+  `volunteer_bookings`, `donations`, `monetary_donations`, `pig_pound_log`,
+  `outgoing_donation_log`, `surplus_log`, or `sunshine_bag_log`.
+- `before`: a cutoff date (`YYYY-MM-DD`) that must fall before January 1 of the current year.
+
+The purge endpoint refreshes pantry, warehouse, and sunshine bag aggregates for affected
+months, archives volunteer totals, deletes rows older than the cutoff inside a transaction,
+and VACUUMs each table. Requests using non-whitelisted tables or current-year dates are
+rejected with a 400 response to prevent accidental data loss.

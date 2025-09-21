@@ -8,10 +8,11 @@ import {
   runVacuum,
   runVacuumForTable,
   getDeadRowStats,
+  purgeMaintenanceData,
 } from '../controllers/maintenanceController';
 import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
-import { maintenanceSchema } from '../schemas/maintenanceSchema';
+import { maintenanceSchema, maintenancePurgeSchema } from '../schemas/maintenanceSchema';
 
 const router = Router();
 
@@ -47,6 +48,14 @@ router.get(
   authMiddleware,
   authorizeAccess('admin'),
   getDeadRowStats,
+);
+
+router.post(
+  '/purge',
+  authMiddleware,
+  authorizeAccess('admin'),
+  validate(maintenancePurgeSchema),
+  purgeMaintenanceData,
 );
 
 export default router;
