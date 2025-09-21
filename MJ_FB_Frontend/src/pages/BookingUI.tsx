@@ -374,7 +374,11 @@ export default function BookingUI<T = Slot>({
         severity: 'success',
         action:
           res?.googleCalendarUrl || res?.icsUrl ? (
-            <Stack direction="row" spacing={1}>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1}
+              sx={{ width: '100%' }}
+            >
               {res?.googleCalendarUrl && (
                 <Button
                   variant="contained"
@@ -383,7 +387,10 @@ export default function BookingUI<T = Slot>({
                   target="_blank"
                   rel="noopener"
                   size="medium"
-                  sx={{ minHeight: 48 }}
+                  sx={{
+                    minHeight: 48,
+                    width: { xs: '100%', sm: 'auto' },
+                  }}
                 >
                   Add to Google Calendar
                 </Button>
@@ -394,7 +401,10 @@ export default function BookingUI<T = Slot>({
                   component="a"
                   href={res.icsUrl}
                   size="medium"
-                  sx={{ minHeight: 48 }}
+                  sx={{
+                    minHeight: 48,
+                    width: { xs: '100%', sm: 'auto' },
+                  }}
                 >
                   Add to Apple Calendar
                 </Button>
