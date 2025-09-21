@@ -20,6 +20,7 @@ import {
   deleteTestEmail,
   sendTestMailLists,
   importZeffyDonations,
+  getMonetaryDonorInsights,
 } from '../controllers/monetaryDonorController';
 import { addMonetaryDonorSchema, updateMonetaryDonorSchema } from '../schemas/monetaryDonorSchemas';
 import { addMonetaryDonationSchema, updateMonetaryDonationSchema } from '../schemas/monetaryDonationSchemas';
@@ -52,6 +53,8 @@ router.put(
   updateTestEmail,
 );
 router.delete('/test-emails/:id', deleteTestEmail);
+
+router.get('/insights', getMonetaryDonorInsights);
 
 router.get('/', listDonors);
 router.post('/', validate(addMonetaryDonorSchema), addDonor);
