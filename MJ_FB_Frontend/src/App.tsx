@@ -1,4 +1,4 @@
-import React, { useState, Suspense, useEffect } from 'react';
+import React, { useState, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 const Dashboard = React.lazy(
@@ -181,9 +181,6 @@ export default function App() {
     const path = location.pathname;
     const showOverlay =
       maintenanceMode && !(isStaff || path === '/login');
-    useEffect(() => {
-      console.log('Navigated to', path);
-    }, [path]);
     return (
       <>
         {showOverlay && <MaintenanceOverlay />}
