@@ -3,6 +3,9 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import FoodBankTrends from '../pages/aggregations/FoodBankTrends';
 import '../../tests/mockUrl';
+import type { MonetaryDonorInsightsResponse } from '../api/monetaryDonors';
+import { useAuth } from '../hooks/useAuth';
+import useMonetaryDonorInsights from '../hooks/useMonetaryDonorInsights';
 
 const mockGetPantryMonthly = jest.fn();
 const mockGetEvents = jest.fn();
@@ -10,6 +13,8 @@ const mockGetWarehouseOverallYears = jest.fn();
 const mockGetWarehouseOverall = jest.fn();
 const mockGetTopDonors = jest.fn();
 const mockGetTopReceivers = jest.fn();
+const mockUseAuth = jest.fn();
+const mockUseMonetaryDonorInsights = jest.fn();
 
 jest.mock('../api/pantryAggregations', () => ({
   getPantryMonthly: (...args: unknown[]) => mockGetPantryMonthly(...args),
@@ -30,6 +35,15 @@ jest.mock('../api/donors', () => ({
 
 jest.mock('../api/outgoingReceivers', () => ({
   getTopReceivers: (...args: unknown[]) => mockGetTopReceivers(...args),
+}));
+
+jest.mock('../hooks/useAuth', () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
+jest.mock('../hooks/useMonetaryDonorInsights', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockUseMonetaryDonorInsights(...args),
 }));
 
 jest.mock('../components/dashboard/WarehouseCompositionChart', () => ({
@@ -59,7 +73,58 @@ jest.mock('../components/dashboard/WarehouseCompositionChart', () => ({
   ),
 }));
 
+jest.mock('../components/dashboard/MonetaryDonationTrendChart', () => ({
+  __esModule: true,
+  default: () => <div data-testid="mock-monetary-donation-trend-chart" />,
+}));
+
+jest.mock('../components/dashboard/MonetaryGivingTierChart', () => ({
+  __esModule: true,
+  default: () => <div data-testid="mock-giving-tier-chart" />,
+}));
+
 describe('FoodBankTrends page', () => {
+  const donorInsightsFixture: MonetaryDonorInsightsResponse = {
+    window: { startMonth: '2023-09', endMonth: '2024-08', months: 12 },
+    monthly: [
+      { month: '2024-07', totalAmount: 5500, donationCount: 11, donorCount: 8, averageGift: 500 },
+      { month: '2024-08', totalAmount: 6000, donationCount: 12, donorCount: 9, averageGift: 500 },
+    ],
+    ytd: {
+      totalAmount: 30000,
+      donationCount: 55,
+      donorCount: 40,
+      averageGift: 545,
+      averageDonationsPerDonor: 1.3,
+      lastDonationISO: '2024-08-12T00:00:00Z',
+    },
+    topDonors: [],
+    givingTiers: {
+      currentMonth: {
+        month: '2024-08',
+        tiers: {
+          '1-100': { donorCount: 5, totalAmount: 400 },
+          '101-500': { donorCount: 3, totalAmount: 900 },
+          '501-1000': { donorCount: 2, totalAmount: 1200 },
+          '1001-10000': { donorCount: 1, totalAmount: 2000 },
+          '10001-30000': { donorCount: 0, totalAmount: 0 },
+        },
+      },
+      previousMonth: {
+        month: '2024-07',
+        tiers: {
+          '1-100': { donorCount: 4, totalAmount: 350 },
+          '101-500': { donorCount: 4, totalAmount: 1100 },
+          '501-1000': { donorCount: 1, totalAmount: 600 },
+          '1001-10000': { donorCount: 1, totalAmount: 1800 },
+          '10001-30000': { donorCount: 0, totalAmount: 0 },
+        },
+      },
+    },
+    firstTimeDonors: [],
+    pantryImpact: { families: 0, adults: 0, children: 0, pounds: 0 },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -121,6 +186,15 @@ describe('FoodBankTrends page', () => {
         lastPickupISO: '2024-04-15T18:00:00Z',
       },
     ]);
+
+    mockUseAuth.mockReturnValue({ access: ['donor_management'] } as ReturnType<typeof useAuth>);
+    mockUseMonetaryDonorInsights.mockReturnValue({
+      data: donorInsightsFixture,
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useMonetaryDonorInsights>);
   });
 
   it('requests pantry, events, warehouse, donor, and receiver data and renders sections', async () => {
