@@ -191,6 +191,8 @@ export default function VolunteerDashboard() {
   }, []);
 
   useEffect(() => {
+    let active = true;
+    let loadingActive = true;
     async function loadAvailability() {
       startLoading();
       try {
@@ -206,6 +208,7 @@ export default function VolunteerDashboard() {
         const requests = days.map(day =>
           getVolunteerRolesForVolunteer(formatRegina(day, 'yyyy-MM-dd')).catch(
             () => {
+              if (!active) return [];
               setSnackbarSeverity('error');
               setMessage('Failed to load availability');
               return [];
@@ -213,12 +216,23 @@ export default function VolunteerDashboard() {
           ),
         );
         const results = await Promise.all(requests);
+        if (!active) return;
         setAvailability(results.flat());
       } finally {
-        stopLoading();
+        if (loadingActive) {
+          stopLoading();
+          loadingActive = false;
+        }
       }
     }
     loadAvailability();
+    return () => {
+      active = false;
+      if (loadingActive) {
+        stopLoading();
+        loadingActive = false;
+      }
+    };
   }, [dateMode]);
 
   const nextShift = useMemo(() => {
