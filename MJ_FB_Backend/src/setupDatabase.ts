@@ -775,84 +775,56 @@ WHERE NOT EXISTS (
     'ZOMBIE WALK',
     'ZION CHURCH',
   ];
-  const donors = [...new Set(donorList)];
-  const hasFirstNameColumn = await client
+  const donors = [...new Set(donorList.map(name => name.trim()))];
+
+  await client.query(
+    "ALTER TABLE donors ADD COLUMN IF NOT EXISTS is_pet_food boolean DEFAULT false NOT NULL;",
+  );
+  const donorValues: string[] = [];
+  const params: (string | boolean)[] = [];
+  donors.forEach((name, index) => {
+    const normalized = name.replace(/[^a-z]/gi, '').toLowerCase();
+    const isPetFood = /petfood/.test(normalized) || /petvalue/.test(normalized);
+    params.push(name, isPetFood);
+    donorValues.push(`($${index * 2 + 1}, $${index * 2 + 2})`);
+  });
+  const hasUniqueNameConstraint = await client
     .query(
-      `SELECT 1 FROM information_schema.columns WHERE table_name = 'donors' AND column_name = 'first_name'`,
+      `SELECT 1
+       FROM pg_constraint c
+       JOIN pg_class t ON c.conrelid = t.oid
+       JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY (c.conkey)
+       WHERE t.relname = 'donors'
+         AND c.contype IN ('p', 'u')
+         AND array_length(c.conkey, 1) = 1
+         AND a.attname = 'name'`,
     )
     .then(res => (res.rowCount ?? 0) > 0);
-
-  if (hasFirstNameColumn) {
-    const donorValues: string[] = [];
-    const params: string[] = [];
-    donors.forEach((name, index) => {
-      const [firstName, ...lastNameParts] = name.split(' ');
-      const lastName = lastNameParts.join(' ');
-      const email = `donor${index + 1}@example.com`;
-      params.push(firstName, lastName, email);
-      donorValues.push(
-        `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`,
-      );
-    });
-    const hasUniqueEmailConstraint = await client
-      .query(
-        `SELECT 1
-         FROM pg_constraint c
-         JOIN pg_class t ON c.conrelid = t.oid
-         JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY (c.conkey)
-         WHERE t.relname = 'donors'
-           AND c.contype IN ('p', 'u')
-           AND array_length(c.conkey, 1) = 1
-           AND a.attname = 'email'`,
-      )
-      .then(res => (res.rowCount ?? 0) > 0);
-    const hasUniqueEmailIndex = await client
-      .query(
-        `SELECT 1
-         FROM pg_index i
-         JOIN pg_class idx ON idx.oid = i.indexrelid
-         JOIN pg_class tbl ON tbl.oid = i.indrelid
-         JOIN pg_attribute a ON a.attrelid = tbl.oid AND a.attnum = ANY (i.indkey)
-         WHERE tbl.relname = 'donors'
-           AND i.indisunique = true
-           AND array_length(i.indkey, 1) = 1
-           AND a.attname = 'email'
-         LIMIT 1`,
-      )
-      .then(res => (res.rowCount ?? 0) > 0);
-    let onConflictClause = '';
-    if (hasUniqueEmailConstraint) {
-      onConflictClause = ' ON CONFLICT (email) DO NOTHING';
-    } else if (hasUniqueEmailIndex) {
-      onConflictClause = ' ON CONFLICT DO NOTHING';
-    }
-    await client.query(
-      `INSERT INTO donors (first_name, last_name, email) VALUES ${donorValues.join(',')}${onConflictClause};`,
-      params,
-    );
-  } else {
-    const donorValues: string[] = [];
-    donors.forEach((_, index) => {
-      donorValues.push(`($${index + 1})`);
-    });
-    const hasUniqueNameConstraint = await client
-      .query(
-        `SELECT 1
-         FROM pg_constraint c
-         JOIN pg_class t ON c.conrelid = t.oid
-         JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY (c.conkey)
-         WHERE t.relname = 'donors'
-           AND c.contype IN ('p', 'u')
-           AND array_length(c.conkey, 1) = 1
-           AND a.attname = 'name'`,
-      )
-      .then(res => (res.rowCount ?? 0) > 0);
-    const onConflictClause = hasUniqueNameConstraint ? ' ON CONFLICT (name) DO NOTHING' : '';
-    await client.query(
-      `INSERT INTO donors (name) VALUES ${donorValues.join(',')}${onConflictClause};`,
-      donors,
-    );
+  const hasUniqueNameIndex = await client
+    .query(
+      `SELECT 1
+       FROM pg_index i
+       JOIN pg_class idx ON idx.oid = i.indexrelid
+       JOIN pg_class tbl ON tbl.oid = i.indrelid
+       JOIN pg_attribute a ON a.attrelid = tbl.oid AND a.attnum = ANY (i.indkey)
+       WHERE tbl.relname = 'donors'
+         AND i.indisunique = true
+         AND array_length(i.indkey, 1) = 1
+         AND a.attname = 'name'
+       LIMIT 1`,
+    )
+    .then(res => (res.rowCount ?? 0) > 0);
+  let onConflictClause = '';
+  if (hasUniqueNameConstraint) {
+    onConflictClause =
+      ' ON CONFLICT (name) DO UPDATE SET is_pet_food = donors.is_pet_food OR EXCLUDED.is_pet_food';
+  } else if (hasUniqueNameIndex) {
+    onConflictClause = ' ON CONFLICT DO UPDATE SET is_pet_food = donors.is_pet_food OR EXCLUDED.is_pet_food';
   }
+  await client.query(
+    `INSERT INTO donors (name, is_pet_food) VALUES ${donorValues.join(',')}${onConflictClause};`,
+    params,
+  );
   logger.info('Database setup complete');
   await client.end();
 }
