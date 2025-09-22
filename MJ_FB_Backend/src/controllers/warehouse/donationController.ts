@@ -27,28 +27,54 @@ export const listDonations = asyncHandler(async (req: Request, res: Response) =>
     const end = endDate.toISOString().slice(0, 10);
     const result = await pool.query(
       `SELECT d.id, d.date, d.weight, o.id as "donorId",
-              o.first_name as "firstName", o.last_name as "lastName", o.email, o.phone
+              o.name, o.email, o.phone, o.is_pet_food AS "isPetFood"
          FROM donations d JOIN donors o ON d.donor_id = o.id
          WHERE d.date >= $1 AND d.date < $2 ORDER BY d.date, d.id`,
       [start, end],
     );
-    return res.json(result.rows);
+    return res.json(
+      result.rows.map(row => ({
+        id: row.id,
+        date: row.date,
+        weight: row.weight,
+        donorId: row.donorId,
+        donor: {
+          name: row.name,
+          email: row.email,
+          phone: row.phone,
+          isPetFood: row.isPetFood,
+        },
+      })),
+    );
   }
 
   const result = await pool.query(
     `SELECT d.id, d.date, d.weight, o.id as "donorId",
-            o.first_name as "firstName", o.last_name as "lastName", o.email, o.phone
+            o.name, o.email, o.phone, o.is_pet_food AS "isPetFood"
        FROM donations d JOIN donors o ON d.donor_id = o.id
        WHERE d.date = $1 ORDER BY d.id`,
     [date!],
   );
-  res.json(result.rows);
+  res.json(
+    result.rows.map(row => ({
+      id: row.id,
+      date: row.date,
+      weight: row.weight,
+      donorId: row.donorId,
+      donor: {
+        name: row.name,
+        email: row.email,
+        phone: row.phone,
+        isPetFood: row.isPetFood,
+      },
+    })),
+  );
 });
 
 export const addDonation = asyncHandler(async (req: Request, res: Response) => {
   const { date, donorId, weight } = req.body;
   const donorRes = await pool.query(
-    'SELECT id, first_name AS "firstName", last_name AS "lastName", email, phone FROM donors WHERE id = $1',
+    'SELECT id, name, email, phone, is_pet_food AS "isPetFood" FROM donors WHERE id = $1',
     [donorId],
   );
   const donor = donorRes.rows[0];
@@ -61,14 +87,16 @@ export const addDonation = asyncHandler(async (req: Request, res: Response) => {
     [date, donorId, weight],
   );
   await refreshWarehouseForDate(date);
-  const { id: donorIdValue, firstName, lastName, email, phone } = donor;
+  const { id: donorIdValue, name, email, phone, isPetFood } = donor;
   res.status(201).json({
     ...result.rows[0],
     donorId: donorIdValue,
-    firstName,
-    lastName,
-    email,
-    phone,
+    donor: {
+      name,
+      email,
+      phone,
+      isPetFood,
+    },
   });
 });
 
@@ -81,7 +109,7 @@ export const updateDonation = asyncHandler(async (req: Request, res: Response) =
     return res.status(404).json({ message: 'Donation not found' });
   }
   const donorRes = await pool.query(
-    'SELECT id, first_name AS "firstName", last_name AS "lastName", email, phone FROM donors WHERE id = $1',
+    'SELECT id, name, email, phone, is_pet_food AS "isPetFood" FROM donors WHERE id = $1',
     [donorId],
   );
   const donor = donorRes.rows[0];
@@ -96,14 +124,16 @@ export const updateDonation = asyncHandler(async (req: Request, res: Response) =
     return res.status(404).json({ message: 'Donation not found' });
   }
   await refreshWarehouseForDateChange(date, oldDate);
-  const { id: donorIdValue, firstName, lastName, email, phone } = donor;
+  const { id: donorIdValue, name, email, phone, isPetFood } = donor;
   res.json({
     ...result.rows[0],
     donorId: donorIdValue,
-    firstName,
-    lastName,
-    email,
-    phone,
+    donor: {
+      name,
+      email,
+      phone,
+      isPetFood,
+    },
   });
 });
 
@@ -140,13 +170,13 @@ export const donorAggregations = asyncHandler(async (req: Request, res: Response
     parseInt((req.query.year as string) ?? '', 10) ||
     new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
   const result = await pool.query(
-    `SELECT o.id AS "donorId", o.first_name || ' ' || o.last_name AS donor, o.email, o.phone, m.month, COALESCE(a.total, 0) AS total
+    `SELECT o.id AS "donorId", o.name AS donor, o.email, o.phone, o.is_pet_food AS "isPetFood", m.month, COALESCE(a.total, 0) AS total
        FROM donors o
        CROSS JOIN generate_series(1, 12) AS m(month)
        LEFT JOIN donor_aggregations a ON a.donor_id = o.id
          AND a.year = $1
          AND a.month = m.month
-       ORDER BY o.first_name, o.last_name, m.month`,
+       ORDER BY o.name, m.month`,
     [year],
   );
   const donorMap = new Map<
@@ -156,15 +186,17 @@ export const donorAggregations = asyncHandler(async (req: Request, res: Response
       donor: string;
       email: string | null;
       phone: string | null;
+      isPetFood: boolean;
       monthlyTotals: number[];
       total: number;
     }
   >();
-  for (const { donorId, donor, email, phone, month, total } of result.rows as {
+  for (const { donorId, donor, email, phone, isPetFood, month, total } of result.rows as {
     donorId: number;
     donor: string;
     email: string | null;
     phone: string | null;
+    isPetFood: boolean;
     month: number;
     total: number;
   }[]) {
@@ -174,6 +206,7 @@ export const donorAggregations = asyncHandler(async (req: Request, res: Response
         donor,
         email,
         phone,
+        isPetFood,
         monthlyTotals: Array(12).fill(0),
         total: 0,
       });
@@ -192,13 +225,13 @@ export const exportDonorAggregations = asyncHandler(
       parseInt((req.query.year as string) ?? '', 10) ||
       new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
     const result = await pool.query(
-      `SELECT o.first_name || ' ' || o.last_name AS donor, m.month, COALESCE(a.total, 0) AS total
+      `SELECT o.name AS donor, m.month, COALESCE(a.total, 0) AS total
         FROM donors o
         CROSS JOIN generate_series(1, 12) AS m(month)
         LEFT JOIN donor_aggregations a ON a.donor_id = o.id
           AND a.year = $1
           AND a.month = m.month
-        ORDER BY o.first_name, o.last_name, m.month`,
+        ORDER BY o.name, m.month`,
       [year],
     );
 
