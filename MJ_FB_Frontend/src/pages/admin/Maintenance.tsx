@@ -364,7 +364,9 @@ export default function Maintenance() {
                     Target a single table when you notice bloat building up.
                   </Typography>
                   <FormControl fullWidth size="medium" disabled={isLoadingVacuumTables}>
-                    <InputLabel id="vacuum-table-label">Table Name</InputLabel>
+                    <InputLabel id="vacuum-table-label" shrink>
+                      Table Name
+                    </InputLabel>
                     <Select<string>
                       labelId="vacuum-table-label"
                       id="vacuum-table-select"
