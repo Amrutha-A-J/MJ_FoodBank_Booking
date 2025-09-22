@@ -69,13 +69,12 @@ export default function Aggregations() {
   const [donorOptionsLoading, setDonorOptionsLoading] = useState(false);
 
   function formatDonorDisplay(donor: Donor) {
-    const contact = [donor.email, donor.phone]
+    const contact = [donor.contact?.email, donor.contact?.phone]
       .map(value => value?.trim())
       .filter((value): value is string => Boolean(value))
       .join(' • ');
-    return contact
-      ? `${donor.firstName} ${donor.lastName} (${contact})`
-      : `${donor.firstName} ${donor.lastName}`;
+    const name = donor.name.trim() || 'Unnamed donor';
+    return contact ? `${name} (${contact})` : name;
   }
 
   useEffect(() => {
@@ -85,11 +84,7 @@ export default function Aggregations() {
     getDonors(donorSearch)
       .then(donors => {
         if (!active) return;
-        setDonorOptions(
-          donors.sort((a, b) =>
-            `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
-          ),
-        );
+        setDonorOptions(donors.sort((a, b) => a.name.localeCompare(b.name)));
       })
       .catch(() => {
         if (active) setDonorOptions([]);

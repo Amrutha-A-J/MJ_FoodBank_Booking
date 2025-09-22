@@ -17,10 +17,8 @@ describe('donors api', () => {
 
   it('updates a donor with optional contact information', async () => {
     await updateDonor(7, {
-      firstName: 'Alice',
-      lastName: 'Helper',
-      email: 'alice@example.com',
-      phone: '306-555-0100',
+      name: 'Alice Helper',
+      contact: { email: 'alice@example.com', phone: '306-555-0100' },
       isPetFood: true,
     });
 
@@ -29,10 +27,8 @@ describe('donors api', () => {
       expect.objectContaining({
         method: 'PUT',
         body: {
-          firstName: 'Alice',
-          lastName: 'Helper',
-          email: 'alice@example.com',
-          phone: '306-555-0100',
+          name: 'Alice Helper',
+          contact: { email: 'alice@example.com', phone: '306-555-0100' },
           isPetFood: true,
         },
       }),

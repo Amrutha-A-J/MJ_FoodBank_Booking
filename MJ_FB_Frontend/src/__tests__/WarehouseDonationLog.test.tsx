@@ -37,18 +37,14 @@ describe('Warehouse Donation Log', () => {
     (getDonors as jest.Mock).mockResolvedValue([
       {
         id: 1,
-        firstName: 'No',
-        lastName: 'Email',
-        email: null,
-        phone: null,
+        name: 'No Email',
+        contact: null,
         isPetFood: false,
       },
       {
         id: 2,
-        firstName: 'Jane',
-        lastName: 'Donor',
-        email: 'jane@example.com',
-        phone: '306-555-0199',
+        name: 'Jane Donor',
+        contact: { email: 'jane@example.com', phone: '306-555-0199' },
         isPetFood: true,
       },
     ]);
@@ -58,10 +54,9 @@ describe('Warehouse Donation Log', () => {
         date: '2024-05-03',
         donorId: 1,
         donor: {
-          firstName: 'No',
-          lastName: 'Email',
-          email: null,
-          phone: null,
+          id: 1,
+          name: 'No Email',
+          contact: null,
           isPetFood: false,
         },
         weight: 120,
@@ -72,10 +67,8 @@ describe('Warehouse Donation Log', () => {
     (deleteDonation as jest.Mock).mockResolvedValue({});
     (createDonor as jest.Mock).mockResolvedValue({
       id: 3,
-      firstName: 'Added',
-      lastName: 'Donor',
-      email: null,
-      phone: '306-555-0123',
+      name: 'Added Donor',
+      contact: { email: null, phone: '306-555-0123' },
       isPetFood: true,
     });
   });
@@ -173,12 +166,10 @@ describe('Warehouse Donation Log', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /add donor/i }));
 
-    const firstName = screen.getByLabelText(/first name/i);
-    const lastName = screen.getByLabelText(/last name/i);
+    const nameField = screen.getByLabelText(/^name/i);
     const phone = screen.getByLabelText(/phone/i);
 
-    await userEvent.type(firstName, ' Added ');
-    await userEvent.type(lastName, ' Donor ');
+    await userEvent.type(nameField, ' Added Donor ');
     await userEvent.type(phone, ' 306-555-0123 ');
     await userEvent.click(screen.getByLabelText(/pet food donor/i));
 
@@ -186,10 +177,8 @@ describe('Warehouse Donation Log', () => {
 
     await waitFor(() =>
       expect(createDonor).toHaveBeenCalledWith({
-        firstName: 'Added',
-        lastName: 'Donor',
-        email: null,
-        phone: '306-555-0123',
+        name: 'Added Donor',
+        contact: { email: null, phone: '306-555-0123' },
         isPetFood: true,
       }),
     );

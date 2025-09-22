@@ -43,15 +43,13 @@ export default function DonorProfile() {
   }>({ open: false, message: '', severity: 'success' });
   const [editOpen, setEditOpen] = useState(false);
   const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
+    name: '',
     email: '',
     phone: '',
     isPetFood: false,
   });
   const [formErrors, setFormErrors] = useState<{
-    firstName?: string;
-    lastName?: string;
+    name?: string;
     email?: string;
   }>({});
   const [saving, setSaving] = useState(false);
@@ -93,10 +91,9 @@ export default function DonorProfile() {
   useEffect(() => {
     if (donor) {
       setForm({
-        firstName: donor.firstName,
-        lastName: donor.lastName,
-        email: donor.email ?? '',
-        phone: donor.phone ?? '',
+        name: donor.name,
+        email: donor.contact?.email ?? '',
+        phone: donor.contact?.phone ?? '',
         isPetFood: donor.isPetFood,
       });
     }
@@ -112,10 +109,9 @@ export default function DonorProfile() {
     setFormErrors({});
     if (donor) {
       setForm({
-        firstName: donor.firstName,
-        lastName: donor.lastName,
-        email: donor.email ?? '',
-        phone: donor.phone ?? '',
+        name: donor.name,
+        email: donor.contact?.email ?? '',
+        phone: donor.contact?.phone ?? '',
         isPetFood: donor.isPetFood,
       });
     }
@@ -124,15 +120,13 @@ export default function DonorProfile() {
   const handleSave = async () => {
     if (!donor) return;
     const trimmed = {
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
+      name: form.name.trim(),
       email: form.email.trim(),
       phone: form.phone.trim(),
       isPetFood: form.isPetFood,
     };
     const errors: typeof formErrors = {};
-    if (!trimmed.firstName) errors.firstName = 'First name is required';
-    if (!trimmed.lastName) errors.lastName = 'Last name is required';
+    if (!trimmed.name) errors.name = 'Name is required';
     if (trimmed.email && !EMAIL_REGEX.test(trimmed.email)) {
       errors.email = 'Enter a valid email';
     }
@@ -142,10 +136,11 @@ export default function DonorProfile() {
     setSaving(true);
     try {
       await updateDonor(donor.id, {
-        firstName: trimmed.firstName,
-        lastName: trimmed.lastName,
-        email: trimmed.email || undefined,
-        phone: trimmed.phone || undefined,
+        name: trimmed.name,
+        contact:
+          trimmed.email || trimmed.phone
+            ? { email: trimmed.email || null, phone: trimmed.phone || null }
+            : null,
         isPetFood: form.isPetFood,
       });
       setSnackbar({ open: true, message: 'Donor updated', severity: 'success' });
@@ -162,8 +157,12 @@ export default function DonorProfile() {
     }
   };
 
-  const emailDisplay = donor?.email?.trim() ? donor.email : 'Email not provided';
-  const phoneDisplay = donor?.phone?.trim() ? donor.phone : 'Phone not provided';
+  const emailDisplay = donor?.contact?.email?.trim()
+    ? donor.contact.email
+    : 'Email not provided';
+  const phoneDisplay = donor?.contact?.phone?.trim()
+    ? donor.contact.phone
+    : 'Phone not provided';
 
   const closeSnackbar = () =>
     setSnackbar(prev => ({ ...prev, open: false }));
@@ -185,9 +184,7 @@ export default function DonorProfile() {
             <CardContent>
               <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                 <Box>
-                  <Typography variant="h6">
-                    {donor.firstName} {donor.lastName}
-                  </Typography>
+                  <Typography variant="h6">{donor.name}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     Email: {emailDisplay}
                   </Typography>
@@ -240,20 +237,11 @@ export default function DonorProfile() {
         <DialogContent>
           <Stack spacing={2} mt={1}>
             <TextField
-              label="First Name"
-              value={form.firstName}
-              onChange={e => setForm({ ...form, firstName: e.target.value })}
-              error={Boolean(formErrors.firstName)}
-              helperText={formErrors.firstName}
-              required
-              fullWidth
-            />
-            <TextField
-              label="Last Name"
-              value={form.lastName}
-              onChange={e => setForm({ ...form, lastName: e.target.value })}
-              error={Boolean(formErrors.lastName)}
-              helperText={formErrors.lastName}
+              label="Name"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              error={Boolean(formErrors.name)}
+              helperText={formErrors.name}
               required
               fullWidth
             />

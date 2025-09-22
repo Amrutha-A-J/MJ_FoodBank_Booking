@@ -870,7 +870,7 @@ export default function FoodBankTrends() {
                             <Stack key={index} direction="row" justifyContent="space-between">
                               <Box>
                                 <Typography variant="body2">
-                                  {donor.firstName} {donor.lastName}
+                                  {donor.name}
                                 </Typography>
                                 <Typography variant="caption" color="text.secondary">
                                   {donor.lastDonationISO

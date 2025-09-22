@@ -23,10 +23,9 @@ const mockPostManualDonorAggregation = jest.fn().mockResolvedValue(undefined);
 const mockGetDonors = jest.fn().mockResolvedValue([
   {
     id: 42,
-    firstName: 'Jane',
-    lastName: 'Doe',
-    email: null,
-    phone: '306-555-0100',
+    name: 'Jane Doe',
+    contact: { email: null, phone: '306-555-0100' },
+    isPetFood: false,
   },
 ]);
 jest.mock('../api/donations', () => ({
@@ -58,10 +57,9 @@ describe('Aggregations page', () => {
     mockGetDonors.mockResolvedValue([
       {
         id: 42,
-        firstName: 'Jane',
-        lastName: 'Doe',
-        email: null,
-        phone: '306-555-0100',
+        name: 'Jane Doe',
+        contact: { email: null, phone: '306-555-0100' },
+        isPetFood: false,
       },
     ]);
   });

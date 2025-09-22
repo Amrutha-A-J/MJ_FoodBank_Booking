@@ -39,9 +39,8 @@ function formatMonth(date = new Date()) {
 
 type DonorForDisplay = {
   id?: number | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  phone?: string | null;
+  name?: string | null;
+  contact?: { phone?: string | null } | null;
 };
 
 function formatDonorDisplay(
@@ -49,10 +48,8 @@ function formatDonorDisplay(
   fallbackId?: number | null,
 ) {
   const id = donor?.id ?? fallbackId ?? undefined;
-  const trimmedPhone = donor?.phone?.trim();
-  const firstName = donor?.firstName?.trim() ?? '';
-  const lastName = donor?.lastName?.trim() ?? '';
-  const name = [firstName, lastName].filter(Boolean).join(' ');
+  const trimmedPhone = donor?.contact?.phone?.trim();
+  const name = donor?.name?.trim() ?? '';
 
   const base = name
     ? id
@@ -87,8 +84,7 @@ export default function DonationLog() {
     weight: '',
   });
   const [newDonor, setNewDonor] = useState({
-    firstName: '',
-    lastName: '',
+    name: '',
     email: '',
     phone: '',
     isPetFood: false,
@@ -151,9 +147,7 @@ export default function DonationLog() {
       .then(d => {
         if (active)
           setDonorOptions(
-            d.sort((a, b) =>
-              `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
-            ),
+            d.sort((a, b) => a.name.localeCompare(b.name)),
           );
       })
       .catch(() => {
@@ -193,24 +187,19 @@ export default function DonationLog() {
   }
 
   function handleAddDonor() {
-    const firstName = newDonor.firstName.trim();
-    const lastName = newDonor.lastName.trim();
+    const name = newDonor.name.trim();
     const email = newDonor.email.trim();
     const phone = newDonor.phone.trim();
     const isPetFood = newDonor.isPetFood;
-    if (firstName && lastName) {
+    if (name) {
       createDonor({
-        firstName,
-        lastName,
-        email: email || null,
-        phone: phone || null,
+        name,
+        contact: email || phone ? { email: email || null, phone: phone || null } : null,
         isPetFood,
       })
         .then(d => {
           setDonorOptions(prev =>
-            [...prev, d].sort((a, b) =>
-              `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
-            ),
+            [...prev, d].sort((a, b) => a.name.localeCompare(b.name)),
           );
           showSnackbar('Donor added');
         })
@@ -218,7 +207,7 @@ export default function DonationLog() {
           showSnackbar(err.message || 'Failed to add donor', 'error');
         });
     }
-    setNewDonor({ firstName: '', lastName: '', email: '', phone: '', isPetFood: false });
+    setNewDonor({ name: '', email: '', phone: '', isPetFood: false });
     setNewDonorOpen(false);
   }
 
@@ -364,15 +353,9 @@ export default function DonationLog() {
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2} mt={1}>
             <TextField
-              label="First Name"
-              value={newDonor.firstName}
-              onChange={e => setNewDonor({ ...newDonor, firstName: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Last Name"
-              value={newDonor.lastName}
-              onChange={e => setNewDonor({ ...newDonor, lastName: e.target.value })}
+              label="Name"
+              value={newDonor.name}
+              onChange={e => setNewDonor({ ...newDonor, name: e.target.value })}
               fullWidth
             />
             <TextField
@@ -403,7 +386,7 @@ export default function DonationLog() {
         <DialogActions>
           <Button
             onClick={handleAddDonor}
-            disabled={!newDonor.firstName.trim() || !newDonor.lastName.trim()}
+            disabled={!newDonor.name.trim()}
           >
             Save
           </Button>

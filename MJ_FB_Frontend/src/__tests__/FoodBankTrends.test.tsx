@@ -170,10 +170,9 @@ describe('FoodBankTrends page', () => {
     mockGetTopDonors.mockResolvedValue([
       {
         id: 1,
-        firstName: 'Donor',
-        lastName: 'One',
-        email: 'donor@example.com',
-        phone: null,
+        name: 'Donor One',
+        contact: { email: 'donor@example.com', phone: null },
+        isPetFood: false,
         totalLbs: 420,
         lastDonationISO: '2024-04-01T12:00:00Z',
       },
