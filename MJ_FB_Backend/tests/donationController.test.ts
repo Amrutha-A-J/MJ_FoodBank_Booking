@@ -40,10 +40,10 @@ describe('donationController', () => {
             date: '2024-05-20',
             weight: 10,
             donorId: 2,
-            firstName: 'Alice',
-            lastName: 'Smith',
+            name: 'Alice Smith',
             email: 'a@example.com',
             phone: '555-1111',
+            isPetFood: false,
           },
         ],
       });
@@ -58,10 +58,12 @@ describe('donationController', () => {
           date: '2024-05-20',
           weight: 10,
           donorId: 2,
-          firstName: 'Alice',
-          lastName: 'Smith',
-          email: 'a@example.com',
-          phone: '555-1111',
+          donor: {
+            name: 'Alice Smith',
+            email: 'a@example.com',
+            phone: '555-1111',
+            isPetFood: false,
+          },
         },
       ]);
     });
@@ -74,10 +76,10 @@ describe('donationController', () => {
             date: '2024-05-01',
             weight: 10,
             donorId: 2,
-            firstName: 'Alice',
-            lastName: 'Smith',
+            name: 'Alice Smith',
             email: 'a@example.com',
             phone: '555-1111',
+            isPetFood: false,
           },
         ],
       });
@@ -92,10 +94,12 @@ describe('donationController', () => {
           date: '2024-05-01',
           weight: 10,
           donorId: 2,
-          firstName: 'Alice',
-          lastName: 'Smith',
-          email: 'a@example.com',
-          phone: '555-1111',
+          donor: {
+            name: 'Alice Smith',
+            email: 'a@example.com',
+            phone: '555-1111',
+            isPetFood: false,
+          },
         },
       ]);
     });
@@ -134,7 +138,7 @@ describe('donationController', () => {
       (mockDb.query as jest.Mock)
         .mockResolvedValueOnce({
           rows: [
-            { id: 2, firstName: 'Alice', lastName: 'Smith', email: 'a@example.com', phone: '555-1111' },
+            { id: 2, name: 'Alice Smith', email: 'a@example.com', phone: '555-1111', isPetFood: false },
           ],
         })
         .mockResolvedValueOnce({
@@ -148,7 +152,7 @@ describe('donationController', () => {
       await flushPromises();
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        'SELECT id, first_name AS "firstName", last_name AS "lastName", email, phone FROM donors WHERE id = $1',
+        'SELECT id, name, email, phone, is_pet_food AS "isPetFood" FROM donors WHERE id = $1',
         [2],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
@@ -163,10 +167,12 @@ describe('donationController', () => {
         date: '2024-05-20',
         weight: 10,
         donorId: 2,
-        firstName: 'Alice',
-        lastName: 'Smith',
-        email: 'a@example.com',
-        phone: '555-1111',
+        donor: {
+          name: 'Alice Smith',
+          email: 'a@example.com',
+          phone: '555-1111',
+          isPetFood: false,
+        },
       });
     });
 
@@ -187,7 +193,7 @@ describe('donationController', () => {
         .mockResolvedValueOnce({ rows: [{ date: '2024-04-30' }] })
         .mockResolvedValueOnce({
           rows: [
-            { id: 2, firstName: 'Alice', lastName: 'Smith', email: 'a@example.com', phone: '555-1111' },
+            { id: 2, name: 'Alice Smith', email: 'a@example.com', phone: '555-1111', isPetFood: false },
           ],
         })
         .mockResolvedValueOnce({
@@ -202,7 +208,7 @@ describe('donationController', () => {
       await flushPromises();
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
-        'SELECT id, first_name AS "firstName", last_name AS "lastName", email, phone FROM donors WHERE id = $1',
+        'SELECT id, name, email, phone, is_pet_food AS "isPetFood" FROM donors WHERE id = $1',
         [2],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
@@ -216,10 +222,12 @@ describe('donationController', () => {
         date: '2024-05-02',
         weight: 15,
         donorId: 2,
-        firstName: 'Alice',
-        lastName: 'Smith',
-        email: 'a@example.com',
-        phone: '555-1111',
+        donor: {
+          name: 'Alice Smith',
+          email: 'a@example.com',
+          phone: '555-1111',
+          isPetFood: false,
+        },
       });
     });
 
@@ -228,7 +236,7 @@ describe('donationController', () => {
         .mockResolvedValueOnce({ rows: [{ date: '2024-05-01' }] })
         .mockResolvedValueOnce({
           rows: [
-            { id: 2, firstName: 'Alice', lastName: 'Smith', email: 'a@example.com', phone: '555-1111' },
+            { id: 2, name: 'Alice Smith', email: 'a@example.com', phone: '555-1111', isPetFood: false },
           ],
         })
         .mockResolvedValueOnce({
@@ -247,10 +255,12 @@ describe('donationController', () => {
         date: '2024-05-02',
         weight: 15,
         donorId: 2,
-        firstName: 'Alice',
-        lastName: 'Smith',
-        email: 'a@example.com',
-        phone: '555-1111',
+        donor: {
+          name: 'Alice Smith',
+          email: 'a@example.com',
+          phone: '555-1111',
+          isPetFood: false,
+        },
       });
     });
   });
@@ -303,6 +313,7 @@ describe('donationController', () => {
           donor: 'Alice',
           email: 'alice@example.com',
           phone: '555-1111',
+          isPetFood: false,
           month,
           total: month === 1 ? 100 : month === 2 ? 50 : 0,
         })),
@@ -311,6 +322,7 @@ describe('donationController', () => {
           donor: 'Bob',
           email: 'bob@example.com',
           phone: null,
+          isPetFood: true,
           month,
           total: 0,
         })),
@@ -327,6 +339,7 @@ describe('donationController', () => {
           donor: 'Alice',
           email: 'alice@example.com',
           phone: '555-1111',
+          isPetFood: false,
           monthlyTotals: [100, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           total: 150,
         },
@@ -335,6 +348,7 @@ describe('donationController', () => {
           donor: 'Bob',
           email: 'bob@example.com',
           phone: null,
+          isPetFood: true,
           monthlyTotals: Array(12).fill(0),
           total: 0,
         },

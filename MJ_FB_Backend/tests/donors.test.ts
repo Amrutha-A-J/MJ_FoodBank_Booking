@@ -40,8 +40,7 @@ describe('donor routes', () => {
         rows: [
           {
             id: 2,
-            firstName: 'Alice',
-            lastName: 'Smith',
+            name: 'Alice Smith',
             email: 'alice@example.com',
             phone: '306-555-1234',
             isPetFood: false,
@@ -59,20 +58,18 @@ describe('donor routes', () => {
     );
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
-      `SELECT id, first_name AS "firstName", last_name AS "lastName", email, phone, is_pet_food AS "isPetFood"
+      `SELECT id, name, email, phone, is_pet_food AS "isPetFood"
        FROM donors
        WHERE CAST(id AS TEXT) ILIKE $1
-          OR first_name ILIKE $1
-          OR last_name ILIKE $1
+          OR name ILIKE $1
           OR email ILIKE $1
-       ORDER BY first_name, last_name`,
+       ORDER BY name`,
       [`%${search}%`],
     );
     expect(res.body).toEqual([
       {
         id: 2,
-        firstName: 'Alice',
-        lastName: 'Smith',
+        name: 'Alice Smith',
         email: 'alice@example.com',
         phone: '306-555-1234',
         isPetFood: false,
@@ -93,16 +90,14 @@ describe('donor routes', () => {
         rows: [
           {
             id: 2,
-            firstName: 'Alice',
-            lastName: 'Smith',
+            name: 'Alice Smith',
             email: 'alice@example.com',
             phone: '306-555-1234',
             isPetFood: false,
           },
           {
             id: 2,
-            firstName: 'Alice',
-            lastName: 'Smith',
+            name: 'Alice Smith',
             email: 'alice@example.com',
             phone: '555-0000',
             isPetFood: false,
@@ -116,8 +111,7 @@ describe('donor routes', () => {
     expect(res.body).toEqual([
       {
         id: 2,
-        firstName: 'Alice',
-        lastName: 'Smith',
+        name: 'Alice Smith',
         email: 'alice@example.com',
         phone: '306-555-1234',
         isPetFood: false,
@@ -133,8 +127,7 @@ describe('donor routes', () => {
         rows: [
           {
             id: 3,
-            firstName: 'Bob',
-            lastName: 'Brown',
+            name: 'Bob Brown',
             email: 'bob@example.com',
             phone: '555-0000',
             isPetFood: true,
@@ -144,7 +137,7 @@ describe('donor routes', () => {
     const res = await request(app)
       .post('/donors')
       .set('Authorization', 'Bearer token')
-      .send({ firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com', phone: '555-0000', isPetFood: true });
+      .send({ name: 'Bob Brown', email: 'bob@example.com', phone: '555-0000', isPetFood: true });
     expect(res.status).toBe(201);
     expect(pool.query).toHaveBeenNthCalledWith(
       1,
@@ -153,13 +146,12 @@ describe('donor routes', () => {
     );
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
-      'INSERT INTO donors (first_name, last_name, email, phone, is_pet_food) VALUES ($1, $2, $3, $4, $5) RETURNING id, first_name AS "firstName", last_name AS "lastName", email, phone, is_pet_food AS "isPetFood"',
-      ['Bob', 'Brown', 'bob@example.com', '555-0000', true],
+      'INSERT INTO donors (name, email, phone, is_pet_food) VALUES ($1, $2, $3, $4) RETURNING id, name, email, phone, is_pet_food AS "isPetFood"',
+      ['Bob Brown', 'bob@example.com', '555-0000', true],
     );
     expect(res.body).toEqual({
       id: 3,
-      firstName: 'Bob',
-      lastName: 'Brown',
+      name: 'Bob Brown',
       email: 'bob@example.com',
       phone: '555-0000',
       isPetFood: true,
@@ -174,8 +166,7 @@ describe('donor routes', () => {
         rows: [
           {
             id: 4,
-            firstName: 'Cara',
-            lastName: 'Jones',
+            name: 'Cara Jones',
             email: null,
             phone: null,
             isPetFood: false,
@@ -185,14 +176,14 @@ describe('donor routes', () => {
     const res = await request(app)
       .post('/donors')
       .set('Authorization', 'Bearer token')
-      .send({ firstName: 'Cara', lastName: 'Jones', email: null, phone: null });
+      .send({ name: 'Cara Jones', email: null, phone: null });
     expect(res.status).toBe(201);
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
-      'INSERT INTO donors (first_name, last_name, email, phone, is_pet_food) VALUES ($1, $2, $3, $4, $5) RETURNING id, first_name AS "firstName", last_name AS "lastName", email, phone, is_pet_food AS "isPetFood"',
-      ['Cara', 'Jones', null, null, false],
+      'INSERT INTO donors (name, email, phone, is_pet_food) VALUES ($1, $2, $3, $4) RETURNING id, name, email, phone, is_pet_food AS "isPetFood"',
+      ['Cara Jones', null, null, false],
     );
-    expect(res.body).toEqual({ id: 4, firstName: 'Cara', lastName: 'Jones', email: null, phone: null, isPetFood: false });
+    expect(res.body).toEqual({ id: 4, name: 'Cara Jones', email: null, phone: null, isPetFood: false });
   });
 
   it('returns 409 for duplicate donor email', async () => {
@@ -208,7 +199,7 @@ describe('donor routes', () => {
     const res = await request(app)
       .post('/donors')
       .set('Authorization', 'Bearer token')
-      .send({ firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com' });
+      .send({ name: 'Bob Brown', email: 'bob@example.com' });
     expect(res.status).toBe(409);
     expect(pool.query).toHaveBeenNthCalledWith(
       1,
@@ -229,7 +220,7 @@ describe('donor routes', () => {
     const res = await request(app)
       .post('/donors')
       .set('Authorization', 'Bearer token')
-      .send({ firstName: '', lastName: '', email: 'bad' });
+      .send({ name: '', email: 'bad' });
     expect(res.status).toBe(400);
     expect(pool.query).toHaveBeenCalledTimes(1);
   });
@@ -263,7 +254,7 @@ describe('donor routes', () => {
     const res = await request(app)
       .post('/donors')
       .set('Authorization', 'Bearer token')
-      .send({ firstName: 'X', lastName: 'Y', email: 'x@y.com' });
+      .send({ name: 'X Y', email: 'x@y.com' });
     expect(res.status).toBe(500);
   });
 });
@@ -276,8 +267,7 @@ describe('donor routes', () => {
         rows: [
           {
             id: 3,
-            firstName: 'Bob',
-            lastName: 'Brown',
+            name: 'Bob Brown',
             email: 'bob@example.com',
             phone: '555-0000',
             isPetFood: true,
@@ -287,17 +277,16 @@ describe('donor routes', () => {
     const res = await request(app)
       .put('/donors/3')
       .set('Authorization', 'Bearer token')
-      .send({ firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com', phone: '555-0000', isPetFood: true });
+      .send({ name: 'Bob Brown', email: 'bob@example.com', phone: '555-0000', isPetFood: true });
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
-      'UPDATE donors SET first_name = $2, last_name = $3, email = $4, phone = $5, is_pet_food = $6 WHERE id = $1 RETURNING id, first_name AS "firstName", last_name AS "lastName", email, phone, is_pet_food AS "isPetFood"',
-      ['3', 'Bob', 'Brown', 'bob@example.com', '555-0000', true],
+      'UPDATE donors SET name = $2, email = $3, phone = $4, is_pet_food = $5 WHERE id = $1 RETURNING id, name, email, phone, is_pet_food AS "isPetFood"',
+      ['3', 'Bob Brown', 'bob@example.com', '555-0000', true],
     );
     expect(res.body).toEqual({
       id: 3,
-      firstName: 'Bob',
-      lastName: 'Brown',
+      name: 'Bob Brown',
       email: 'bob@example.com',
       phone: '555-0000',
       isPetFood: true,
@@ -312,7 +301,7 @@ describe('donor routes', () => {
     const res = await request(app)
       .put('/donors/99')
       .set('Authorization', 'Bearer token')
-      .send({ firstName: 'X', lastName: 'Y', email: null, phone: null, isPetFood: false });
+      .send({ name: 'X Y', email: null, phone: null, isPetFood: false });
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ message: 'Donor not found' });
   });
@@ -325,7 +314,7 @@ describe('donor routes', () => {
     const res = await request(app)
       .put('/donors/3')
       .set('Authorization', 'Bearer token')
-      .send({ firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com', phone: null, isPetFood: false });
+      .send({ name: 'Bob Brown', email: 'bob@example.com', phone: null, isPetFood: false });
     expect(res.status).toBe(409);
     expect(res.body).toEqual({ message: 'Donor already exists' });
   });
@@ -338,6 +327,6 @@ describe('donor routes', () => {
     const res = await request(app)
       .put('/donors/3')
       .set('Authorization', 'Bearer token')
-      .send({ firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com', phone: null, isPetFood: false });
+      .send({ name: 'Bob Brown', email: 'bob@example.com', phone: null, isPetFood: false });
     expect(res.status).toBe(500);
   });

@@ -1,7 +1,7 @@
 export interface Donor {
   id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
   isPetFood: boolean;
 }
