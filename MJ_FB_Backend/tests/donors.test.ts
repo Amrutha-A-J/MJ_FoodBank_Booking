@@ -80,6 +80,51 @@ describe('donor routes', () => {
     ]);
   });
 
+  it('deduplicates donors by id when listing', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'staff',
+      type: 'staff',
+      access: ['warehouse', 'donation_entry'],
+    });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 2,
+            firstName: 'Alice',
+            lastName: 'Smith',
+            email: 'alice@example.com',
+            phone: '306-555-1234',
+            isPetFood: false,
+          },
+          {
+            id: 2,
+            firstName: 'Alice',
+            lastName: 'Smith',
+            email: 'alice@example.com',
+            phone: '555-0000',
+            isPetFood: false,
+          },
+        ],
+      });
+    const res = await request(app)
+      .get('/donors')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([
+      {
+        id: 2,
+        firstName: 'Alice',
+        lastName: 'Smith',
+        email: 'alice@example.com',
+        phone: '306-555-1234',
+        isPetFood: false,
+      },
+    ]);
+  });
+
   it('adds a donor', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse', 'donation_entry'] });
     (pool.query as jest.Mock)
