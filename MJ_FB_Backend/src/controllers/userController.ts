@@ -11,6 +11,10 @@ import config from '../config';
 import { getClientBookingsThisMonth } from './clientVisitController';
 import { normalizeEmail } from '../utils/normalizeEmail';
 
+type ClientIdParams = {
+  clientId: number;
+};
+
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
   const normalizedEmail = normalizeEmail(email);
@@ -398,7 +402,7 @@ export async function searchUsers(req: Request, res: Response, next: NextFunctio
 
 export async function getUserByClientId(req: Request, res: Response, next: NextFunction) {
   try {
-    const { clientId } = req.params;
+    const { clientId } = req.params as unknown as ClientIdParams;
     const result = await pool.query(
       `SELECT client_id, first_name, last_name, email, phone, address, online_access, password, consent, role
        FROM clients WHERE client_id = $1`,
@@ -641,7 +645,7 @@ export async function updateUserByClientId(
   if (!req.user || req.user.role !== 'staff') {
     return res.status(403).json({ message: 'Forbidden' });
   }
-  const { clientId } = req.params;
+  const { clientId } = req.params as unknown as ClientIdParams;
   const { firstName, lastName, email, phone, address, onlineAccess, password } =
     req.body as {
       firstName: string;
@@ -676,8 +680,8 @@ export async function updateUserByClientId(
         `UPDATE clients
          SET first_name = $1, last_name = $2, email = $3, phone = $4,
              address = $5, online_access = true, password = COALESCE($6, password)
-         WHERE client_id = $7
-         RETURNING client_id, first_name, last_name, email, phone, address, profile_link, consent`,
+        WHERE client_id = $7
+        RETURNING client_id, first_name, last_name, email, phone, address, profile_link, consent`,
           [
             firstName,
             lastName,
@@ -739,7 +743,7 @@ export async function deleteUserByClientId(
   if (!req.user || req.user.role !== 'staff') {
     return res.status(403).json({ message: 'Forbidden' });
   }
-  const { clientId } = req.params;
+  const { clientId } = req.params as unknown as ClientIdParams;
   try {
     const result = await pool.query('DELETE FROM clients WHERE client_id = $1', [
       clientId,

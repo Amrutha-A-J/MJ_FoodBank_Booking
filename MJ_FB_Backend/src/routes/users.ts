@@ -12,12 +12,13 @@ import {
   updateMyPreferences,
 } from '../controllers/userController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
-import { validate } from '../middleware/validate';
+import { validate, validateParams } from '../middleware/validate';
 import {
   createUserSchema,
   updateUserSchema,
   updateMyProfileSchema,
   updatePreferencesSchema,
+  clientIdParamSchema,
 } from '../schemas/userSchemas';
 
 const router = express.Router();
@@ -33,12 +34,14 @@ router.get(
   '/id/:clientId',
   authMiddleware,
   authorizeRoles('staff'),
+  validateParams(clientIdParamSchema),
   getUserByClientId,
 );
 router.patch(
   '/id/:clientId',
   authMiddleware,
   authorizeRoles('staff'),
+  validateParams(clientIdParamSchema),
   validate(updateUserSchema),
   updateUserByClientId,
 );
@@ -46,6 +49,7 @@ router.delete(
   '/id/:clientId',
   authMiddleware,
   authorizeRoles('staff'),
+  validateParams(clientIdParamSchema),
   deleteUserByClientId,
 );
 router.get(
