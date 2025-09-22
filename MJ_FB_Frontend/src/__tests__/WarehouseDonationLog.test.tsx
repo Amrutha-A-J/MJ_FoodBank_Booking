@@ -100,6 +100,23 @@ describe('Warehouse Donation Log', () => {
     expect(screen.getByText('120 lbs')).toBeInTheDocument();
   });
 
+  it('displays a fallback label when donor details are missing', async () => {
+    (getDonationsByMonth as jest.Mock).mockResolvedValueOnce([
+      {
+        id: 11,
+        date: '2024-05-04',
+        donorId: 99,
+        donor: null,
+        weight: 42,
+      },
+    ]);
+
+    renderLog();
+
+    expect(await screen.findByText('Unknown donor (ID: 99)')).toBeInTheDocument();
+    expect(screen.getByText('42 lbs')).toBeInTheDocument();
+  });
+
   it('records a donation by selecting a donor with an ID search', async () => {
     renderLog();
 
