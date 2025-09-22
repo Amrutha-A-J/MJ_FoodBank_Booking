@@ -37,20 +37,31 @@ function formatMonth(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
+type DonorForDisplay = {
+  id?: number | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+};
+
 function formatDonorDisplay(
-  donor: {
-    id?: number | null;
-    firstName: string;
-    lastName: string;
-    phone?: string | null;
-  },
+  donor: DonorForDisplay | null | undefined,
   fallbackId?: number | null,
 ) {
-  const id = donor.id ?? fallbackId ?? undefined;
-  const trimmedPhone = donor.phone?.trim();
-  const base = id
-    ? `${donor.firstName} ${donor.lastName} (ID: ${id})`
-    : `${donor.firstName} ${donor.lastName}`;
+  const id = donor?.id ?? fallbackId ?? undefined;
+  const trimmedPhone = donor?.phone?.trim();
+  const firstName = donor?.firstName?.trim() ?? '';
+  const lastName = donor?.lastName?.trim() ?? '';
+  const name = [firstName, lastName].filter(Boolean).join(' ');
+
+  const base = name
+    ? id
+      ? `${name} (ID: ${id})`
+      : name
+    : id
+      ? `Unknown donor (ID: ${id})`
+      : 'Unknown donor';
+
   return trimmedPhone ? `${base} • ${trimmedPhone}` : base;
 }
 
