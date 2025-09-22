@@ -11,6 +11,8 @@ import { getDeliveryOrdersForClient } from '../../../api/deliveryOrders';
 import { getUserByClientId } from '../../../api/users';
 import EntitySearch from '../../../components/EntitySearch';
 import BookingManagementBase from '../../../components/BookingManagementBase';
+import ClientBottomNav from '../../../components/ClientBottomNav';
+import VolunteerBottomNav from '../../../components/VolunteerBottomNav';
 import EditClientDialog from './EditClientDialog';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import { useAuth } from '../../../hooks/useAuth';
@@ -150,6 +152,9 @@ export default function UserHistory({
   const [roleError, setRoleError] = useState<string | null>(null);
   const { role } = useAuth();
   const showNotes = role === 'staff';
+  const isClient = role === 'shopper' || role === 'delivery';
+  const isVolunteer = role === 'volunteer';
+  const hasBottomNav = isClient || isVolunteer;
 
   useEffect(() => {
     if (initialUser) return;
@@ -263,126 +268,130 @@ export default function UserHistory({
     role === 'staff' && roleLoading && !selectedRole && !!selected;
 
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom>
-        {initialUser ? 'Client booking history' : 'Client history'}
-      </Typography>
-      <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
-        <Box width="100%" maxWidth={1200} mt={4}>
-          {!initialUser && (
-            <EntitySearch
-              type="user"
-              placeholder="Search by name or client ID"
-              onSelect={u => handleSelect(u as User)}
-              onNotFound={id => {
-                (document.activeElement as HTMLElement | null)?.blur();
-                setPendingId(id);
-              }}
-            />
-          )}
-          {selected && (
-            <Grid
-              container
-              spacing={3}
-              alignItems="flex-start"
-              sx={{ mt: initialUser ? 0 : 2 }}
-            >
-              <Grid item xs={12}>
-                {shouldShowRoleSpinner ? (
-                  <Box display="flex" justifyContent="center" py={4}>
-                    <CircularProgress size={24} />
-                  </Box>
-                ) : selectedRole === 'delivery' ? (
-                  <Card>
-                    <CardHeader
-                      title="Delivery history"
-                      subheader="Review hamper requests"
-                    />
-                    <CardContent>
-                      {deliveryLoading ? (
-                        <Box display="flex" justifyContent="center" py={2}>
-                          <CircularProgress size={24} />
+    <>
+      <Box sx={{ pb: hasBottomNav ? 12 : 0 }}>
+        <Typography variant="h5" gutterBottom>
+          {initialUser ? 'Client booking history' : 'Client history'}
+        </Typography>
+        <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
+          <Box width="100%" maxWidth={1200} mt={4}>
+            {!initialUser && (
+              <EntitySearch
+                type="user"
+                placeholder="Search by name or client ID"
+                onSelect={u => handleSelect(u as User)}
+                onNotFound={id => {
+                  (document.activeElement as HTMLElement | null)?.blur();
+                  setPendingId(id);
+                }}
+              />
+            )}
+            {selected && (
+              <Grid
+                container
+                spacing={3}
+                alignItems="flex-start"
+                sx={{ mt: initialUser ? 0 : 2 }}
+              >
+                <Grid item xs={12}>
+                  {shouldShowRoleSpinner ? (
+                    <Box display="flex" justifyContent="center" py={4}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : selectedRole === 'delivery' ? (
+                    <Card>
+                      <CardHeader
+                        title="Delivery history"
+                        subheader="Review hamper requests"
+                      />
+                      <CardContent>
+                        {deliveryLoading ? (
+                          <Box display="flex" justifyContent="center" py={2}>
+                            <CircularProgress size={24} />
+                          </Box>
+                        ) : deliveryError ? (
+                          <Typography color="error">{deliveryError}</Typography>
+                        ) : deliveryOrders.length === 0 ? (
+                          <Typography color="text.secondary">
+                            No delivery orders yet
+                          </Typography>
+                        ) : (
+                          <Stack spacing={2} divider={<Divider flexItem />}>
+                            {deliveryOrders.map(order => (
+                              <DeliveryOrderSummary key={order.id} order={order} />
+                            ))}
+                          </Stack>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <>
+                      {roleError && (
+                        <Box mb={2}>
+                          <Typography color="error">{roleError}</Typography>
                         </Box>
-                      ) : deliveryError ? (
-                        <Typography color="error">{deliveryError}</Typography>
-                      ) : deliveryOrders.length === 0 ? (
-                        <Typography color="text.secondary">
-                          No delivery orders yet
-                        </Typography>
-                      ) : (
-                        <Stack spacing={2} divider={<Divider flexItem />}>
-                          {deliveryOrders.map(order => (
-                            <DeliveryOrderSummary key={order.id} order={order} />
-                          ))}
-                        </Stack>
                       )}
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <>
-                    {roleError && (
-                      <Box mb={2}>
-                        <Typography color="error">{roleError}</Typography>
-                      </Box>
-                    )}
-                    <BookingManagementBase
-                      user={selected}
-                      getBookingHistory={getBookingHistory}
-                      cancelBooking={cancelBooking}
-                      rescheduleBookingByToken={rescheduleBookingByToken}
-                      getSlots={getSlots}
-                      onDeleteVisit={deleteClientVisit}
-                      showNotes={showNotes}
-                      showFilter={!initialUser}
-                      showUserHeading={!initialUser}
-                      retentionNotice="Bookings, cancellations, and visits older than one year are removed from history."
-                      renderEditDialog={
-                        role === 'staff'
-                          ? ({ open, onClose, onUpdated }) => (
-                              <EditClientDialog
-                                open={open}
-                                clientId={selected.client_id}
-                                onClose={onClose}
-                                onUpdated={onUpdated}
-                                onClientUpdated={name =>
-                                  setSelected({ ...selected, name })
-                                }
-                              />
-                            )
-                          : undefined
-                      }
-                      renderDeleteVisitButton={(b, isSmall, open) =>
-                        role === 'staff' && b.status === 'visited' && !b.slot_id ? (
-                          <Button
-                            key="deleteVisit"
-                            onClick={open}
-                            variant="outlined"
-                            color="error"
-                            fullWidth={isSmall}
-                          >
-                            Delete visit
-                          </Button>
-                        ) : null
-                      }
-                    />
-                  </>
-                )}
+                      <BookingManagementBase
+                        user={selected}
+                        getBookingHistory={getBookingHistory}
+                        cancelBooking={cancelBooking}
+                        rescheduleBookingByToken={rescheduleBookingByToken}
+                        getSlots={getSlots}
+                        onDeleteVisit={deleteClientVisit}
+                        showNotes={showNotes}
+                        showFilter={!initialUser}
+                        showUserHeading={!initialUser}
+                        retentionNotice="Bookings, cancellations, and visits older than one year are removed from history."
+                        renderEditDialog={
+                          role === 'staff'
+                            ? ({ open, onClose, onUpdated }) => (
+                                <EditClientDialog
+                                  open={open}
+                                  clientId={selected.client_id}
+                                  onClose={onClose}
+                                  onUpdated={onUpdated}
+                                  onClientUpdated={name =>
+                                    setSelected({ ...selected, name })
+                                  }
+                                />
+                              )
+                            : undefined
+                        }
+                        renderDeleteVisitButton={(b, isSmall, open) =>
+                          role === 'staff' && b.status === 'visited' && !b.slot_id ? (
+                            <Button
+                              key="deleteVisit"
+                              onClick={open}
+                              variant="outlined"
+                              color="error"
+                              fullWidth={isSmall}
+                            >
+                              Delete visit
+                            </Button>
+                          ) : null
+                        }
+                      />
+                    </>
+                  )}
+                </Grid>
               </Grid>
-            </Grid>
-          )}
+            )}
+          </Box>
         </Box>
+        {pendingId && (
+          <ConfirmDialog
+            message={`Add client ${pendingId}?`}
+            onConfirm={() => {
+              navigate(`/pantry/client-management?tab=add&clientId=${pendingId}`);
+              setPendingId(null);
+            }}
+            onCancel={() => setPendingId(null)}
+          />
+        )}
       </Box>
-      {pendingId && (
-        <ConfirmDialog
-          message={`Add client ${pendingId}?`}
-          onConfirm={() => {
-            navigate(`/pantry/client-management?tab=add&clientId=${pendingId}`);
-            setPendingId(null);
-          }}
-          onCancel={() => setPendingId(null)}
-        />
-      )}
-    </Box>
+      {isClient && <ClientBottomNav />}
+      {isVolunteer && <VolunteerBottomNav />}
+    </>
   );
 }
 

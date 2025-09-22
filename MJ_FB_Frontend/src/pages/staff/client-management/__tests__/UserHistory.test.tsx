@@ -9,6 +9,16 @@ import UserHistory from '../UserHistory';
 import { getDeliveryOrdersForClient } from '../../../../api/deliveryOrders';
 import { getUserByClientId } from '../../../../api/users';
 
+jest.mock('../../../../components/ClientBottomNav', () => ({
+  __esModule: true,
+  default: () => <div data-testid="client-nav" />,
+}));
+
+jest.mock('../../../../components/VolunteerBottomNav', () => ({
+  __esModule: true,
+  default: () => <div data-testid="volunteer-nav" />,
+}));
+
 type MockedGetOrders = jest.MockedFunction<typeof getDeliveryOrdersForClient>;
 type MockedGetUserByClientId = jest.MockedFunction<typeof getUserByClientId>;
 
@@ -197,5 +207,78 @@ describe('UserHistory delivery orders', () => {
     expect(screen.getByText('Delivery history')).toBeInTheDocument();
     expect(screen.getByText('No delivery orders yet')).toBeInTheDocument();
     expect(mockGetUserByClientId).not.toHaveBeenCalled();
+  });
+});
+
+describe('UserHistory navigation', () => {
+  it('renders the client navigation for shoppers', async () => {
+    localStorage.setItem('role', 'shopper');
+    localStorage.setItem('name', 'Client Example');
+    localStorage.setItem('userRole', 'shopper');
+
+    renderWithProviders(
+      <MemoryRouter>
+        <UserHistory
+          initialUser={{ name: 'Client Example', client_id: 123, role: 'shopper' }}
+        />
+      </MemoryRouter>,
+    );
+
+    await screen.findByTestId('client-nav');
+    expect(screen.queryByTestId('volunteer-nav')).not.toBeInTheDocument();
+  });
+
+  it('renders the client navigation for delivery clients', async () => {
+    localStorage.setItem('role', 'delivery');
+    localStorage.setItem('name', 'Delivery Client');
+    localStorage.setItem('userRole', 'delivery');
+
+    renderWithProviders(
+      <MemoryRouter>
+        <UserHistory
+          initialUser={{ name: 'Delivery Client', client_id: 456, role: 'delivery' }}
+        />
+      </MemoryRouter>,
+    );
+
+    await screen.findByTestId('client-nav');
+    expect(screen.queryByTestId('volunteer-nav')).not.toBeInTheDocument();
+  });
+
+  it('renders the volunteer navigation for volunteers', async () => {
+    localStorage.setItem('role', 'volunteer');
+    localStorage.setItem('name', 'Volunteer Tester');
+    localStorage.setItem('userRole', 'shopper');
+
+    renderWithProviders(
+      <MemoryRouter>
+        <UserHistory
+          initialUser={{ name: 'Client Example', client_id: 789, role: 'shopper' }}
+        />
+      </MemoryRouter>,
+    );
+
+    await screen.findByTestId('volunteer-nav');
+    expect(screen.queryByTestId('client-nav')).not.toBeInTheDocument();
+  });
+
+  it('keeps staff view without bottom navigation', async () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Staff Tester');
+    localStorage.setItem('access', '[]');
+    localStorage.removeItem('userRole');
+
+    renderWithProviders(
+      <MemoryRouter>
+        <UserHistory
+          initialUser={{ name: 'Client Example', client_id: 321, role: 'shopper' }}
+        />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('client-nav')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('volunteer-nav')).not.toBeInTheDocument();
+    });
   });
 });
