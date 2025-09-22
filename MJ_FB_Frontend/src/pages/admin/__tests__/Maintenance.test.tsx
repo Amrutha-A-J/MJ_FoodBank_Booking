@@ -10,7 +10,15 @@ jest.mock('../../../api/maintenance', () => ({
   clearMaintenanceStats: jest.fn().mockResolvedValue(undefined),
   vacuumDatabase: jest.fn().mockResolvedValue({ message: 'Vacuum started' }),
   vacuumTable: jest.fn().mockResolvedValue({ message: 'Table vacuum started' }),
-  getVacuumDeadRows: jest.fn().mockResolvedValue({ message: 'Dead rows fetched' }),
+  getVacuumDeadRows: jest.fn().mockResolvedValue({
+    deadRows: [
+      { table: 'users', deadRows: 10 },
+      { table: 'orders', deadRows: 5 },
+    ],
+  }),
+  getVacuumDeadRowTables: jest
+    .fn()
+    .mockImplementation(response => response.deadRows?.map((item: any) => item.table) ?? []),
   purgeOldRecords: jest.fn().mockResolvedValue({
     success: true,
     cutoff: '2023-12-31',
@@ -80,10 +88,20 @@ describe('Maintenance', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: /vacuum/i }));
 
+    await waitFor(() => expect(getVacuumDeadRows).toHaveBeenCalledTimes(1));
+
     fireEvent.click(screen.getByRole('button', { name: /vacuum database/i }));
     await waitFor(() => expect(vacuumDatabase).toHaveBeenCalled());
 
-    fireEvent.change(screen.getByLabelText(/table name/i), { target: { value: 'users' } });
+    const vacuumTableButton = screen.getByRole('button', { name: /vacuum table/i });
+    expect(vacuumTableButton).toBeDisabled();
+
+    const tableSelect = await screen.findByRole('combobox', { name: /table name/i });
+    const nativeInput = tableSelect.parentElement?.querySelector('input');
+    expect(nativeInput).toBeTruthy();
+    fireEvent.change(nativeInput as HTMLInputElement, { target: { value: 'users' } });
+
+    expect(screen.getByRole('button', { name: /vacuum table/i })).toBeEnabled();
     fireEvent.click(screen.getByRole('button', { name: /vacuum table/i }));
     await waitFor(() => expect(vacuumTable).toHaveBeenCalledWith('users'));
 
