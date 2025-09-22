@@ -105,9 +105,19 @@ describe('Maintenance', () => {
     fireEvent.click(screen.getByRole('button', { name: /vacuum table/i }));
     await waitFor(() => expect(vacuumTable).toHaveBeenCalledWith('users'));
 
-    fireEvent.change(screen.getByLabelText(/table filter/i), { target: { value: 'orders' } });
+    const deadRowsSelect = screen.getByRole('combobox', { name: /table filter/i });
+    const deadRowsInput = deadRowsSelect.parentElement?.querySelector('input');
+    expect(deadRowsInput).toBeTruthy();
+    fireEvent.change(deadRowsInput as HTMLInputElement, { target: { value: 'orders' } });
     fireEvent.click(screen.getByRole('button', { name: /check dead rows/i }));
     await waitFor(() => expect(getVacuumDeadRows).toHaveBeenCalledWith('orders'));
+
+    fireEvent.change(deadRowsInput as HTMLInputElement, { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: /check dead rows/i }));
+    await waitFor(() => {
+      expect(getVacuumDeadRows).toHaveBeenCalledTimes(3);
+      expect(getVacuumDeadRows).toHaveBeenNthCalledWith(3, undefined);
+    });
   });
 
   it('validates purge inputs before confirming', async () => {

@@ -185,6 +185,10 @@ export default function Maintenance() {
     setVacuumTableName(event.target.value);
   }
 
+  function handleDeadRowsTableChange(event: SelectChangeEvent<string>) {
+    setDeadRowsTable(event.target.value);
+  }
+
   async function handleDeadRowsLookup() {
     try {
       setError('');
@@ -404,13 +408,32 @@ export default function Maintenance() {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                     Check recent dead row counts to decide whether a manual vacuum is required.
                   </Typography>
-                  <TextField
-                    label="Table Filter (optional)"
-                    value={deadRowsTable}
-                    onChange={e => setDeadRowsTable(e.target.value)}
-                    fullWidth
-                    size="medium"
-                  />
+                  <FormControl fullWidth size="medium" disabled={isLoadingVacuumTables}>
+                    <InputLabel id="dead-rows-table-label">Table Filter (optional)</InputLabel>
+                    <Select<string>
+                      labelId="dead-rows-table-label"
+                      id="dead-rows-table-select"
+                      value={deadRowsTable}
+                      label="Table Filter (optional)"
+                      onChange={handleDeadRowsTableChange}
+                      displayEmpty
+                      data-testid="dead-rows-table-select"
+                      renderValue={selected => {
+                        if (!selected) {
+                          if (isLoadingVacuumTables) return 'Loading tables…';
+                          return 'All tables';
+                        }
+                        return selected;
+                      }}
+                    >
+                      <MenuItem value="">All tables</MenuItem>
+                      {vacuumTableOptions.map(option => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                   <Box mt={1}>
                     <Button
                       variant="outlined"
