@@ -314,7 +314,7 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
 
     req.user.address = address;
     req.user.phone = phone;
-    req.user.email = email;
+    req.user.email = email ?? undefined;
   }
 
   const requestedStatus = parsed.data.status;
