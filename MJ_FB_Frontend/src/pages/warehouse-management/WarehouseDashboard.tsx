@@ -81,12 +81,11 @@ function kpiDelta(curr: number, prev?: number) {
 
 function formatDonorDisplay(donor: {
   id: number;
-  firstName: string;
-  lastName: string;
-  phone?: string | null;
+  name: string;
+  contact: { phone?: string | null } | null;
 }) {
-  const name = `${donor.firstName} ${donor.lastName}`.trim();
-  const phone = normalizeContactValue(donor.phone);
+  const name = donor.name.trim() || 'Unnamed donor';
+  const phone = normalizeContactValue(donor.contact?.phone);
   const identifier = `ID ${donor.id}`;
   const suffix = phone ? `${identifier} • ${phone}` : identifier;
   return `${name} (${suffix})`;
@@ -279,9 +278,9 @@ export default function WarehouseDashboard() {
     if (!term) return donors;
 
     return donors.filter(d => {
-      const name = `${d.firstName} ${d.lastName}`.toLowerCase();
-      const email = normalizeContactSearchValue(d.email);
-      const phone = normalizeContactSearchValue(d.phone);
+      const name = d.name.toLowerCase();
+      const email = normalizeContactSearchValue(d.contact?.email);
+      const phone = normalizeContactSearchValue(d.contact?.phone);
 
       return (
         d.id.toString().includes(term) ||
@@ -530,9 +529,7 @@ export default function WarehouseDashboard() {
                     {filteredDonors.map((d, i) => (
                       <Stack key={i} direction="row" justifyContent="space-between">
                         <Box>
-                          <Typography variant="body2">
-                            {d.firstName} {d.lastName}
-                          </Typography>
+                          <Typography variant="body2">{d.name.trim() || 'Unnamed donor'}</Typography>
                           <Typography variant="caption" color="text.secondary">
                             Last: {formatLocaleDate(d.lastDonationISO)}
                           </Typography>

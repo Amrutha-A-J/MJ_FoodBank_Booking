@@ -35,10 +35,8 @@ describe('Warehouse Donor Profile', () => {
   it('shows fallback contact information when email or phone are missing', async () => {
     (getDonor as jest.Mock).mockResolvedValue({
       id: 42,
-      firstName: 'No',
-      lastName: 'Contact',
-      email: null,
-      phone: null,
+      name: 'No Contact',
+      contact: null,
       totalLbs: 540,
       lastDonationISO: null,
       isPetFood: false,
@@ -60,20 +58,16 @@ describe('Warehouse Donor Profile', () => {
     (getDonor as jest.Mock)
       .mockResolvedValueOnce({
         id: 42,
-        firstName: 'Alice',
-        lastName: 'Donor',
-        email: 'alice@example.com',
-        phone: null,
+        name: 'Alice Donor',
+        contact: { email: 'alice@example.com', phone: null },
         totalLbs: 800,
         lastDonationISO: '2024-04-10T12:00:00Z',
         isPetFood: false,
       })
       .mockResolvedValueOnce({
         id: 42,
-        firstName: 'Alicia',
-        lastName: 'Donor',
-        email: null,
-        phone: '306-555-0100',
+        name: 'Alicia Donor',
+        contact: { email: null, phone: '306-555-0100' },
         totalLbs: 800,
         lastDonationISO: '2024-04-10T12:00:00Z',
         isPetFood: true,
@@ -86,23 +80,19 @@ describe('Warehouse Donor Profile', () => {
     const editButton = await screen.findByRole('button', { name: /edit/i });
     await userEvent.click(editButton);
 
-    const firstName = screen.getByLabelText(/first name/i);
-    const lastName = screen.getByLabelText(/last name/i);
+    const nameField = screen.getByLabelText(/^name/i);
     const email = screen.getByLabelText(/email \(optional\)/i);
     const phone = screen.getByLabelText(/phone \(optional\)/i);
     const petFood = screen.getByLabelText(/pet food donor/i);
     const save = screen.getByRole('button', { name: /save donor/i });
 
-    await userEvent.clear(firstName);
-    await userEvent.clear(lastName);
+    await userEvent.clear(nameField);
     await userEvent.click(save);
 
-    expect(screen.getByText('First name is required')).toBeInTheDocument();
-    expect(screen.getByText('Last name is required')).toBeInTheDocument();
+    expect(screen.getByText('Name is required')).toBeInTheDocument();
     expect(updateDonor).not.toHaveBeenCalled();
 
-    await userEvent.type(firstName, ' Alicia ');
-    await userEvent.type(lastName, ' Donor ');
+    await userEvent.type(nameField, ' Alicia Donor ');
     await userEvent.clear(email);
     await userEvent.type(email, 'invalid');
     await userEvent.click(save);
@@ -118,10 +108,8 @@ describe('Warehouse Donor Profile', () => {
 
     await waitFor(() =>
       expect(updateDonor).toHaveBeenCalledWith(42, {
-        firstName: 'Alicia',
-        lastName: 'Donor',
-        email: undefined,
-        phone: '306-555-0100',
+        name: 'Alicia Donor',
+        contact: { email: null, phone: '306-555-0100' },
         isPetFood: true,
       }),
     );

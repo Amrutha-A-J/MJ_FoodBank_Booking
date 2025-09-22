@@ -1,20 +1,18 @@
 import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
-export interface Donor {
-  id: number;
-  firstName: string;
-  lastName: string;
+export interface DonorContact {
   email?: string | null;
   phone?: string | null;
+}
+
+export interface Donor {
+  id: number;
+  name: string;
+  contact: DonorContact | null;
   isPetFood: boolean;
 }
 
-export interface TopDonor {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email?: string | null;
-  phone?: string | null;
+export interface TopDonor extends Donor {
   totalLbs: number;
   lastDonationISO: string;
 }
@@ -37,17 +35,19 @@ export async function getDonors(search?: string): Promise<Donor[]> {
 }
 
 interface DonorPayload {
-  firstName: string;
-  lastName: string;
-  email?: string | null;
-  phone?: string | null;
+  name: string;
+  contact?: DonorContact | null;
   isPetFood?: boolean;
 }
 
 export async function createDonor(data: DonorPayload): Promise<Donor> {
   const res = await jsonApiFetch(`${API_BASE}/donors`, {
     method: 'POST',
-    body: { ...data, isPetFood: data.isPetFood ?? false },
+    body: {
+      name: data.name,
+      contact: data.contact ?? null,
+      isPetFood: data.isPetFood ?? false,
+    },
   });
   return handleResponse(res);
 }
@@ -63,7 +63,11 @@ export async function updateDonor(
 ): Promise<Donor> {
   const res = await jsonApiFetch(`${API_BASE}/donors/${id}`, {
     method: 'PUT',
-    body: { ...data, isPetFood: data.isPetFood ?? false },
+    body: {
+      name: data.name,
+      contact: data.contact ?? null,
+      isPetFood: data.isPetFood ?? false,
+    },
   });
   return handleResponse(res);
 }
