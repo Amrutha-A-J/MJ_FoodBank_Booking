@@ -7,6 +7,13 @@ export const maintenanceSchema = z.object({
 
 export type MaintenancePayload = z.infer<typeof maintenanceSchema>;
 
+export const maintenanceSettingsSchema = z.object({
+  maintenanceMode: z.boolean(),
+  upcomingNotice: z.string().optional(),
+});
+
+export type MaintenanceSettingsPayload = z.infer<typeof maintenanceSettingsSchema>;
+
 export const maintenancePurgeSchema = z.object({
   tables: z.array(z.string()).min(1),
   before: z.string(),

@@ -16,6 +16,16 @@ A scheduled window displays an upcoming maintenance banner to clients.
 Clients see the upcoming notice if a maintenance window is scheduled and the maintenance
 message if maintenance mode is currently enabled.
 
+## Configuration keys
+
+Maintenance settings are stored in the `app_config` table:
+
+| Key | Description |
+| --- | --- |
+| `maintenance_mode` | Boolean flag (`true`/`false`) toggling maintenance mode. |
+| `maintenance_notice` | Message displayed while maintenance mode is active. |
+| `maintenance_upcoming_notice` | Optional banner text for the next scheduled maintenance window. |
+
 ## Historical data purge
 
 Admins can trigger a manual cleanup of legacy records from **Admin → Maintenance → Delete Older

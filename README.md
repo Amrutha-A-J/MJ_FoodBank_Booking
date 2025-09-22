@@ -21,6 +21,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
   testing, and the Mail Lists page provides a Send test emails button to email
   each tier to the configured addresses.
 - Admin Settings → Maintenance lets admins schedule downtime and enable maintenance mode, displaying upcoming or active maintenance notices to clients. During downtime, visitors see an overlay with the Moose Jaw Food Bank logo. Staff can still sign in during maintenance to turn it off, but all other logins and API requests return a 503. Ops can override the database toggle by setting `MAINTENANCE_MODE` to `true` (or `false` to force normal operation) and listing comma-separated IPs in `MAINTENANCE_ALLOW_IPS` to keep trusted addresses online during a forced outage.
+  - Maintenance settings are persisted in `app_config`: the toggle uses `maintenance_mode`, the active banner uses `maintenance_notice`, and the upcoming banner text is stored under `maintenance_upcoming_notice`.
 - Public cancel and reschedule pages include the client bottom navigation for quick access
   to other sections.
 - Email templates display times in 12-hour AM/PM format.

@@ -138,6 +138,29 @@ export async function getMaintenanceStatus(
   }
 }
 
+export async function getMaintenanceSettings(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await pool.query(
+      "SELECT key, value FROM app_config WHERE key IN ('maintenance_mode','maintenance_upcoming_notice')",
+    );
+    const config: Record<string, string> = {};
+    for (const row of result.rows) {
+      config[row.key] = row.value;
+    }
+    res.json({
+      maintenanceMode: config.maintenance_mode === 'true',
+      upcomingNotice: config.maintenance_upcoming_notice ?? null,
+    });
+  } catch (error) {
+    logger.error('Error fetching maintenance settings:', error);
+    next(error);
+  }
+}
+
 export async function setMaintenanceMode(
   req: Request,
   _res: Response,
@@ -182,6 +205,32 @@ export async function setMaintenanceNotice(
   }
 }
 
+export async function setMaintenanceUpcomingNotice(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) {
+  const { upcomingNotice } = req.body as { upcomingNotice?: string };
+  if (upcomingNotice === undefined) return next();
+  const normalized = upcomingNotice.trim();
+  try {
+    if (normalized) {
+      await pool.query(
+        "INSERT INTO app_config (key, value) VALUES ('maintenance_upcoming_notice', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
+        [normalized],
+      );
+    } else {
+      await pool.query(
+        "DELETE FROM app_config WHERE key = 'maintenance_upcoming_notice'",
+      );
+    }
+    next();
+  } catch (error) {
+    logger.error('Error setting maintenance upcoming notice:', error);
+    next(error);
+  }
+}
+
 export async function clearMaintenance(
   _req: Request,
   res: Response,
@@ -189,7 +238,7 @@ export async function clearMaintenance(
 ) {
   try {
     await pool.query(
-      "DELETE FROM app_config WHERE key IN ('maintenance_mode','maintenance_notice')",
+      "DELETE FROM app_config WHERE key IN ('maintenance_mode','maintenance_notice','maintenance_upcoming_notice')",
     );
     res.json({ maintenanceMode: false, notice: null });
   } catch (error) {

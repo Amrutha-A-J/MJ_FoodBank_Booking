@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import {
   getMaintenanceStatus,
+  getMaintenanceSettings,
   setMaintenanceMode,
   setMaintenanceNotice,
+  setMaintenanceUpcomingNotice,
   clearMaintenance,
   clearMaintenanceStats,
   runVacuum,
@@ -16,6 +18,7 @@ import { validate } from '../middleware/validate';
 import {
   maintenanceCleanupSchema,
   maintenanceSchema,
+  maintenanceSettingsSchema,
   maintenancePurgeSchema,
 } from '../schemas/maintenanceSchema';
 
@@ -31,6 +34,23 @@ router.put(
   setMaintenanceMode,
   setMaintenanceNotice,
   getMaintenanceStatus,
+);
+
+router.get(
+  '/settings',
+  authMiddleware,
+  authorizeAccess('admin'),
+  getMaintenanceSettings,
+);
+
+router.put(
+  '/settings',
+  authMiddleware,
+  authorizeAccess('admin'),
+  validate(maintenanceSettingsSchema),
+  setMaintenanceMode,
+  setMaintenanceUpcomingNotice,
+  getMaintenanceSettings,
 );
 
 router.delete('/', authMiddleware, authorizeAccess('admin'), clearMaintenance);

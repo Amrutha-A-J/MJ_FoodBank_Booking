@@ -5,6 +5,7 @@ import pool from '../src/db';
 import {
   setMaintenanceMode,
   setMaintenanceNotice,
+  setMaintenanceUpcomingNotice,
 } from '../src/controllers/maintenanceController';
 import {
   refreshPantryMonthly,
@@ -102,6 +103,79 @@ describe('maintenance routes', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ maintenanceMode: true, notice: 'Down' });
     expect((pool.query as jest.Mock).mock.calls).toHaveLength(3);
+  });
+
+  it('returns maintenance settings with upcoming notice', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [
+        { key: 'maintenance_mode', value: 'true' },
+        { key: 'maintenance_upcoming_notice', value: 'Scheduled downtime' },
+      ],
+    });
+
+    const res = await request(app).get('/maintenance/settings');
+
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenCalledWith(
+      "SELECT key, value FROM app_config WHERE key IN ('maintenance_mode','maintenance_upcoming_notice')",
+    );
+    expect(res.body).toEqual({
+      maintenanceMode: true,
+      upcomingNotice: 'Scheduled downtime',
+    });
+  });
+
+  it('updates maintenance settings including upcoming notice', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({
+        rows: [
+          { key: 'maintenance_mode', value: 'true' },
+          { key: 'maintenance_upcoming_notice', value: 'Heads up' },
+        ],
+      });
+
+    const res = await request(app)
+      .put('/maintenance/settings')
+      .send({ maintenanceMode: true, upcomingNotice: 'Heads up' });
+
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      1,
+      "INSERT INTO app_config (key, value) VALUES ('maintenance_mode', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
+      ['true'],
+    );
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      "INSERT INTO app_config (key, value) VALUES ('maintenance_upcoming_notice', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
+      ['Heads up'],
+    );
+    expect(pool.query).toHaveBeenNthCalledWith(
+      3,
+      "SELECT key, value FROM app_config WHERE key IN ('maintenance_mode','maintenance_upcoming_notice')",
+    );
+    expect(res.body).toEqual({ maintenanceMode: true, upcomingNotice: 'Heads up' });
+  });
+
+  it('clears upcoming maintenance notice when empty string provided', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({
+        rows: [{ key: 'maintenance_mode', value: 'false' }],
+      });
+
+    const res = await request(app)
+      .put('/maintenance/settings')
+      .send({ maintenanceMode: false, upcomingNotice: '' });
+
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      "DELETE FROM app_config WHERE key = 'maintenance_upcoming_notice'",
+    );
+    expect(res.body).toEqual({ maintenanceMode: false, upcomingNotice: null });
   });
 
   it('clears maintenance config', async () => {
@@ -402,6 +476,40 @@ describe('maintenance controllers', () => {
       expect(pool.query as jest.Mock).toHaveBeenCalledTimes(1);
       expect(logger.error).toHaveBeenCalledWith(
         'Error setting maintenance notice:',
+        error,
+      );
+      expect(next).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('setMaintenanceUpcomingNotice', () => {
+    it('skips database update when upcoming notice is missing', async () => {
+      const req = { body: {} } as express.Request;
+      const res = {} as express.Response;
+      const next = jest.fn();
+
+      await setMaintenanceUpcomingNotice(req, res, next);
+
+      expect(pool.query as jest.Mock).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(next).toHaveBeenCalledWith();
+    });
+
+    it('logs and forwards errors when updating upcoming notice fails', async () => {
+      const error = new Error('Database failure');
+      (pool.query as jest.Mock).mockRejectedValueOnce(error);
+
+      const req = {
+        body: { upcomingNotice: 'Heads up' },
+      } as express.Request;
+      const res = {} as express.Response;
+      const next = jest.fn();
+
+      await setMaintenanceUpcomingNotice(req, res, next);
+
+      expect(pool.query as jest.Mock).toHaveBeenCalledTimes(1);
+      expect(logger.error).toHaveBeenCalledWith(
+        'Error setting maintenance upcoming notice:',
         error,
       );
       expect(next).toHaveBeenCalledWith(error);
