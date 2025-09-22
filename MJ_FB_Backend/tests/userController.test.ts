@@ -20,6 +20,8 @@ import {
   generatePasswordSetupToken,
 } from '../src/utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import { validateParams } from '../src/middleware/validate';
+import { clientIdParamSchema } from '../src/schemas/userSchemas';
 
 jest.mock('../src/db');
 jest.mock('bcrypt');
@@ -207,14 +209,14 @@ describe('userController', () => {
         ],
       });
 
-      const req: any = { params: { clientId: '3' } };
+      const req: any = { params: { clientId: 3 } };
       const res: any = { json: jest.fn(), status: jest.fn().mockReturnThis() };
 
       await getUserByClientId(req, res, jest.fn());
 
       expect(pool.query).toHaveBeenCalledWith(
         expect.stringContaining('FROM clients WHERE client_id = $1'),
-        ['3'],
+        [3],
       );
       expect(res.json).toHaveBeenCalledWith({
         firstName: 'Jamie',
@@ -233,7 +235,7 @@ describe('userController', () => {
     it('returns 404 when the client cannot be found', async () => {
       (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
 
-      const req: any = { params: { clientId: '99' } };
+      const req: any = { params: { clientId: 99 } };
       const res: any = {
         json: jest.fn(),
         status: jest.fn().mockReturnThis(),
@@ -243,6 +245,24 @@ describe('userController', () => {
 
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
+    });
+
+    it('rejects malformed client IDs before hitting the controller', () => {
+      const middleware = validateParams(clientIdParamSchema);
+      const req: any = { params: { clientId: 'abc' } };
+      const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+      const next = jest.fn();
+
+      middleware(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        errors: expect.arrayContaining([
+          expect.objectContaining({ path: ['clientId'] }),
+        ]),
+      });
+      expect(pool.query).not.toHaveBeenCalled();
+      expect(next).not.toHaveBeenCalled();
     });
   });
 
@@ -640,7 +660,7 @@ describe('userController', () => {
     it('rejects non-staff users', async () => {
       const req: any = {
         user: { role: 'volunteer' },
-        params: { clientId: '1' },
+        params: { clientId: 1 },
         body: { firstName: 'A', lastName: 'B' },
       };
       const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
@@ -655,7 +675,7 @@ describe('userController', () => {
     it('logs errors from the database', async () => {
       const req: any = {
         user: { role: 'staff' },
-        params: { clientId: '1' },
+        params: { clientId: 1 },
         body: { firstName: 'A', lastName: 'B' },
       };
       const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
@@ -692,7 +712,7 @@ describe('userController', () => {
 
       const req: any = {
         user: { role: 'staff' },
-        params: { clientId: '7' },
+        params: { clientId: 7 },
         body: {
           firstName: 'Sam',
           lastName: 'Client',
@@ -717,7 +737,7 @@ describe('userController', () => {
         '123',
         '123 Main',
         'hashed-secret',
-        '7',
+        7,
       ]);
       expect(res.json).toHaveBeenCalledWith({
         clientId: 7,
@@ -736,7 +756,7 @@ describe('userController', () => {
 
       const req: any = {
         user: { role: 'staff' },
-        params: { clientId: '7' },
+        params: { clientId: 7 },
         body: {
           firstName: 'Sam',
           lastName: 'Client',
@@ -763,7 +783,7 @@ describe('userController', () => {
 
       const req: any = {
         user: { role: 'staff' },
-        params: { clientId: '7' },
+        params: { clientId: 7 },
         body: {
           firstName: 'Sam',
           lastName: 'Client',
@@ -801,7 +821,7 @@ describe('userController', () => {
 
       const req: any = {
         user: { role: 'staff' },
-        params: { clientId: '8' },
+        params: { clientId: 8 },
         body: {
           firstName: 'Taylor',
           lastName: 'Client',
@@ -834,7 +854,7 @@ describe('userController', () => {
 
       const req: any = {
         user: { role: 'staff' },
-        params: { clientId: '8' },
+        params: { clientId: 8 },
         body: {
           firstName: 'Taylor',
           lastName: 'Client',
@@ -857,14 +877,14 @@ describe('userController', () => {
     it('deletes a client successfully', async () => {
       (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1 });
 
-      const req: any = { user: { role: 'staff' }, params: { clientId: '3' } };
+      const req: any = { user: { role: 'staff' }, params: { clientId: 3 } };
       const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
 
       await deleteUserByClientId(req, res, jest.fn());
 
       expect(pool.query).toHaveBeenCalledWith(
         expect.stringContaining('DELETE FROM clients WHERE client_id = $1'),
-        ['3'],
+        [3],
       );
       expect(res.json).toHaveBeenCalledWith({ message: 'User deleted' });
     });
@@ -872,7 +892,7 @@ describe('userController', () => {
     it('returns 404 when the user is not found', async () => {
       (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0 });
 
-      const req: any = { user: { role: 'staff' }, params: { clientId: '3' } };
+      const req: any = { user: { role: 'staff' }, params: { clientId: 3 } };
       const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
 
       await deleteUserByClientId(req, res, jest.fn());
@@ -887,7 +907,7 @@ describe('userController', () => {
       (pool.query as jest.Mock).mockRejectedValueOnce(conflictError);
       const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
 
-      const req: any = { user: { role: 'staff' }, params: { clientId: '3' } };
+      const req: any = { user: { role: 'staff' }, params: { clientId: 3 } };
       const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
 
       await deleteUserByClientId(req, res, jest.fn());

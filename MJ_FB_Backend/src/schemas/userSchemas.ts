@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { passwordSchema } from '../utils/passwordUtils';
 
+export const clientIdParamSchema = z.object({
+  clientId: z.coerce.number().int().positive(),
+});
+
 // Schema for the /auth/login endpoint. Requires a password and either
 // an email or a clientId (but not both).
 export const authLoginSchema = z
