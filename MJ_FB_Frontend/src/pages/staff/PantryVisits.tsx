@@ -621,7 +621,7 @@ export default function PantryVisits() {
                     }
                     sx={{ alignItems: 'center' }}
                   >
-                    Client not present in database
+                    Client not present in database. Create the client before saving this visit.
                   </Alert>
                 )}
                 <TextField
@@ -678,7 +678,11 @@ export default function PantryVisits() {
               saving ||
               (form.sunshineBag
                 ? !form.sunshineWeight || !form.sunshineClients
-                : !form.weightWithCart || !form.weightWithoutCart || !form.clientId)
+                :
+                  !form.weightWithCart ||
+                  !form.weightWithoutCart ||
+                  !form.clientId ||
+                  (!form.anonymous && clientFound !== true))
             }
           >
             Save
