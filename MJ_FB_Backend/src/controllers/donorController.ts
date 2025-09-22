@@ -16,7 +16,17 @@ export const listDonors = asyncHandler(async (req: Request, res: Response) => {
        ORDER BY first_name, last_name`,
     [`%${search}%`],
   );
-  res.json(result.rows);
+  const dedupedRows = Array.from(
+    result.rows
+      .reduce((map, row) => {
+        if (!map.has(row.id)) {
+          map.set(row.id, row);
+        }
+        return map;
+      }, new Map<number, (typeof result.rows)[number]>())
+      .values(),
+  );
+  res.json(dedupedRows);
 });
 
 export const addDonor = asyncHandler(async (req: Request, res: Response) => {
