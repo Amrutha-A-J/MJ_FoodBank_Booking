@@ -59,7 +59,11 @@ export interface DeadRowInfo {
 
 export interface DeadRowsLookupResponse {
   message?: string;
-  tables?: DeadRowInfo[];
+  deadRows?: DeadRowInfo[];
+}
+
+export function getVacuumDeadRowTables(response: DeadRowsLookupResponse): string[] {
+  return response.deadRows?.map(item => item.table) ?? [];
 }
 
 export interface PurgeRequestPayload {

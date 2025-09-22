@@ -19,7 +19,10 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  InputLabel,
 } from '@mui/material';
+import Select, { type SelectChangeEvent } from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Grid from '@mui/material/GridLegacy';
@@ -33,6 +36,7 @@ import {
   vacuumDatabase,
   vacuumTable,
   getVacuumDeadRows,
+  getVacuumDeadRowTables,
   purgeOldRecords,
   type MaintenanceSettings,
 } from '../../api/maintenance';
@@ -64,6 +68,8 @@ export default function Maintenance() {
   const [upcomingNotice, setUpcomingNotice] = useState('');
   const [vacuumTableName, setVacuumTableName] = useState('');
   const [deadRowsTable, setDeadRowsTable] = useState('');
+  const [vacuumTableOptions, setVacuumTableOptions] = useState<string[]>([]);
+  const [isLoadingVacuumTables, setIsLoadingVacuumTables] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -87,6 +93,30 @@ export default function Maintenance() {
         setError(err.message || String(err));
       }
     })();
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        setIsLoadingVacuumTables(true);
+        const response = await getVacuumDeadRows();
+        if (!isMounted) return;
+        const tables = getVacuumDeadRowTables(response);
+        setVacuumTableOptions(tables);
+        setVacuumTableName(prev => (prev && tables.includes(prev) ? prev : ''));
+      } catch (err: any) {
+        if (!isMounted) return;
+        setMessage('');
+        setError(err.message || String(err));
+      } finally {
+        if (!isMounted) return;
+        setIsLoadingVacuumTables(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   async function handleSave() {
@@ -151,6 +181,10 @@ export default function Maintenance() {
     }
   }
 
+  function handleVacuumTableChange(event: SelectChangeEvent<string>) {
+    setVacuumTableName(event.target.value);
+  }
+
   async function handleDeadRowsLookup() {
     try {
       setError('');
@@ -162,8 +196,8 @@ export default function Maintenance() {
         setMessage(result.message);
         return;
       }
-      if (result.tables && result.tables.length > 0) {
-        const summary = result.tables
+      if (result.deadRows && result.deadRows.length > 0) {
+        const summary = result.deadRows
           .map(item => `${item.table}: ${item.deadRows.toLocaleString()} dead rows`)
           .join(', ');
         setMessage(summary);
@@ -325,13 +359,35 @@ export default function Maintenance() {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                     Target a single table when you notice bloat building up.
                   </Typography>
-                  <TextField
-                    label="Table Name"
-                    value={vacuumTableName}
-                    onChange={e => setVacuumTableName(e.target.value)}
-                    fullWidth
-                    size="medium"
-                  />
+                  <FormControl fullWidth size="medium" disabled={isLoadingVacuumTables}>
+                    <InputLabel id="vacuum-table-label">Table Name</InputLabel>
+                    <Select<string>
+                      labelId="vacuum-table-label"
+                      id="vacuum-table-select"
+                      value={vacuumTableName}
+                      label="Table Name"
+                      onChange={handleVacuumTableChange}
+                      displayEmpty
+                      data-testid="vacuum-table-select"
+                      renderValue={selected => {
+                        if (!selected) {
+                          if (isLoadingVacuumTables) return 'Loading tables…';
+                          if (vacuumTableOptions.length === 0) return 'No tables available';
+                          return 'Select a table';
+                        }
+                        return selected;
+                      }}
+                    >
+                      <MenuItem value="" disabled>
+                        {vacuumTableOptions.length === 0 ? 'No tables available' : 'Select a table'}
+                      </MenuItem>
+                      {vacuumTableOptions.map(option => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                   <Box mt={1}>
                     <Button
                       variant="outlined"
