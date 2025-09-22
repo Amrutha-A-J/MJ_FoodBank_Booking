@@ -559,6 +559,8 @@ export default function BookingUI<T = Slot>({
               height: '100%',
               display: 'flex',
               flexDirection: 'column',
+              maxWidth: { xs: '100%', md: 360 },
+              mx: 'auto',
             }}
           >
             {!holidaysReady ? (
