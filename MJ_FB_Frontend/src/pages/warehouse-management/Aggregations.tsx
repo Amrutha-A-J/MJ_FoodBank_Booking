@@ -38,15 +38,18 @@ import { toDate } from '../../utils/date';
 import { exportTableToExcel } from '../../utils/exportTableToExcel';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 
+const RECENT_YEARS_LIMIT = 5;
+
 export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);
   const [overallLoading, setOverallLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const currentYear = toDate().getFullYear();
-  const fallbackYears = Array.from({ length: 5 }, (_, i) => currentYear - i);
+  const fallbackYears = Array.from({ length: RECENT_YEARS_LIMIT }, (_, i) => currentYear - i);
   const [years, setYears] = useState<number[]>(fallbackYears);
   const [overallYear, setOverallYear] = useState(fallbackYears[0]);
   const [donorYear, setDonorYear] = useState(fallbackYears[0]);
+  const [showAllYears, setShowAllYears] = useState(false);
   const [tab, setTab] = useState(0);
   const [donorRows, setDonorRows] = useState<DonorAggregation[]>([]);
   const [donorLoading, setDonorLoading] = useState(false);
@@ -73,6 +76,22 @@ export default function Aggregations() {
   const [donorSearch, setDonorSearch] = useState('');
   const [donorInputValue, setDonorInputValue] = useState('');
   const [donorOptionsLoading, setDonorOptionsLoading] = useState(false);
+
+  const sortedYears = useMemo(() => [...years].sort((a, b) => b - a), [years]);
+  const recentYears = useMemo(() => sortedYears.slice(0, RECENT_YEARS_LIMIT), [sortedYears]);
+  const olderYears = useMemo(() => sortedYears.slice(RECENT_YEARS_LIMIT), [sortedYears]);
+
+  const donorYearOptions = useMemo(() => {
+    const base = showAllYears ? sortedYears : recentYears;
+    if (base.includes(donorYear)) return base;
+    return [...base, donorYear].sort((a, b) => b - a);
+  }, [donorYear, recentYears, showAllYears, sortedYears]);
+
+  const overallYearOptions = useMemo(() => {
+    const base = showAllYears ? sortedYears : recentYears;
+    if (base.includes(overallYear)) return base;
+    return [...base, overallYear].sort((a, b) => b - a);
+  }, [overallYear, recentYears, showAllYears, sortedYears]);
 
   function formatDonorDisplay(donor: Donor) {
     const contact = [donor.email, donor.phone]
@@ -107,16 +126,17 @@ export default function Aggregations() {
       try {
         const ys = await getWarehouseOverallYears();
         if (ys.length) {
-          setYears(ys);
-          setOverallYear(ys[0]);
-          setDonorYear(ys[0]);
+          const sorted = [...ys].sort((a, b) => b - a);
+          setYears(sorted);
+          setOverallYear(sorted[0]);
+          setDonorYear(sorted[0]);
         } else {
-          setYears(fallbackYears);
+          setYears([...fallbackYears]);
           setOverallYear(fallbackYears[0]);
           setDonorYear(fallbackYears[0]);
         }
       } catch {
-        setYears(fallbackYears);
+        setYears([...fallbackYears]);
         setOverallYear(fallbackYears[0]);
         setDonorYear(fallbackYears[0]);
       }
@@ -296,13 +316,22 @@ export default function Aggregations() {
             value={donorYear}
             onChange={e => setDonorYear(Number(e.target.value))}
           >
-            {years.map(y => (
+            {donorYearOptions.map(y => (
               <MenuItem key={y} value={y}>
                 {y}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
+        {olderYears.length > 0 && (
+          <Button
+            variant="text"
+            onClick={() => setShowAllYears(prev => !prev)}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
+          >
+            {showAllYears ? 'Hide older years' : 'Show older years'}
+          </Button>
+        )}
         <Button
           variant="contained"
           onClick={handleExportDonors}
@@ -403,13 +432,22 @@ export default function Aggregations() {
             value={overallYear}
             onChange={e => setOverallYear(Number(e.target.value))}
           >
-            {years.map(y => (
+            {overallYearOptions.map(y => (
               <MenuItem key={y} value={y}>
                 {y}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
+        {olderYears.length > 0 && (
+          <Button
+            variant="text"
+            onClick={() => setShowAllYears(prev => !prev)}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
+          >
+            {showAllYears ? 'Hide older years' : 'Show older years'}
+          </Button>
+        )}
         <Button
           variant="contained"
           onClick={handleExportOverall}

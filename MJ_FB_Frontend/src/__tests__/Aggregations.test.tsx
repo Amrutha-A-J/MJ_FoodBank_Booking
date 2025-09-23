@@ -2,10 +2,10 @@ import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import Aggregations from '../pages/warehouse-management/Aggregations';
 import '../../tests/mockUrl';
 
+const currentYear = new Date().getFullYear();
+const descendingYears = Array.from({ length: 7 }, (_, i) => currentYear - i);
 const mockGetWarehouseOverall = jest.fn().mockResolvedValue([]);
-const mockGetWarehouseOverallYears = jest
-  .fn()
-  .mockResolvedValue([new Date().getFullYear()]);
+const mockGetWarehouseOverallYears = jest.fn();
 const mockExportWarehouseOverall = jest.fn().mockResolvedValue(new Blob());
 const mockPostManualWarehouseOverall = jest.fn().mockResolvedValue(undefined);
 const mockGetWarehouseDonationHistory = jest.fn().mockResolvedValue([
@@ -63,6 +63,7 @@ describe('Aggregations page', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetWarehouseOverallYears.mockResolvedValue(descendingYears);
     mockGetDonors.mockResolvedValue([
       {
         id: 42,
@@ -89,7 +90,6 @@ describe('Aggregations page', () => {
   });
 
   it('exports yearly overall data', async () => {
-    const year = new Date().getFullYear();
     render(<Aggregations />);
 
     await waitFor(() => expect(mockGetWarehouseOverall).toHaveBeenCalled());
@@ -99,7 +99,9 @@ describe('Aggregations page', () => {
     const exportBtn = await screen.findByRole('button', { name: /export/i });
     fireEvent.click(exportBtn);
 
-    await waitFor(() => expect(mockExportWarehouseOverall).toHaveBeenCalledWith(year));
+    await waitFor(() =>
+      expect(mockExportWarehouseOverall).toHaveBeenCalledWith(currentYear),
+    );
   });
 
   it('loads donation history when the tab is selected', async () => {
@@ -126,6 +128,30 @@ describe('Aggregations page', () => {
     await waitFor(() =>
       expect(mockExportWarehouseDonationHistory).toHaveBeenCalledTimes(1),
     );
+  });
+
+  it('reveals older years when toggled', async () => {
+    mockGetWarehouseOverallYears.mockResolvedValueOnce(descendingYears);
+
+    render(<Aggregations />);
+
+    await waitFor(() => expect(mockGetWarehouseOverallYears).toHaveBeenCalled());
+
+    const [toggleButton] = await screen.findAllByRole('button', { name: /show older years/i });
+    const [donorYearSelect] = await screen.findAllByLabelText(/year/i);
+    fireEvent.mouseDown(donorYearSelect);
+
+    const hiddenYear = String(descendingYears[5]);
+    expect(screen.getByRole('option', { name: String(descendingYears[0]) })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: hiddenYear })).not.toBeInTheDocument();
+
+    fireEvent.keyDown(document.body, { key: 'Escape' });
+
+    fireEvent.click(toggleButton);
+
+    fireEvent.mouseDown(donorYearSelect);
+
+    expect(screen.getByRole('option', { name: hiddenYear })).toBeInTheDocument();
   });
 
   it('shows an error when donation history fails to load', async () => {
