@@ -136,8 +136,8 @@ export default function MonetaryDonationTrendChart<T extends MonetaryDonationTre
           name="Amount"
           stroke={theme.palette.primary.main}
           strokeWidth={2}
-          dot={{ r: 4 }}
-          activeDot={{ r: 6 }}
+          dot={{ r: 4, stroke: theme.palette.primary.main, fill: theme.palette.primary.main }}
+          activeDot={{ r: 6, stroke: theme.palette.primary.main, fill: theme.palette.primary.main }}
           yAxisId="amount"
         />
         <Line
@@ -145,10 +145,10 @@ export default function MonetaryDonationTrendChart<T extends MonetaryDonationTre
           type="monotone"
           dataKey="averageGift"
           name="Average Gift"
-          stroke={theme.palette.success.main}
+          stroke={theme.palette.info.main}
           strokeWidth={2}
-          dot={{ r: 4 }}
-          activeDot={{ r: 6 }}
+          dot={{ r: 4, stroke: theme.palette.info.main, fill: theme.palette.info.main }}
+          activeDot={{ r: 6, stroke: theme.palette.info.main, fill: theme.palette.info.main }}
           yAxisId="amount"
         />
         <Line
@@ -156,10 +156,10 @@ export default function MonetaryDonationTrendChart<T extends MonetaryDonationTre
           type="monotone"
           dataKey="donationCount"
           name="Donations"
-          stroke={theme.palette.info.main}
+          stroke={theme.palette.success.main}
           strokeWidth={2}
-          dot={{ r: 4 }}
-          activeDot={{ r: 6 }}
+          dot={{ r: 4, stroke: theme.palette.success.main, fill: theme.palette.success.main }}
+          activeDot={{ r: 6, stroke: theme.palette.success.main, fill: theme.palette.success.main }}
           yAxisId="count"
         />
         <Line
@@ -167,10 +167,18 @@ export default function MonetaryDonationTrendChart<T extends MonetaryDonationTre
           type="monotone"
           dataKey="donorCount"
           name="Donors"
-          stroke={theme.palette.warning.main}
+          stroke={theme.palette.warning.dark}
           strokeWidth={2}
-          dot={{ r: 4 }}
-          activeDot={{ r: 6 }}
+          dot={{
+            r: 4,
+            stroke: theme.palette.warning.dark,
+            fill: theme.palette.warning.dark,
+          }}
+          activeDot={{
+            r: 6,
+            stroke: theme.palette.warning.dark,
+            fill: theme.palette.warning.dark,
+          }}
           yAxisId="count"
         />
       </LineChart>
