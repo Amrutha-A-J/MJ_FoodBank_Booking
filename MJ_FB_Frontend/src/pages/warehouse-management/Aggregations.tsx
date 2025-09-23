@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   TableContainer,
   FormControl,
@@ -21,6 +21,9 @@ import {
   exportWarehouseOverall,
   postManualWarehouseOverall,
   type WarehouseOverall,
+  getWarehouseDonationHistory,
+  exportWarehouseDonationHistory,
+  type WarehouseDonationHistoryEntry,
 } from '../../api/warehouseOverall';
 import {
   getDonorAggregations,
@@ -50,6 +53,9 @@ export default function Aggregations() {
   const [exportLoading, setExportLoading] = useState(false);
   const [donorExportLoading, setDonorExportLoading] = useState(false);
   const donorTableRef = useRef<HTMLTableElement>(null);
+  const [historyRows, setHistoryRows] = useState<WarehouseDonationHistoryEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyExportLoading, setHistoryExportLoading] = useState(false);
   const [insertOpen, setInsertOpen] = useState(false);
   const [insertMonth, setInsertMonth] = useState('');
   const [insertDonations, setInsertDonations] = useState('');
@@ -187,6 +193,20 @@ export default function Aggregations() {
     { donations: 0, surplus: 0, pigPound: 0, petFood: 0, outgoingDonations: 0 },
   );
 
+  const currencyFormatter = useMemo(
+    () => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }),
+    [],
+  );
+
+  const historyTotals = historyRows.reduce(
+    (acc, row) => ({
+      donations: acc.donations + row.donations,
+      petFood: acc.petFood + row.petFood,
+      total: acc.total + row.total,
+    }),
+    { donations: 0, petFood: 0, total: 0 },
+  );
+
   async function handleExportOverall() {
     setExportLoading(true);
     try {
@@ -220,6 +240,45 @@ export default function Aggregations() {
       severity: success ? 'success' : 'error',
     });
     setDonorExportLoading(false);
+  }
+
+  useEffect(() => {
+    if (tab !== 2) return;
+    setHistoryLoading(true);
+    setHistoryRows([]);
+    getWarehouseDonationHistory()
+      .then(data => {
+        setHistoryRows(data);
+      })
+      .catch(() => {
+        setSnackbar({
+          open: true,
+          message: 'Failed to load donation history',
+          severity: 'error',
+        });
+        setHistoryRows([]);
+      })
+      .finally(() => setHistoryLoading(false));
+  }, [tab]);
+
+  async function handleExportDonationHistory() {
+    setHistoryExportLoading(true);
+    try {
+      const blob = await exportWarehouseDonationHistory();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'warehouse_donation_history.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setSnackbar({ open: true, message: 'Export ready', severity: 'success' });
+    } catch {
+      setSnackbar({ open: true, message: 'Failed to export', severity: 'error' });
+    } finally {
+      setHistoryExportLoading(false);
+    }
   }
 
   const donorContent = (
@@ -355,7 +414,6 @@ export default function Aggregations() {
           </Select>
         </FormControl>
         <Button
-
           variant="contained"
           onClick={handleExportOverall}
           disabled={exportLoading}
@@ -423,9 +481,82 @@ export default function Aggregations() {
     </>
   );
 
+  const historicalContent = (
+    <>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={{ xs: 1.5, sm: 2 }}
+        sx={{
+          mb: 2,
+          alignItems: { xs: 'stretch', sm: 'center' },
+        }}
+      >
+        <Button
+          variant="contained"
+          onClick={handleExportDonationHistory}
+          disabled={historyExportLoading}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
+        >
+          {historyExportLoading ? <CircularProgress size={20} /> : 'Export'}
+        </Button>
+      </Stack>
+      <TableContainer sx={{ overflow: 'auto', maxHeight: 400 }}>
+        {historyLoading ? (
+          <Stack alignItems="center" py={2}>
+            <CircularProgress size={24} />
+          </Stack>
+        ) : (
+          (() => {
+            type HistoryRow = WarehouseDonationHistoryEntry & { isTotal?: boolean };
+            const columns: Column<HistoryRow>[] = [
+              {
+                field: 'year',
+                header: 'Year',
+                render: row => (row.isTotal ? 'Total' : row.year),
+              },
+              {
+                field: 'donations',
+                header: 'Donations',
+                render: row => currencyFormatter.format(row.donations),
+              },
+              {
+                field: 'petFood',
+                header: 'Pet Food',
+                render: row => currencyFormatter.format(row.petFood),
+              },
+              {
+                field: 'total',
+                header: 'Total',
+                render: row => currencyFormatter.format(row.total),
+              },
+            ];
+
+            const rows: HistoryRow[] = historyRows.map(row => ({ ...row }));
+            rows.push({
+              year: 0,
+              donations: historyTotals.donations,
+              petFood: historyTotals.petFood,
+              total: historyTotals.total,
+              isTotal: true,
+            });
+
+            return (
+              <ResponsiveTable
+                columns={columns}
+                rows={rows}
+                getRowKey={row => (row.isTotal ? 'total' : row.year.toString())}
+              />
+            );
+          })()
+        )}
+      </TableContainer>
+    </>
+  );
+
   const tabs = [
     { label: 'Donor Aggregations', content: donorContent },
     { label: 'Yearly Overall Aggregations', content: overallContent },
+    { label: 'Historical Donations', content: historicalContent },
   ];
 
   return (
