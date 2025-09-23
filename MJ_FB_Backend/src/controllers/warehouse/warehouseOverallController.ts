@@ -144,6 +144,42 @@ export const listHistoricalDonations = asyncHandler(async (_req: Request, res: R
   res.json(formatted);
 });
 
+export const listMonthlyDonationHistory = asyncHandler(async (_req: Request, res: Response) => {
+  const result = await pool.query(
+    `SELECT
+         year,
+         month,
+         COALESCE(donations, 0)::int AS donations,
+         COALESCE(pet_food, 0)::int AS "petFood"
+       FROM warehouse_overall
+       ORDER BY year DESC, month`,
+  );
+
+  const history = new Map<number, { year: number; monthlyTotals: number[]; total: number }>();
+
+  for (const row of result.rows) {
+    const year = Number(row.year);
+    const month = Number(row.month);
+    const donations = Number(row.donations ?? 0);
+    const petFood = Number(row.petFood ?? 0);
+    if (!history.has(year)) {
+      history.set(year, { year, monthlyTotals: Array(12).fill(0), total: 0 });
+    }
+    const entry = history.get(year)!;
+    const incomingTotal = donations + petFood;
+    if (month >= 1 && month <= 12) {
+      entry.monthlyTotals[month - 1] = incomingTotal;
+    }
+    entry.total += incomingTotal;
+  }
+
+  const response = Array.from(history.keys())
+    .sort((a, b) => b - a)
+    .map(year => history.get(year)!);
+
+  res.json(response);
+});
+
 export const listAvailableYears = asyncHandler(async (_req: Request, res: Response) => {
   const result = await pool.query('SELECT DISTINCT year FROM warehouse_overall ORDER BY year DESC');
   res.json(result.rows.map(r => r.year));
@@ -312,6 +348,106 @@ export const exportHistoricalDonations = asyncHandler(async (_req: Request, res:
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
     .setHeader('Content-Disposition', 'attachment; filename=warehouse_historical_donations.xlsx');
+
+  res.send(buffer);
+});
+
+export const exportMonthlyDonationHistory = asyncHandler(async (_req: Request, res: Response) => {
+  const result = await pool.query(
+    `SELECT
+         year,
+         month,
+         COALESCE(donations, 0)::int AS donations,
+         COALESCE(pet_food, 0)::int AS "petFood"
+       FROM warehouse_overall
+       ORDER BY year, month`,
+  );
+
+  const dataByYear = new Map<number, number[]>();
+  for (const row of result.rows) {
+    const year = Number(row.year);
+    const month = Number(row.month);
+    const donations = Number(row.donations ?? 0);
+    const petFood = Number(row.petFood ?? 0);
+    if (!dataByYear.has(year)) {
+      dataByYear.set(year, Array(12).fill(0));
+    }
+    if (month >= 1 && month <= 12) {
+      const totals = dataByYear.get(year)!;
+      totals[month - 1] = donations + petFood;
+    }
+  }
+
+  const years = Array.from(dataByYear.keys()).sort((a, b) => a - b);
+
+  const monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  const headerStyle = {
+    backgroundColor: '#000000',
+    color: '#FFFFFF',
+    fontWeight: 'bold' as const,
+  };
+
+  const rows: Row[] = [
+    [
+      { value: 'Month', ...headerStyle },
+      ...years.map(year => ({ value: year, ...headerStyle })),
+      { value: 'Total', ...headerStyle },
+    ],
+  ];
+
+  const yearlyTotals = new Map<number, number>(years.map(year => [year, 0]));
+  let grandTotal = 0;
+
+  monthNames.forEach((name, index) => {
+    const monthValues = years.map(year => {
+      const totals = dataByYear.get(year) ?? Array(12).fill(0);
+      const value = totals[index] ?? 0;
+      yearlyTotals.set(year, (yearlyTotals.get(year) ?? 0) + value);
+      return value;
+    });
+    const monthTotal = monthValues.reduce((sum, value) => sum + value, 0);
+    grandTotal += monthTotal;
+    rows.push([
+      { value: name },
+      ...monthValues.map(value => ({ value })),
+      { value: monthTotal },
+    ]);
+  });
+
+  rows.push([
+    { value: 'Total', fontWeight: 'bold' },
+    ...years.map(year => ({ value: yearlyTotals.get(year) ?? 0, fontWeight: 'bold' })),
+    { value: grandTotal, fontWeight: 'bold' },
+  ]);
+
+  const buffer = await writeXlsxFile(rows, {
+    sheet: 'Monthly Donation History',
+    buffer: true,
+  });
+
+  res
+    .setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    .setHeader(
+      'Content-Disposition',
+      'attachment; filename=warehouse_monthly_donation_history.xlsx',
+    );
 
   res.send(buffer);
 });
