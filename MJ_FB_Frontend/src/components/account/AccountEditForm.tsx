@@ -91,6 +91,12 @@ export default function AccountEditForm({
     }
   }, [form.onlineAccess, showPasswordOverride]);
 
+  useEffect(() => {
+    if (!form.onlineAccess && form.password) {
+      setForm(prev => ({ ...prev, password: '' }));
+    }
+  }, [form.onlineAccess, form.password]);
+
   function togglePasswordField() {
     if (!showPasswordOverride && !form.onlineAccess) {
       updateForm('onlineAccess', true);
@@ -136,7 +142,6 @@ export default function AccountEditForm({
                           onChange={e =>
                             updateForm('onlineAccess', e.target.checked)
                           }
-                          disabled={form.hasPassword}
                           data-testid="online-access-toggle"
                         />
                       }

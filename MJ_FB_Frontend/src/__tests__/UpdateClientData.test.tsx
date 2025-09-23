@@ -111,7 +111,8 @@ describe('UpdateClientData', () => {
     });
 
     const checkbox = await screen.findByLabelText('Online Access');
-    expect(checkbox).toBeDisabled();
+    expect(checkbox).toBeChecked();
+    expect(checkbox).not.toBeDisabled();
     expect(screen.getByTestId('set-password-button')).toBeInTheDocument();
     expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
     fireEvent.click(screen.getByTestId('set-password-button'));
