@@ -2,22 +2,275 @@ import { Client } from 'pg';
 import config from './config';
 import logger from './utils/logger';
 
+export type DonorSeedResult = {
+  donorsSeeded: boolean;
+  missingNameColumn: boolean;
+};
+
+const baseDbConfig = {
+  user: config.pgUser,
+  password: config.pgPassword,
+  host: config.pgHost,
+  port: config.pgPort,
+};
+
+function createClient(database: string) {
+  return new Client({ ...baseDbConfig, database });
+}
+
+async function upsertDonors(client: Client): Promise<DonorSeedResult> {
+  const donorList = [
+    'AAWARRIORS',
+    'MOOSE JAW ALLICANCE CHURCH',
+    'A&W',
+    'AVE LIVING',
+    'AVONLEA SCHOOL',
+    '15 WING',
+    'BENTLY',
+    'BETTER HOMES & GARDENS',
+    'FOOD BANK BINS',
+    'BUDGET BLINDS',
+    'BUILDING BLOCKS DAY CARE',
+    'BULK BARN',
+    'BOUNCE A LOT CASINO',
+    'CAE BASE',
+    'CARONPORT/BRIERCREST SCHOOL',
+    'CENTRAL BUTTE UNITED CHURCH',
+    'CENTRAL COLLEGIATE SCHOOL',
+    'CENTRAL LUTHERAN CHURCH',
+    'SHERYL SCHOLAR',
+    "CHARLOTTES CATERING",
+    'CHAPLIN LUTHERAN CHURCH',
+    'CHURCH OF CHRIST',
+    'CHURCH OF OUR LADY',
+    'CHURCH OF GOD',
+    'COOPERATORS',
+    'COO-OP GROCERY',
+    'CO-OP BIN',
+    'CO-OP(GOODBUY TO HUNGER)',
+    'CORNACHE UNITED CHURCH',
+    'CORNERSTONE CHRISTIAN SCHOOL',
+    'CONEXUS',
+    'COMMUNITY GARDENS',
+    'CORONACH UNITED CHURCH',
+    'CULTURAL CENTER',
+    'DANCE IMAGES',
+    'DOEPKER INDUSTRIES',
+    'EMMANUAL LUTHERAN CHURCH',
+    'EMPIRE SCHOOL',
+    'EXTENDICARE',
+    'ELECTRIC FOG',
+    'FARM CREDIT',
+    'FINEFOODS PRODUCE',
+    'FRATURNAL ORDER OF EAGLES',
+    'FRENCH SCHOOL DAYCARE',
+    'FIRST BAPTIST CHURCH',
+    'FOOD BANKS SASKATCHEWAN',
+    'FOOD BANKS CANADA',
+    'BAILDON COLONY',
+    'FCC FOOD DRIVE',
+    'GIRLGUIDES',
+    'GIANT TIGER',
+    'GATX RAIL',
+    'JUDO CLUB SASK',
+    'HILLCREST APOSTOLIC CHURCH(BETTER TOGETHER FOOD DRIVE)',
+    'HERITAGE INN',
+    'HUNGER IN MOOSE JAW',
+    'HUB MEATS',
+    'HUTTERITTES COLONLY',
+    'CPKC HOLIDAY TRAIN',
+    'INVESTORS GROUP',
+    'KEONS',
+    'KINSMEN SANTA PARADE',
+    'KINSMEN MOVIE NIGHT',
+    'KIMS TAE KWON DO',
+    'KFC',
+    'KING GEORGE SCHOOL',
+    'LIVE STRONG FITNESS',
+    'LABOUR DISTRIC COUNCIL',
+    'LINDALE SCHOOL',
+    'HUNGER IN MOOSE JAW',
+    'MANKOTA UNITED CHURCH',
+    'MAGIC BY CHRIS',
+    'MINTO UNITED CHURCH',
+    'MJ MINOR FOOTBALL',
+    'MJ TRISKELIONS REGIONAL COUNCIL',
+    'MJREFINERY',
+    'MOOSE JAW CULTURAL CENTER',
+    'MJWARRIORS',
+    'MORTLACH SCHOOL',
+    'MULLBERRY ESTATES',
+    'MOSAIC FOOD FARM',
+    'NUTTERS',
+    'PAARISH & HEIMBECKER',
+    'PARADE HOMETOWN',
+    'PAMPERED CHEF',
+    'PALLISER HEIGHTS SCHOOL',
+    'PEACOCK SCHOOL',
+    'PIONEER LODGE',
+    'PETFOOD/PETVALUE',
+    'PRAIRIE OASIS',
+    'PRINCESS TEA',
+    'PRINCE ARTHUR SCHOOL',
+    'PRIVATE DONATIONS',
+    'RIVERSIDE MISSION(SOULS HARBOUR)',
+    'PRODUC PRIVATE HUTTERITE COLONIESE/5 FT CHALL',
+    'PRODUCE SAFEWAY',
+    'PRODUCE WALMART',
+    'PRODUCE PRIVATE',
+    'PRODUCE BTFD',
+    'PRODUC PHARMASAVE',
+    'FOOD SHARE REGINA',
+    'NO FRILLS',
+    'ROYAL BANK',
+    'NEXT GEN CAR SHOW(SPRING)',
+    'MAKE SPACE STORAGE',
+    'NEXT GEN CAR SHOW (FALL)',
+    'RIVERVIEW COLLEGIATE',
+    'UNION SOUTH STEEL',
+    'UNIION BBQ',
+    'UNION GROCERY',
+    'SACRED HEART SCHOOL',
+    'SAFEWAY',
+    'SAFEWAY (BINS)',
+    'SASKTEL',
+    'SASK ENERGY',
+    'SASK WATER',
+    'SASK SPCA',
+    'SECOND CHANCE THRIFT STORE',
+    'SIAST',
+    'SEIU WEST',
+    'SHOOPER DRUG MART (SECOND HARVEST)',
+    'SOBEYS',
+    'STARBUCKS',
+    'ST.AGNUS SCHOOL',
+    'ST. AIDEN SCHOOL',
+    'ST. ANDREW CHURCH',
+    'ST. BARNABAS CHURCH',
+    'ST.JOSEPHS CHURCH',
+    "ST.MARGARET SCHOOL",
+    'ST.MARKS CHURCH',
+    "ST.MARY'S SCHOOL",
+    'ST.MICHAELS SCHOOL',
+    'SUNNINGDALE SCHOOL',
+    'SUPERSTORE SECOND HARVEST',
+    'SUPERSTORE BIN',
+    'SUPERSTORE(SPRING)FEED MORE FAMILIES',
+    'SUPERSTORE(FILL THE VAN)',
+    'SUPERSTORE',
+    'SUPERSTORE (FALL)',
+    'TRADE SHOW',
+    'TRANSITION HOUSE',
+    'TEMPLE GARDENS',
+    'TOWN N COUNTRY MALL',
+    'TRINITY UNITED CHURCH',
+    'TWISTED SISTER ICE CREAM PARLOR',
+    'VANIER COLLEGIATE',
+    'VEROBAS',
+    'VICTORIA TOWERS',
+    'VILLAGE OF TUXFORD',
+    'WAREHOUSE ONE JEANS',
+    'WALMART',
+    'WALMART(FIGHT HUNGER SPARK CHANGE)',
+    'WALKAMOW VALLEY',
+    'WELLS CAMERA A& SOUND',
+    'WESTMOUNT SCHOOL',
+    'WINDSOR SALT',
+    'WILLIAM GRAYSON SCHOOL',
+    'ZOMBIE WALK',
+    'ZION CHURCH',
+  ];
+  const donors = [...new Set(donorList.map(name => name.trim()))];
+
+  const hasNameColumn = await client
+    .query<{ exists: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1
+           FROM information_schema.columns
+          WHERE table_name = 'donors'
+            AND column_name = 'name'
+       ) AS exists`,
+    )
+    .then(result => result.rows[0]?.exists ?? false);
+
+  if (!hasNameColumn) {
+    logger.warn(
+      "Skipping donor seed because the 'donors.name' column is missing. Apply pending migrations and rerun the seed.",
+    );
+    return { donorsSeeded: false, missingNameColumn: true };
+  }
+
+  await client.query(
+    "ALTER TABLE donors ADD COLUMN IF NOT EXISTS is_pet_food boolean DEFAULT false NOT NULL;",
+  );
+
+  const donorValues: string[] = [];
+  const params: (string | boolean)[] = [];
+  donors.forEach((name, index) => {
+    const normalized = name.replace(/[^a-z]/gi, '').toLowerCase();
+    const isPetFood = /petfood/.test(normalized) || /petvalue/.test(normalized);
+    params.push(name, isPetFood);
+    donorValues.push(`($${index * 2 + 1}, $${index * 2 + 2})`);
+  });
+
+  const hasUniqueNameConstraint = await client
+    .query(
+      `SELECT 1
+       FROM pg_constraint c
+       JOIN pg_class t ON c.conrelid = t.oid
+       JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY (c.conkey)
+       WHERE t.relname = 'donors'
+         AND c.contype IN ('p', 'u')
+         AND array_length(c.conkey, 1) = 1
+         AND a.attname = 'name'`,
+    )
+    .then(res => (res.rowCount ?? 0) > 0);
+
+  const hasUniqueNameIndex = await client
+    .query(
+      `SELECT 1
+       FROM pg_index i
+       JOIN pg_class idx ON idx.oid = i.indexrelid
+       JOIN pg_class tbl ON tbl.oid = i.indrelid
+       JOIN pg_attribute a ON a.attrelid = tbl.oid AND a.attnum = ANY (i.indkey)
+       WHERE tbl.relname = 'donors'
+         AND i.indisunique = true
+         AND array_length(i.indkey, 1) = 1
+         AND a.attname = 'name'
+       LIMIT 1`,
+    )
+    .then(res => (res.rowCount ?? 0) > 0);
+
+  let onConflictClause = '';
+  if (hasUniqueNameConstraint) {
+    onConflictClause =
+      ' ON CONFLICT (name) DO UPDATE SET is_pet_food = donors.is_pet_food OR EXCLUDED.is_pet_food';
+  } else if (hasUniqueNameIndex) {
+    onConflictClause = ' ON CONFLICT DO UPDATE SET is_pet_food = donors.is_pet_food OR EXCLUDED.is_pet_food';
+  }
+
+  if (donorValues.length === 0) {
+    return { donorsSeeded: false, missingNameColumn: false };
+  }
+
+  await client.query(
+    `INSERT INTO donors (name, is_pet_food) VALUES ${donorValues.join(',')}${onConflictClause};`,
+    params,
+  );
+
+  return { donorsSeeded: true, missingNameColumn: false };
+}
+
 /**
  * Initializes the database if it does not exist.
  * All schema changes must be implemented via migrations in src/migrations.
  * Do not modify this file for schema updates.
  */
-export async function setupDatabase() {
+export async function setupDatabase(): Promise<DonorSeedResult> {
   const dbName = config.pgDatabase;
-  const dbConfig = {
-    user: config.pgUser,
-    password: config.pgPassword,
-    host: config.pgHost,
-    port: config.pgPort,
-  };
 
   // Connect to default database to ensure target database exists
-  const adminClient = new Client({ ...dbConfig, database: 'postgres' });
+  const adminClient = createClient('postgres');
   await adminClient.connect();
   const dbExists = await adminClient.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
   if ((dbExists.rowCount ?? 0) === 0) {
@@ -31,7 +284,7 @@ export async function setupDatabase() {
   await adminClient.end();
 
   // Now connect to the target database
-  const client = new Client({ ...dbConfig, database: dbName });
+  const client = createClient(dbName);
   await client.connect();
 
   // Create tables if they do not exist
@@ -775,56 +1028,19 @@ WHERE NOT EXISTS (
     'ZOMBIE WALK',
     'ZION CHURCH',
   ];
-  const donors = [...new Set(donorList.map(name => name.trim()))];
+  const donorSeedResult = await upsertDonors(client);
 
-  await client.query(
-    "ALTER TABLE donors ADD COLUMN IF NOT EXISTS is_pet_food boolean DEFAULT false NOT NULL;",
-  );
-  const donorValues: string[] = [];
-  const params: (string | boolean)[] = [];
-  donors.forEach((name, index) => {
-    const normalized = name.replace(/[^a-z]/gi, '').toLowerCase();
-    const isPetFood = /petfood/.test(normalized) || /petvalue/.test(normalized);
-    params.push(name, isPetFood);
-    donorValues.push(`($${index * 2 + 1}, $${index * 2 + 2})`);
-  });
-  const hasUniqueNameConstraint = await client
-    .query(
-      `SELECT 1
-       FROM pg_constraint c
-       JOIN pg_class t ON c.conrelid = t.oid
-       JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY (c.conkey)
-       WHERE t.relname = 'donors'
-         AND c.contype IN ('p', 'u')
-         AND array_length(c.conkey, 1) = 1
-         AND a.attname = 'name'`,
-    )
-    .then(res => (res.rowCount ?? 0) > 0);
-  const hasUniqueNameIndex = await client
-    .query(
-      `SELECT 1
-       FROM pg_index i
-       JOIN pg_class idx ON idx.oid = i.indexrelid
-       JOIN pg_class tbl ON tbl.oid = i.indrelid
-       JOIN pg_attribute a ON a.attrelid = tbl.oid AND a.attnum = ANY (i.indkey)
-       WHERE tbl.relname = 'donors'
-         AND i.indisunique = true
-         AND array_length(i.indkey, 1) = 1
-         AND a.attname = 'name'
-       LIMIT 1`,
-    )
-    .then(res => (res.rowCount ?? 0) > 0);
-  let onConflictClause = '';
-  if (hasUniqueNameConstraint) {
-    onConflictClause =
-      ' ON CONFLICT (name) DO UPDATE SET is_pet_food = donors.is_pet_food OR EXCLUDED.is_pet_food';
-  } else if (hasUniqueNameIndex) {
-    onConflictClause = ' ON CONFLICT DO UPDATE SET is_pet_food = donors.is_pet_food OR EXCLUDED.is_pet_food';
-  }
-  await client.query(
-    `INSERT INTO donors (name, is_pet_food) VALUES ${donorValues.join(',')}${onConflictClause};`,
-    params,
-  );
   logger.info('Database setup complete');
   await client.end();
+  return donorSeedResult;
+}
+
+export async function seedDonors(): Promise<DonorSeedResult> {
+  const client = createClient(config.pgDatabase);
+  await client.connect();
+  try {
+    return await upsertDonors(client);
+  } finally {
+    await client.end();
+  }
 }
