@@ -167,6 +167,13 @@ describe('FoodBankTrends', () => {
     typeof useMonetaryDonorInsights
   >;
 
+  const selectTrend = async (optionLabel: RegExp | string) => {
+    const select = await screen.findByRole('combobox', { name: /trend view/i });
+    fireEvent.mouseDown(select);
+    const option = await screen.findByRole('option', { name: optionLabel });
+    fireEvent.click(option);
+  };
+
   beforeAll(() => {
     jest.useFakeTimers();
     jest.setSystemTime(fakeNow);
@@ -231,6 +238,7 @@ describe('FoodBankTrends', () => {
       </MemoryRouter>,
     );
 
+    await selectTrend(/warehouse trends/i);
     await screen.findByText('Click a point to view totals for that month.');
 
     const chartButton = await screen.findByTestId('mock-trend-chart');
@@ -278,6 +286,7 @@ describe('FoodBankTrends', () => {
       </MemoryRouter>,
     );
 
+    await selectTrend(/donation trends/i);
     expect(mockUseMonetaryDonorInsights).toHaveBeenCalledWith({ months: 12, enabled: true });
 
     const ytdChip = await screen.findByTestId('donation-ytd-total');
@@ -298,6 +307,7 @@ describe('FoodBankTrends', () => {
       </MemoryRouter>,
     );
 
+    await selectTrend(/donation trends/i);
     expect(mockUseMonetaryDonorInsights).toHaveBeenCalledWith({ months: 12, enabled: true });
     expect(await screen.findByTestId('donation-ytd-total')).toHaveTextContent('YTD total: $30,000.00');
     expect(screen.queryByText('You do not have permission to view monetary donor insights.')).not.toBeInTheDocument();
@@ -318,6 +328,7 @@ describe('FoodBankTrends', () => {
       </MemoryRouter>,
     );
 
+    await selectTrend(/donation trends/i);
     expect(
       await screen.findByText('You do not have permission to view monetary donor insights.'),
     ).toBeInTheDocument();

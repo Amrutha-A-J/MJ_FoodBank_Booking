@@ -104,9 +104,19 @@ const givingTierLabels: Record<MonetaryDonorMonthBucket, string> = {
   '10001-30000': '$10,001–$30,000',
 };
 
+type TrendCategory = 'pantry' | 'donation' | 'warehouse';
+
+const trendOptions: Array<{ value: TrendCategory; label: string }> = [
+  { value: 'pantry', label: 'Pantry trends' },
+  { value: 'donation', label: 'Donation trends' },
+  { value: 'warehouse', label: 'Warehouse trends' },
+];
+
 export default function FoodBankTrends() {
   const { role } = useAuth();
   const isStaff = role === 'staff';
+
+  const [selectedTrend, setSelectedTrend] = useState<TrendCategory>('pantry');
 
   const [visitStats, setVisitStats] = useState<VisitStat[]>([]);
   const [pantryLoading, setPantryLoading] = useState(true);
@@ -493,443 +503,495 @@ export default function FoodBankTrends() {
 
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, lg: 8 }}>
-          <Stack spacing={3}>
-            <SectionCard title="Pantry & Community">
-              <Box
-                display="grid"
-                gridTemplateColumns={{ xs: '1fr', md: 'repeat(2, 1fr)' }}
-                gap={2}
+          <Stack spacing={2}>
+            <FormControl size="small" sx={{ maxWidth: 220 }}>
+              <InputLabel id="trend-category-label">Trend view</InputLabel>
+              <Select
+                labelId="trend-category-label"
+                label="Trend view"
+                value={selectedTrend}
+                onChange={event => setSelectedTrend(event.target.value as TrendCategory)}
               >
-                <Card variant="outlined">
-                  <CardHeader title="Monthly Visits" />
-                  <CardContent sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}>
-                    {pantryLoading ? (
-                      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                        <CircularProgress size={24} />
-                      </Box>
-                    ) : pantryError ? (
-                      <Typography variant="body2" color="text.secondary">
-                        {pantryError}
-                      </Typography>
-                    ) : visitStats.length ? (
-                      <>
-                        <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-                          <ClientVisitTrendChart data={visitStats} onPointSelect={setSelectedVisit} />
-                        </Box>
-                        {selectedVisit ? (
-                          <Stack
-                            direction={{ xs: 'column', sm: 'row' }}
-                            spacing={1.5}
-                            alignItems={{ xs: 'flex-start', sm: 'center' }}
-                            sx={{ mt: 2 }}
+                {trendOptions.map(option => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Stack spacing={3}>
+              {selectedTrend === 'pantry' ? (
+                <SectionCard title="Pantry & Community">
+                  <Box
+                    display="grid"
+                    gridTemplateColumns={{ xs: '1fr', md: 'repeat(2, 1fr)' }}
+                    gap={2}
+                  >
+                    <Card variant="outlined">
+                      <CardHeader title="Monthly Visits" />
+                      <CardContent
+                        sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}
+                      >
+                        {pantryLoading ? (
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            height="100%"
                           >
-                            <Typography variant="subtitle2">
-                              {formatVisitMonthLabel(selectedVisit.month)}
-                            </Typography>
+                            <CircularProgress size={24} />
+                          </Box>
+                        ) : pantryError ? (
+                          <Typography variant="body2" color="text.secondary">
+                            {pantryError}
+                          </Typography>
+                        ) : visitStats.length ? (
+                          <>
+                            <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                              <ClientVisitTrendChart data={visitStats} onPointSelect={setSelectedVisit} />
+                            </Box>
+                            {selectedVisit ? (
+                              <Stack
+                                direction={{ xs: 'column', sm: 'row' }}
+                                spacing={1.5}
+                                alignItems={{ xs: 'flex-start', sm: 'center' }}
+                                sx={{ mt: 2 }}
+                              >
+                                <Typography variant="subtitle2">
+                                  {formatVisitMonthLabel(selectedVisit.month)}
+                                </Typography>
+                                <Chip
+                                  label={`Total visits: ${selectedVisit.clients.toLocaleString()}`}
+                                  color="error"
+                                  variant="outlined"
+                                />
+                              </Stack>
+                            ) : null}
+                          </>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            No data available.
+                          </Typography>
+                        )}
+                      </CardContent>
+                    </Card>
+                    <Card variant="outlined">
+                      <CardHeader title="Adults vs Children" />
+                      <CardContent
+                        sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}
+                      >
+                        {pantryLoading ? (
+                          <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            height="100%"
+                          >
+                            <CircularProgress size={24} />
+                          </Box>
+                        ) : pantryError ? (
+                          <Typography variant="body2" color="text.secondary">
+                            {pantryError}
+                          </Typography>
+                        ) : visitStats.length ? (
+                          <>
+                            <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                              <ClientVisitBreakdownChart
+                                data={visitStats}
+                                onPointSelect={setSelectedVisit}
+                              />
+                            </Box>
+                            {selectedVisit ? (
+                              <Stack spacing={1.5} sx={{ mt: 2 }}>
+                                <Typography variant="subtitle2">
+                                  {formatVisitMonthLabel(selectedVisit.month)}
+                                </Typography>
+                                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                                  <Chip
+                                    label={`Adults: ${selectedVisit.adults.toLocaleString()}`}
+                                    color="success"
+                                    variant="outlined"
+                                  />
+                                  <Chip
+                                    label={`Children: ${selectedVisit.children.toLocaleString()}`}
+                                    color="info"
+                                    variant="outlined"
+                                  />
+                                </Stack>
+                              </Stack>
+                            ) : null}
+                          </>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            No data available.
+                          </Typography>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Box>
+                </SectionCard>
+              ) : null}
+
+              {selectedTrend === 'donation' ? (
+                <SectionCard title="Monetary Donations">
+                  {!isStaff || donorInsightsForbidden ? (
+                    <Typography variant="body2" color="text.secondary">
+                      {donorInsightsPermissionMessage}
+                    </Typography>
+                  ) : donorInsights.isLoading ? (
+                    <Box display="flex" justifyContent="center" py={2}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : donorInsightsErrorMessage ? (
+                    <Typography variant="body2" color="text.secondary">
+                      {donorInsightsErrorMessage}
+                    </Typography>
+                  ) : (
+                    <Stack spacing={2}>
+                      {ytdSummary ? (
+                        <Stack spacing={1}>
+                          <Typography variant="subtitle2">Year to date</Typography>
+                          <Stack
+                            direction={{ xs: 'column', md: 'row' }}
+                            spacing={1}
+                            flexWrap="wrap"
+                            useFlexGap
+                            alignItems={{ xs: 'flex-start', md: 'center' }}
+                          >
                             <Chip
-                              label={`Total visits: ${selectedVisit.clients.toLocaleString()}`}
-                              color="error"
+                              data-testid="donation-ytd-total"
+                              label={`YTD total: ${currencyFormatter.format(ytdSummary.totalAmount)}`}
+                              color="primary"
+                              variant="outlined"
+                            />
+                            <Chip
+                              data-testid="donation-ytd-average"
+                              label={`Avg gift: ${currencyFormatter.format(ytdSummary.averageGift)}`}
+                              color="success"
+                              variant="outlined"
+                            />
+                            <Chip
+                              label={`Donations: ${ytdSummary.donationCount.toLocaleString()}`}
+                              color="info"
+                              variant="outlined"
+                            />
+                            <Chip
+                              label={`Donors: ${ytdSummary.donorCount.toLocaleString()}`}
+                              color="warning"
                               variant="outlined"
                             />
                           </Stack>
-                        ) : null}
-                      </>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        No data available.
-                      </Typography>
-                    )}
-                  </CardContent>
-                </Card>
-                <Card variant="outlined">
-                  <CardHeader title="Adults vs Children" />
-                  <CardContent sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}>
-                    {pantryLoading ? (
-                      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                        <CircularProgress size={24} />
-                      </Box>
-                    ) : pantryError ? (
-                      <Typography variant="body2" color="text.secondary">
-                        {pantryError}
-                      </Typography>
-                    ) : visitStats.length ? (
-                      <>
-                        <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-                          <ClientVisitBreakdownChart
-                            data={visitStats}
-                            onPointSelect={setSelectedVisit}
-                          />
-                        </Box>
-                        {selectedVisit ? (
-                          <Stack spacing={1.5} sx={{ mt: 2 }}>
-                            <Typography variant="subtitle2">
-                              {formatVisitMonthLabel(selectedVisit.month)}
-                            </Typography>
-                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                              <Chip
-                                label={`Adults: ${selectedVisit.adults.toLocaleString()}`}
-                                color="success"
-                                variant="outlined"
-                              />
-                              <Chip
-                                label={`Children: ${selectedVisit.children.toLocaleString()}`}
-                                color="info"
-                                variant="outlined"
-                              />
-                            </Stack>
-                          </Stack>
-                        ) : null}
-                      </>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        No data available.
-                      </Typography>
-                    )}
-                  </CardContent>
-                </Card>
-              </Box>
-            </SectionCard>
-
-            <SectionCard title="Monetary Donations">
-              {!isStaff || donorInsightsForbidden ? (
-                <Typography variant="body2" color="text.secondary">
-                  {donorInsightsPermissionMessage}
-                </Typography>
-              ) : donorInsights.isLoading ? (
-                <Box display="flex" justifyContent="center" py={2}>
-                  <CircularProgress size={24} />
-                </Box>
-              ) : donorInsightsErrorMessage ? (
-                <Typography variant="body2" color="text.secondary">
-                  {donorInsightsErrorMessage}
-                </Typography>
-              ) : (
-                <Stack spacing={2}>
-                  {ytdSummary ? (
-                    <Stack spacing={1}>
-                      <Typography variant="subtitle2">Year to date</Typography>
-                      <Stack
-                        direction={{ xs: 'column', md: 'row' }}
-                        spacing={1}
-                        flexWrap="wrap"
-                        useFlexGap
-                        alignItems={{ xs: 'flex-start', md: 'center' }}
-                      >
-                        <Chip
-                          data-testid="donation-ytd-total"
-                          label={`YTD total: ${currencyFormatter.format(ytdSummary.totalAmount)}`}
-                          color="primary"
-                          variant="outlined"
+                        </Stack>
+                      ) : null}
+                      <Card variant="outlined">
+                        <CardHeader
+                          title="Donation Trend (12 months)"
+                          subheader="Click a point to view monthly totals."
+                          action={
+                            donorInsights.isFetching && !donorInsights.isLoading ? (
+                              <CircularProgress size={20} />
+                            ) : undefined
+                          }
                         />
-                        <Chip
-                          data-testid="donation-ytd-average"
-                          label={`Avg gift: ${currencyFormatter.format(ytdSummary.averageGift)}`}
-                          color="success"
-                          variant="outlined"
-                        />
-                        <Chip
-                          label={`Donations: ${ytdSummary.donationCount.toLocaleString()}`}
-                          color="info"
-                          variant="outlined"
-                        />
-                        <Chip
-                          label={`Donors: ${ytdSummary.donorCount.toLocaleString()}`}
-                          color="warning"
-                          variant="outlined"
-                        />
-                      </Stack>
-                    </Stack>
-                  ) : null}
-                  <Card variant="outlined">
-                    <CardHeader
-                      title="Donation Trend (12 months)"
-                      subheader="Click a point to view monthly totals."
-                      action={
-                        donorInsights.isFetching && !donorInsights.isLoading ? (
-                          <CircularProgress size={20} />
-                        ) : undefined
-                      }
-                    />
-                    <CardContent sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}>
-                      {donationTrendData.length ? (
-                        <>
-                          <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-                            <MonetaryDonationTrendChart
-                              data={donationTrendData}
-                              onPointSelect={handleDonationPointSelect}
-                            />
-                          </Box>
-                          {selectedDonationMonth ? (
-                            <Stack
-                              direction={{ xs: 'column', sm: 'row' }}
-                              spacing={1.5}
-                              alignItems={{ xs: 'flex-start', sm: 'center' }}
-                              sx={{ mt: 2 }}
-                            >
-                              <Typography variant="subtitle2" data-testid="donation-trend-month">
-                                {formatVisitMonthLabel(selectedDonationMonth.month)}
-                              </Typography>
-                              <Stack
-                                direction={{ xs: 'column', sm: 'row' }}
-                                spacing={1}
-                                flexWrap="wrap"
-                                useFlexGap
-                              >
-                                <Chip
-                                  label={`Amount: ${currencyFormatter.format(selectedDonationMonth.totalAmount)}`}
-                                  color="primary"
-                                  variant="outlined"
-                                  data-testid="donation-trend-amount"
+                        <CardContent
+                          sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}
+                        >
+                          {donationTrendData.length ? (
+                            <>
+                              <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                                <MonetaryDonationTrendChart
+                                  data={donationTrendData}
+                                  onPointSelect={handleDonationPointSelect}
                                 />
-                                <Chip
-                                  label={`Donations: ${selectedDonationMonth.donationCount.toLocaleString()}`}
-                                  color="info"
-                                  variant="outlined"
-                                />
-                                <Chip
-                                  label={`Donors: ${selectedDonationMonth.donorCount.toLocaleString()}`}
-                                  color="warning"
-                                  variant="outlined"
-                                />
-                                <Chip
-                                  label={`Avg gift: ${currencyFormatter.format(selectedDonationMonth.averageGift)}`}
-                                  color="success"
-                                  variant="outlined"
-                                />
-                              </Stack>
-                            </Stack>
-                          ) : null}
-                        </>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          No data available.
-                        </Typography>
-                      )}
-                    </CardContent>
-                  </Card>
-                  {hasGivingTierData ? (
-                    <Card variant="outlined">
-                      <CardHeader title="Giving Tiers" subheader={givingTierSubtitle} />
-                      <CardContent sx={{ minHeight: 320 }}>
-                        <MonetaryGivingTierChart data={givingTierData} />
-                      </CardContent>
-                    </Card>
-                  ) : null}
-                </Stack>
-              )}
-            </SectionCard>
-
-            <SectionCard title="Warehouse Overview">
-              <Stack spacing={2}>
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  spacing={2}
-                  alignItems={{ xs: 'flex-start', sm: 'center' }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    Annual warehouse totals
-                  </Typography>
-                  <FormControl sx={{ minWidth: 120 }} size="small">
-                    <InputLabel id="warehouse-year-label">Year</InputLabel>
-                    <Select
-                      labelId="warehouse-year-label"
-                      label="Year"
-                      value={selectedYear ?? ''}
-                      onChange={event => setSelectedYear(Number(event.target.value))}
-                      disabled={yearsLoading || years.length === 0}
-                    >
-                      {years.map(year => (
-                        <MenuItem key={year} value={year}>
-                          {year}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Stack>
-
-                <Stack spacing={2}>
-                  <Card variant="outlined">
-                    <CardHeader title="Monthly Trend" />
-                    <CardContent sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}>
-                      {warehouseLoading ? (
-                        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                          <CircularProgress size={24} />
-                        </Box>
-                      ) : warehouseError ? (
-                        <Typography variant="body2" color="text.secondary">
-                          {warehouseError}
-                        </Typography>
-                      ) : hasWarehouseData ? (
-                        <>
-                          <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-                            <WarehouseTrendChart
-                              data={chartData}
-                              onPointSelect={datum =>
-                                setSelectedWarehousePoint({
-                                  month: datum.month,
-                                  incoming: datum.incoming,
-                                  outgoing: datum.outgoing,
-                                  petFood: datum.petFood,
-                                })
-                              }
-                            />
-                          </Box>
-                          {selectedWarehousePoint ? (
-                            <Stack
-                              direction={{ xs: 'column', sm: 'row' }}
-                              spacing={1.5}
-                              alignItems={{ xs: 'flex-start', sm: 'center' }}
-                              sx={{ mt: 2 }}
-                            >
-                              <Typography variant="subtitle2">
-                                {selectedWarehousePoint.month}
-                                {selectedYear ? ` ${selectedYear}` : ''}
-                              </Typography>
-                              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                                <Chip
-                                  label={`Incoming: ${fmtLbs(selectedWarehousePoint.incoming)}`}
-                                  color="success"
-                                  variant="outlined"
-                                  data-testid="warehouse-trend-incoming"
-                                />
-                                <Chip
-                                  label={`Outgoing: ${fmtLbs(selectedWarehousePoint.outgoing)}`}
-                                  color="error"
-                                  variant="outlined"
-                                  data-testid="warehouse-trend-outgoing"
-                                />
-                                <Chip
-                                  label={`Pet Food: ${fmtLbs(selectedWarehousePoint.petFood)}`}
-                                  color="secondary"
-                                  variant="outlined"
-                                  data-testid="warehouse-trend-pet-food"
-                                />
-                              </Stack>
-                            </Stack>
+                              </Box>
+                              {selectedDonationMonth ? (
+                                <Stack
+                                  direction={{ xs: 'column', sm: 'row' }}
+                                  spacing={1.5}
+                                  alignItems={{ xs: 'flex-start', sm: 'center' }}
+                                  sx={{ mt: 2 }}
+                                >
+                                  <Typography variant="subtitle2" data-testid="donation-trend-month">
+                                    {formatVisitMonthLabel(selectedDonationMonth.month)}
+                                  </Typography>
+                                  <Stack
+                                    direction={{ xs: 'column', sm: 'row' }}
+                                    spacing={1}
+                                    flexWrap="wrap"
+                                    useFlexGap
+                                  >
+                                    <Chip
+                                      label={`Amount: ${currencyFormatter.format(selectedDonationMonth.totalAmount)}`}
+                                      color="primary"
+                                      variant="outlined"
+                                      data-testid="donation-trend-amount"
+                                    />
+                                    <Chip
+                                      label={`Donations: ${selectedDonationMonth.donationCount.toLocaleString()}`}
+                                      color="info"
+                                      variant="outlined"
+                                    />
+                                    <Chip
+                                      label={`Donors: ${selectedDonationMonth.donorCount.toLocaleString()}`}
+                                      color="warning"
+                                      variant="outlined"
+                                    />
+                                    <Chip
+                                      label={`Avg gift: ${currencyFormatter.format(selectedDonationMonth.averageGift)}`}
+                                      color="success"
+                                      variant="outlined"
+                                    />
+                                  </Stack>
+                                </Stack>
+                              ) : null}
+                            </>
                           ) : (
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                              Click a point to view totals for that month.
+                            <Typography variant="body2" color="text.secondary">
+                              No data available.
                             </Typography>
                           )}
-                        </>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          No data available.
-                        </Typography>
-                      )}
-                    </CardContent>
-                  </Card>
-                  <Card variant="outlined">
-                    <CardHeader title="Composition" subheader="By month" />
-                    <CardContent sx={{ height: 300 }}>
-                      {warehouseLoading ? (
-                        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                          <CircularProgress size={24} />
-                        </Box>
-                      ) : warehouseError ? (
-                        <Typography variant="body2" color="text.secondary">
-                          {warehouseError}
-                        </Typography>
-                      ) : hasWarehouseData ? (
-                        <WarehouseCompositionChart
-                          data={chartData}
-                          onBarClick={handleCompositionClick}
-                        />
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          No data available.
-                        </Typography>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Stack>
+                        </CardContent>
+                      </Card>
+                      {hasGivingTierData ? (
+                        <Card variant="outlined">
+                          <CardHeader title="Giving Tiers" subheader={givingTierSubtitle} />
+                          <CardContent sx={{ minHeight: 320 }}>
+                            <MonetaryGivingTierChart data={givingTierData} />
+                          </CardContent>
+                        </Card>
+                      ) : null}
+                    </Stack>
+                  )}
+                </SectionCard>
+              ) : null}
 
-                <Box
-                  display="grid"
-                  gridTemplateColumns={{ xs: '1fr', md: 'repeat(2, 1fr)' }}
-                  gap={2}
-                >
-                  <Card variant="outlined">
-                    <CardHeader
-                      title="Top Donors"
-                      subheader="This year by total lbs"
-                      action={<Chip label={donors.length} />}
-                    />
-                    <CardContent>
-                      {warehouseLoading ? (
-                        <Box display="flex" justifyContent="center" py={2}>
-                          <CircularProgress size={24} />
-                        </Box>
-                      ) : donorError ? (
-                        <Typography variant="body2" color="text.secondary">
-                          {donorError}
-                        </Typography>
-                      ) : donors.length ? (
-                        <Stack spacing={1}>
-                          {donors.map((donor, index) => (
-                            <Stack key={index} direction="row" justifyContent="space-between">
-                              <Box>
-                                <Typography variant="body2">
-                                  {donor.name}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {donor.lastDonationISO
-                                    ? `Last: ${formatLocaleDate(donor.lastDonationISO)}`
-                                    : 'No recent donation'}
-                                </Typography>
-                              </Box>
-                              <Typography variant="body2">{fmtLbs(donor.totalLbs)}</Typography>
-                            </Stack>
+              {selectedTrend === 'warehouse' ? (
+                <SectionCard title="Warehouse Overview">
+                  <Stack spacing={2}>
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      spacing={2}
+                      alignItems={{ xs: 'flex-start', sm: 'center' }}
+                    >
+                      <Typography variant="body2" color="text.secondary">
+                        Annual warehouse totals
+                      </Typography>
+                      <FormControl sx={{ minWidth: 120 }} size="small">
+                        <InputLabel id="warehouse-year-label">Year</InputLabel>
+                        <Select
+                          labelId="warehouse-year-label"
+                          label="Year"
+                          value={selectedYear ?? ''}
+                          onChange={event => setSelectedYear(Number(event.target.value))}
+                          disabled={yearsLoading || years.length === 0}
+                        >
+                          {years.map(year => (
+                            <MenuItem key={year} value={year}>
+                              {year}
+                            </MenuItem>
                           ))}
-                        </Stack>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          No data available.
-                        </Typography>
-                      )}
-                    </CardContent>
-                  </Card>
-                  <Card variant="outlined">
-                    <CardHeader
-                      title="Top Receivers"
-                      subheader="This year by total lbs"
-                      action={<Chip label={receivers.length} />}
-                    />
-                    <CardContent>
-                      {warehouseLoading ? (
-                        <Box display="flex" justifyContent="center" py={2}>
-                          <CircularProgress size={24} />
-                        </Box>
-                      ) : receiverError ? (
-                        <Typography variant="body2" color="text.secondary">
-                          {receiverError}
-                        </Typography>
-                      ) : receivers.length ? (
-                        <Stack spacing={1}>
-                          {receivers.map((receiver, index) => (
-                            <Stack key={index} direction="row" justifyContent="space-between">
-                              <Box>
-                                <Typography variant="body2">{receiver.name}</Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {receiver.lastPickupISO
-                                    ? `Last: ${formatLocaleDate(receiver.lastPickupISO)}`
-                                    : 'No recent pickup'}
-                                </Typography>
+                        </Select>
+                      </FormControl>
+                    </Stack>
+
+                    <Stack spacing={2}>
+                      <Card variant="outlined">
+                        <CardHeader title="Monthly Trend" />
+                        <CardContent
+                          sx={{ minHeight: 320, display: 'flex', flexDirection: 'column' }}
+                        >
+                          {warehouseLoading ? (
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                              height="100%"
+                            >
+                              <CircularProgress size={24} />
+                            </Box>
+                          ) : warehouseError ? (
+                            <Typography variant="body2" color="text.secondary">
+                              {warehouseError}
+                            </Typography>
+                          ) : hasWarehouseData ? (
+                            <>
+                              <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                                <WarehouseTrendChart
+                                  data={chartData}
+                                  onPointSelect={datum =>
+                                    setSelectedWarehousePoint({
+                                      month: datum.month,
+                                      incoming: datum.incoming,
+                                      outgoing: datum.outgoing,
+                                      petFood: datum.petFood,
+                                    })
+                                  }
+                                />
                               </Box>
-                              <Typography variant="body2">{fmtLbs(receiver.totalLbs)}</Typography>
+                              {selectedWarehousePoint ? (
+                                <Stack
+                                  direction={{ xs: 'column', sm: 'row' }}
+                                  spacing={1.5}
+                                  alignItems={{ xs: 'flex-start', sm: 'center' }}
+                                  sx={{ mt: 2 }}
+                                >
+                                  <Typography variant="subtitle2">
+                                    {selectedWarehousePoint.month}
+                                    {selectedYear ? ` ${selectedYear}` : ''}
+                                  </Typography>
+                                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                                    <Chip
+                                      label={`Incoming: ${fmtLbs(selectedWarehousePoint.incoming)}`}
+                                      color="success"
+                                      variant="outlined"
+                                      data-testid="warehouse-trend-incoming"
+                                    />
+                                    <Chip
+                                      label={`Outgoing: ${fmtLbs(selectedWarehousePoint.outgoing)}`}
+                                      color="error"
+                                      variant="outlined"
+                                      data-testid="warehouse-trend-outgoing"
+                                    />
+                                    <Chip
+                                      label={`Pet Food: ${fmtLbs(selectedWarehousePoint.petFood)}`}
+                                      color="secondary"
+                                      variant="outlined"
+                                      data-testid="warehouse-trend-pet-food"
+                                    />
+                                  </Stack>
+                                </Stack>
+                              ) : (
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                                  Click a point to view totals for that month.
+                                </Typography>
+                              )}
+                            </>
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              No data available.
+                            </Typography>
+                          )}
+                        </CardContent>
+                      </Card>
+                      <Card variant="outlined">
+                        <CardHeader title="Composition" subheader="By month" />
+                        <CardContent sx={{ height: 300 }}>
+                          {warehouseLoading ? (
+                            <Box
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                              height="100%"
+                            >
+                              <CircularProgress size={24} />
+                            </Box>
+                          ) : warehouseError ? (
+                            <Typography variant="body2" color="text.secondary">
+                              {warehouseError}
+                            </Typography>
+                          ) : hasWarehouseData ? (
+                            <WarehouseCompositionChart
+                              data={chartData}
+                              onBarClick={handleCompositionClick}
+                            />
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              No data available.
+                            </Typography>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Stack>
+
+                    <Box
+                      display="grid"
+                      gridTemplateColumns={{ xs: '1fr', md: 'repeat(2, 1fr)' }}
+                      gap={2}
+                    >
+                      <Card variant="outlined">
+                        <CardHeader
+                          title="Top Donors"
+                          subheader="This year by total lbs"
+                          action={<Chip label={donors.length} />}
+                        />
+                        <CardContent>
+                          {warehouseLoading ? (
+                            <Box display="flex" justifyContent="center" py={2}>
+                              <CircularProgress size={24} />
+                            </Box>
+                          ) : donorError ? (
+                            <Typography variant="body2" color="text.secondary">
+                              {donorError}
+                            </Typography>
+                          ) : donors.length ? (
+                            <Stack spacing={1}>
+                              {donors.map((donor, index) => (
+                                <Stack key={index} direction="row" justifyContent="space-between">
+                                  <Box>
+                                    <Typography variant="body2">
+                                      {donor.name}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {donor.lastDonationISO
+                                        ? `Last: ${formatLocaleDate(donor.lastDonationISO)}`
+                                        : 'No recent donation'}
+                                    </Typography>
+                                  </Box>
+                                  <Typography variant="body2">{fmtLbs(donor.totalLbs)}</Typography>
+                                </Stack>
+                              ))}
                             </Stack>
-                          ))}
-                        </Stack>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          No data available.
-                        </Typography>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Box>
-              </Stack>
-            </SectionCard>
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              No data available.
+                            </Typography>
+                          )}
+                        </CardContent>
+                      </Card>
+                      <Card variant="outlined">
+                        <CardHeader
+                          title="Top Receivers"
+                          subheader="This year by total lbs"
+                          action={<Chip label={receivers.length} />}
+                        />
+                        <CardContent>
+                          {warehouseLoading ? (
+                            <Box display="flex" justifyContent="center" py={2}>
+                              <CircularProgress size={24} />
+                            </Box>
+                          ) : receiverError ? (
+                            <Typography variant="body2" color="text.secondary">
+                              {receiverError}
+                            </Typography>
+                          ) : receivers.length ? (
+                            <Stack spacing={1}>
+                              {receivers.map((receiver, index) => (
+                                <Stack key={index} direction="row" justifyContent="space-between">
+                                  <Box>
+                                    <Typography variant="body2">{receiver.name}</Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {receiver.lastPickupISO
+                                        ? `Last: ${formatLocaleDate(receiver.lastPickupISO)}`
+                                        : 'No recent pickup'}
+                                    </Typography>
+                                  </Box>
+                                  <Typography variant="body2">{fmtLbs(receiver.totalLbs)}</Typography>
+                                </Stack>
+                              ))}
+                            </Stack>
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              No data available.
+                            </Typography>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Box>
+                  </Stack>
+                </SectionCard>
+              ) : null}
+            </Stack>
           </Stack>
         </Grid>
         <Grid size={{ xs: 12, lg: 4 }}>
