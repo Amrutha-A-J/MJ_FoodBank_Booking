@@ -298,32 +298,6 @@ export default function UserHistory({
                     <Box display="flex" justifyContent="center" py={4}>
                       <CircularProgress size={24} />
                     </Box>
-                  ) : selectedRole === 'delivery' ? (
-                    <Card>
-                      <CardHeader
-                        title="Delivery history"
-                        subheader="Review hamper requests"
-                      />
-                      <CardContent>
-                        {deliveryLoading ? (
-                          <Box display="flex" justifyContent="center" py={2}>
-                            <CircularProgress size={24} />
-                          </Box>
-                        ) : deliveryError ? (
-                          <Typography color="error">{deliveryError}</Typography>
-                        ) : deliveryOrders.length === 0 ? (
-                          <Typography color="text.secondary">
-                            No delivery orders yet
-                          </Typography>
-                        ) : (
-                          <Stack spacing={2} divider={<Divider flexItem />}>
-                            {deliveryOrders.map(order => (
-                              <DeliveryOrderSummary key={order.id} order={order} />
-                            ))}
-                          </Stack>
-                        )}
-                      </CardContent>
-                    </Card>
                   ) : (
                     <>
                       {roleError && (
@@ -371,6 +345,35 @@ export default function UserHistory({
                           ) : null
                         }
                       />
+                      {role === 'staff' && selectedRole === 'delivery' && (
+                        <Box mt={3}>
+                          <Card>
+                            <CardHeader
+                              title="Delivery history"
+                              subheader="Review hamper requests"
+                            />
+                            <CardContent>
+                              {deliveryLoading ? (
+                                <Box display="flex" justifyContent="center" py={2}>
+                                  <CircularProgress size={24} />
+                                </Box>
+                              ) : deliveryError ? (
+                                <Typography color="error">{deliveryError}</Typography>
+                              ) : deliveryOrders.length === 0 ? (
+                                <Typography color="text.secondary">
+                                  No delivery orders yet
+                                </Typography>
+                              ) : (
+                                <Stack spacing={2} divider={<Divider flexItem />}>
+                                  {deliveryOrders.map(order => (
+                                    <DeliveryOrderSummary key={order.id} order={order} />
+                                  ))}
+                                </Stack>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </Box>
+                      )}
                     </>
                   )}
                 </Grid>

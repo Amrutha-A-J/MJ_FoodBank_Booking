@@ -182,7 +182,11 @@ describe('UserHistory delivery orders', () => {
     expect(screen.getByText('Bread × 1')).toBeInTheDocument();
     expect(screen.getByText('Dairy')).toBeInTheDocument();
     expect(screen.getByText('Bakery')).toBeInTheDocument();
-    expect(screen.queryByTestId('booking-management-base')).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByTestId('booking-management-base')).toHaveTextContent(
+        'History for 456',
+      ),
+    );
   });
 
   it('shows an empty state when no delivery orders are found', async () => {
@@ -207,6 +211,11 @@ describe('UserHistory delivery orders', () => {
     expect(screen.getByText('Delivery history')).toBeInTheDocument();
     expect(screen.getByText('No delivery orders yet')).toBeInTheDocument();
     expect(mockGetUserByClientId).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(screen.getByTestId('booking-management-base')).toHaveTextContent(
+        'History for 123',
+      ),
+    );
   });
 });
 
