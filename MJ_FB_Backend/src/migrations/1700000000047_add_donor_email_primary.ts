@@ -10,7 +10,10 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
   pgm.sql(`
     UPDATE donors
     SET first_name = split_part(name, ' ', 1),
-        last_name = COALESCE(NULLIF(split_part(name, ' ', 2), ''), ''),
+        last_name = COALESCE(
+          NULLIF(BTRIM(REGEXP_REPLACE(name, '^\\S+\\s*', '')), ''),
+          ''
+        ),
         email = CONCAT('donor', id, '@example.com')
   `);
 
