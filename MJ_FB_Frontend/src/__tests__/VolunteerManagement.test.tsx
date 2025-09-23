@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import { act } from 'react';
 import { MemoryRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import VolunteerManagement from '../pages/volunteer-management/VolunteerManagement';
+import EditVolunteerDialog from '../pages/volunteer-management/EditVolunteerDialog';
 import {
   getVolunteerRoles,
   searchVolunteers,
@@ -17,6 +18,7 @@ import {
   getVolunteerBookingsByRoles,
   resolveVolunteerBookingConflict,
   createVolunteer,
+  updateVolunteer,
 } from '../api/volunteers';
 
 jest.mock('../api/volunteers', () => ({
@@ -32,6 +34,7 @@ jest.mock('../api/volunteers', () => ({
   getVolunteerBookingsByRoles: jest.fn(),
   resolveVolunteerBookingConflict: jest.fn(),
   createVolunteer: jest.fn(),
+  updateVolunteer: jest.fn(),
 }));
 
 let mockVolunteer: any = {
@@ -66,6 +69,44 @@ beforeEach(() => {
     lifetime: { hours: 0, shifts: 0 },
     yearToDate: { hours: 0, shifts: 0 },
     monthToDate: { hours: 0, shifts: 0 },
+  });
+});
+
+describe('EditVolunteerDialog password updates', () => {
+  it('allows staff to set a new password when volunteer already has one', async () => {
+    (updateVolunteer as jest.Mock).mockResolvedValue(undefined);
+
+    render(
+      <EditVolunteerDialog
+        volunteer={{
+          id: 1,
+          firstName: 'Alex',
+          lastName: 'Doe',
+          name: 'Alex Doe',
+          email: 'alex@example.com',
+          phone: '555-1234',
+          hasPassword: true,
+          trainedAreas: [],
+          hasShopper: false,
+          clientId: null,
+        } as any}
+        onClose={jest.fn()}
+        onSaved={jest.fn()}
+      />,
+    );
+
+    fireEvent.click(await screen.findByTestId('set-password-button'));
+    fireEvent.change(await screen.findByTestId('password-input'), {
+      target: { value: 'Secret!1' },
+    });
+    fireEvent.click(await screen.findByTestId('save-button'));
+
+    await waitFor(() =>
+      expect(updateVolunteer).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ password: 'Secret!1' }),
+      ),
+    );
   });
 });
 

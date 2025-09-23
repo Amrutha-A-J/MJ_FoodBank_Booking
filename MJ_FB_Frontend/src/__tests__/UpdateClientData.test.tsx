@@ -92,7 +92,7 @@ describe('UpdateClientData', () => {
     expect(requestPasswordReset).toHaveBeenCalledWith({ clientId: '1' });
   });
 
-  it('disables online access checkbox when client has password', async () => {
+  it('shows Set password control when client has an existing credential', async () => {
     (getUserByClientId as jest.Mock).mockResolvedValueOnce({
       firstName: 'Jane',
       lastName: 'Doe',
@@ -112,7 +112,46 @@ describe('UpdateClientData', () => {
 
     const checkbox = await screen.findByLabelText('Online Access');
     expect(checkbox).toBeDisabled();
+    expect(screen.getByTestId('set-password-button')).toBeInTheDocument();
     expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('set-password-button'));
+    expect(await screen.findByLabelText('Password')).toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toHaveValue('');
     expect(screen.getByTestId('online-badge')).toBeInTheDocument();
+  });
+
+  it('submits updated password for existing clients', async () => {
+    (getUserByClientId as jest.Mock).mockResolvedValueOnce({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: 'jane@example.com',
+      phone: '',
+      onlineAccess: true,
+      hasPassword: true,
+      role: 'shopper',
+    });
+
+    render(<UpdateClientData />);
+
+    const editBtn = await screen.findByRole('button', { name: 'Edit' });
+    await act(async () => {
+      fireEvent.click(editBtn);
+    });
+
+    fireEvent.click(await screen.findByTestId('set-password-button'));
+    fireEvent.change(await screen.findByLabelText('Password'), {
+      target: { value: 'Secret!1' },
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+    });
+
+    await waitFor(() =>
+      expect(updateUserInfo).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ password: 'Secret!1' }),
+      ),
+    );
   });
 });

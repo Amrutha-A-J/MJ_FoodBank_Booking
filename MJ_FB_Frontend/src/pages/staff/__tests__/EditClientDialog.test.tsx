@@ -1,7 +1,7 @@
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { setTimeout as nodeSetTimeout, clearTimeout as nodeClearTimeout } from 'timers';
 import EditClientDialog from '../client-management/EditClientDialog';
-import { getUserByClientId } from '../../../api/users';
+import { getUserByClientId, updateUserInfo } from '../../../api/users';
 import { renderWithProviders } from '../../../../testUtils/renderWithProviders';
 
 beforeAll(() => {
@@ -72,6 +72,43 @@ describe('EditClientDialog', () => {
     expect(toggle).not.toBeChecked();
     fireEvent.click(toggle);
     expect(toggle).toBeChecked();
+  });
+
+  it('sends updated password when setting a new one for existing client', async () => {
+    (getUserByClientId as jest.Mock).mockResolvedValue({
+      firstName: 'Jane',
+      lastName: 'Smith',
+      email: 'jane@example.com',
+      phone: '',
+      onlineAccess: true,
+      hasPassword: true,
+      role: 'shopper',
+    });
+    (updateUserInfo as jest.Mock).mockResolvedValue(undefined);
+
+    renderWithProviders(
+      <EditClientDialog
+        open
+        clientId={1}
+        onClose={() => {}}
+        onUpdated={jest.fn()}
+        onClientUpdated={jest.fn()}
+      />,
+    );
+
+    await screen.findByText('Jane Smith');
+    fireEvent.click(screen.getByTestId('set-password-button'));
+    fireEvent.change(screen.getByTestId('password-input'), {
+      target: { value: 'Secret!1' },
+    });
+    fireEvent.click(screen.getByTestId('save-button'));
+
+    await waitFor(() =>
+      expect(updateUserInfo).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ password: 'Secret!1' }),
+      ),
+    );
   });
 });
 

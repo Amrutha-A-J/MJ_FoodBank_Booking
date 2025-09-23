@@ -62,6 +62,7 @@ export default function EditVolunteer() {
   const [phone, setPhone] = useState('');
   const [onlineAccess, setOnlineAccess] = useState(false);
   const [password, setPassword] = useState('');
+  const [showPasswordOverride, setShowPasswordOverride] = useState(false);
   const [saving, setSaving] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -124,6 +125,7 @@ export default function EditVolunteer() {
     setPhone(v.phone || '');
     setOnlineAccess(v.hasPassword);
     setPassword('');
+    setShowPasswordOverride(false);
     const names = v.trainedAreas
       .map(id => idToName.get(id))
       .filter((n): n is string => !!n);
@@ -225,17 +227,13 @@ export default function EditVolunteer() {
         onlineAccess,
       };
 
-      if (
-        onlineAccess &&
-        !volunteer.hasPassword &&
-        !sendResetLink &&
-        password
-      ) {
+      if (onlineAccess && password && !sendResetLink) {
         payload.password = password;
       }
 
       await updateVolunteer(volunteer.id, payload);
       setPassword('');
+      setShowPasswordOverride(false);
       if (!skipRefresh) {
         await refreshVolunteer(volunteer.id);
       }
@@ -287,6 +285,7 @@ export default function EditVolunteer() {
       setPhone(v.phone || '');
       setOnlineAccess(v.hasPassword);
       setPassword('');
+      setShowPasswordOverride(false);
       const names = v.trainedAreas
         .map(rid => idToName.get(rid))
         .filter((n): n is string => !!n);
@@ -430,6 +429,7 @@ export default function EditVolunteer() {
                                           setOnlineAccess(e.target.checked);
                                           if (!e.target.checked) {
                                             setPassword('');
+                                            setShowPasswordOverride(false);
                                           }
                                         }}
                                         color="primary"
@@ -445,7 +445,24 @@ export default function EditVolunteer() {
                                 </FormControl>
                               </span>
                             </Tooltip>
-                            {onlineAccess && !volunteer.hasPassword && (
+                            {onlineAccess && volunteer.hasPassword && (
+                              <Button
+                                variant="outlined"
+                                onClick={() => {
+                                  if (showPasswordOverride) {
+                                    setPassword('');
+                                  }
+                                  setShowPasswordOverride(prev => !prev);
+                                }}
+                                data-testid="volunteer-set-password-button"
+                                sx={{ alignSelf: { sm: 'flex-start' } }}
+                              >
+                                {showPasswordOverride
+                                  ? 'Cancel password change'
+                                  : 'Set password'}
+                              </Button>
+                            )}
+                            {onlineAccess && (!volunteer.hasPassword || showPasswordOverride) && (
                               <PasswordField
                                 fullWidth
                                 label="Password"
