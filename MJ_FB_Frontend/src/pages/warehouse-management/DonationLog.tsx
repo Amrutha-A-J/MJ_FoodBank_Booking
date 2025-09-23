@@ -49,8 +49,10 @@ function formatDonorDisplay(
   fallbackId?: number | null,
 ) {
   const id = donor?.id ?? fallbackId ?? undefined;
-  const email = donor?.email?.trim();
-  const phone = donor?.phone?.trim();
+  const email = donor?.email ?? null;
+  const phone = donor?.phone ?? null;
+  const emailDisplay = email?.trim();
+  const phoneDisplay = phone?.trim();
   const name = donor?.name?.trim() ?? '';
 
   const base = name
@@ -61,7 +63,7 @@ function formatDonorDisplay(
       ? `Unknown donor (ID: ${id})`
       : 'Unknown donor';
 
-  const contact = [email, phone]
+  const contact = [emailDisplay, phoneDisplay]
     .filter((value): value is string => Boolean(value))
     .join(' • ');
 

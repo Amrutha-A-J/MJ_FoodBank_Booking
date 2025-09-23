@@ -1,31 +1,35 @@
 import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
-type NormalizedContact<T extends { email?: string | null; phone?: string | null }> = Omit<
-  T,
-  'email' | 'phone'
-> & {
+interface DonorContactResponse {
+  email?: string | null;
+  phone?: string | null;
+  contact?: {
+    email?: string | null;
+    phone?: string | null;
+  } | null;
+}
+
+type NormalizedDonor<T extends DonorResponseBase> = Omit<T, 'contact' | 'email' | 'phone'> & {
   email: string | null;
   phone: string | null;
 };
 
-interface DonorResponseBase {
+interface DonorResponseBase extends DonorContactResponse {
   id: number;
   name: string;
-  email?: string | null;
-  phone?: string | null;
   isPetFood: boolean;
 }
 
-export type Donor = NormalizedContact<DonorResponseBase>;
+export type Donor = NormalizedDonor<DonorResponseBase>;
 
-export type TopDonor = NormalizedContact<
+export type TopDonor = NormalizedDonor<
   DonorResponseBase & {
     totalLbs: number;
     lastDonationISO: string;
   }
 >;
 
-export type DonorDetail = NormalizedContact<
+export type DonorDetail = NormalizedDonor<
   DonorResponseBase & {
     totalLbs: number;
     lastDonationISO: string | null;
@@ -48,14 +52,23 @@ export interface DonorDonation {
   weight: number;
 }
 
-function normalizeDonor<T extends { email?: string | null; phone?: string | null }>(
-  donor: T,
-): NormalizedContact<T> {
+function extractContact(data: DonorContactResponse): { email: string | null; phone: string | null } {
+  const email = data.email ?? data.contact?.email ?? null;
+  const phone = data.phone ?? data.contact?.phone ?? null;
   return {
-    ...donor,
-    email: donor.email ?? null,
-    phone: donor.phone ?? null,
-  } as NormalizedContact<T>;
+    email: email ?? null,
+    phone: phone ?? null,
+  };
+}
+
+function normalizeDonor<T extends DonorResponseBase>(donor: T): NormalizedDonor<T> {
+  const { contact, ...rest } = donor;
+  const { email, phone } = extractContact(donor);
+  return {
+    ...rest,
+    email,
+    phone,
+  } as NormalizedDonor<T>;
 }
 
 export async function getDonors(search?: string): Promise<Donor[]> {
@@ -128,3 +141,4 @@ export async function getTopDonors(
   const donors = await handleResponse<TopDonorResponse[]>(res);
   return donors.map(donor => normalizeDonor(donor));
 }
+

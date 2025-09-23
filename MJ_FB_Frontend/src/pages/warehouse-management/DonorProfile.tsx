@@ -155,11 +155,14 @@ export default function DonorProfile() {
     }
   };
 
-  const emailDisplay = donor?.email?.trim()
-    ? donor.email
+  const emailValue = donor?.email ?? null;
+  const phoneValue = donor?.phone ?? null;
+
+  const emailDisplay = emailValue?.trim()
+    ? emailValue
     : 'Email not provided';
-  const phoneDisplay = donor?.phone?.trim()
-    ? donor.phone
+  const phoneDisplay = phoneValue?.trim()
+    ? phoneValue
     : 'Phone not provided';
 
   const closeSnackbar = () =>
