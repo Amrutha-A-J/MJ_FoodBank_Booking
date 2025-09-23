@@ -8,6 +8,10 @@ const mockGetWarehouseOverallYears = jest
   .mockResolvedValue([new Date().getFullYear()]);
 const mockExportWarehouseOverall = jest.fn().mockResolvedValue(new Blob());
 const mockPostManualWarehouseOverall = jest.fn().mockResolvedValue(undefined);
+const mockGetWarehouseDonationHistory = jest.fn().mockResolvedValue([
+  { year: 2023, donations: 1000, petFood: 200, total: 1200 },
+]);
+const mockExportWarehouseDonationHistory = jest.fn().mockResolvedValue(new Blob());
 jest.mock('../api/warehouseOverall', () => ({
   getWarehouseOverall: (...args: unknown[]) => mockGetWarehouseOverall(...args),
   getWarehouseOverallYears: (...args: unknown[]) =>
@@ -16,6 +20,10 @@ jest.mock('../api/warehouseOverall', () => ({
     mockExportWarehouseOverall(...args),
   postManualWarehouseOverall: (...args: unknown[]) =>
     mockPostManualWarehouseOverall(...args),
+  getWarehouseDonationHistory: (...args: unknown[]) =>
+    mockGetWarehouseDonationHistory(...args),
+  exportWarehouseDonationHistory: (...args: unknown[]) =>
+    mockExportWarehouseDonationHistory(...args),
 }));
 
 const mockGetDonorAggregations = jest.fn().mockResolvedValue([]);
@@ -64,6 +72,9 @@ describe('Aggregations page', () => {
         isPetFood: false,
       },
     ]);
+    mockGetWarehouseDonationHistory.mockResolvedValue([
+      { year: 2023, donations: 1000, petFood: 200, total: 1200 },
+    ]);
   });
 
   it('loads donor data on mount and when returning to Donor tab', async () => {
@@ -89,6 +100,46 @@ describe('Aggregations page', () => {
     fireEvent.click(exportBtn);
 
     await waitFor(() => expect(mockExportWarehouseOverall).toHaveBeenCalledWith(year));
+  });
+
+  it('loads donation history when the tab is selected', async () => {
+    render(<Aggregations />);
+
+    fireEvent.click(screen.getByRole('tab', { name: /historical donations/i }));
+
+    await waitFor(() => expect(mockGetWarehouseDonationHistory).toHaveBeenCalledTimes(1));
+
+    expect(screen.getByRole('cell', { name: '2023' })).toBeInTheDocument();
+    expect(screen.getAllByText(/\$1,200\.00/i)).not.toHaveLength(0);
+  });
+
+  it('exports donation history data', async () => {
+    render(<Aggregations />);
+
+    fireEvent.click(screen.getByRole('tab', { name: /historical donations/i }));
+
+    await waitFor(() => expect(mockGetWarehouseDonationHistory).toHaveBeenCalled());
+
+    const exportBtn = screen.getByRole('button', { name: /export/i });
+    fireEvent.click(exportBtn);
+
+    await waitFor(() =>
+      expect(mockExportWarehouseDonationHistory).toHaveBeenCalledTimes(1),
+    );
+  });
+
+  it('shows an error when donation history fails to load', async () => {
+    mockGetWarehouseDonationHistory.mockRejectedValueOnce(new Error('fail'));
+
+    render(<Aggregations />);
+
+    fireEvent.click(screen.getByRole('tab', { name: /historical donations/i }));
+
+    await waitFor(() => expect(mockGetWarehouseDonationHistory).toHaveBeenCalled());
+
+    expect(
+      await screen.findByText(/failed to load donation history/i),
+    ).toBeInTheDocument();
   });
 
   it('inserts manual aggregate through modal', async () => {
