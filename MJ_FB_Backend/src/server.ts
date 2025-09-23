@@ -1,6 +1,6 @@
 import config from './config';
 import pool from './db';
-import { setupDatabase } from './setupDatabase';
+import { seedDonors, setupDatabase } from './setupDatabase';
 import { runMigrations } from './runMigrations';
 import logger from './utils/logger';
 import app from './app';
@@ -50,8 +50,18 @@ let server: ReturnType<typeof app.listen> | undefined;
 
 async function init() {
   try {
-    await setupDatabase();
+    const setupResult = await setupDatabase();
     await runMigrations();
+    if (setupResult.missingNameColumn) {
+      const donorSeedResult = await seedDonors();
+      if (donorSeedResult.missingNameColumn) {
+        logger.warn(
+          "Unable to seed donors because the 'donors.name' column is still missing after migrations.",
+        );
+      } else if (donorSeedResult.donorsSeeded) {
+        logger.info('Seeded donors after running migrations.');
+      }
+    }
     const client = await pool.connect();
     logger.info('✅ Connected to the database successfully!');
     client.release();
