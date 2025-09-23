@@ -368,6 +368,45 @@ describe('EditVolunteer profile editing', () => {
     await waitFor(() => expect(getVolunteerById).toHaveBeenCalledWith(1));
   });
 
+  it('allows setting a new password for volunteers who already have access', async () => {
+    mockVolunteer.email = 'volunteer@example.com';
+    mockVolunteer.hasPassword = true;
+    (getVolunteerById as jest.Mock).mockResolvedValue({
+      ...mockVolunteer,
+      email: 'volunteer@example.com',
+      hasPassword: true,
+    });
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Select Volunteer' }),
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit Profile' }));
+
+    const toggle = await screen.findByTestId('online-access-toggle');
+    expect(toggle).not.toBeDisabled();
+
+    const setPasswordButton = await screen.findByTestId(
+      'set-volunteer-password-button',
+    );
+    fireEvent.click(setPasswordButton);
+
+    const passwordInput = await screen.findByLabelText('Password');
+    fireEvent.change(passwordInput, { target: { value: 'Another!Pass1' } });
+
+    fireEvent.click(await screen.findByTestId('save-profile-button'));
+
+    await waitFor(() => {
+      expect(updateVolunteer).toHaveBeenCalledWith(1, {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'volunteer@example.com',
+        phone: undefined,
+        onlineAccess: true,
+        password: 'Another!Pass1',
+      });
+    });
+  });
+
   it('sends password reset link after saving profile changes', async () => {
     mockVolunteer.email = 'volunteer@example.com';
     (getVolunteerById as jest.Mock).mockResolvedValue({

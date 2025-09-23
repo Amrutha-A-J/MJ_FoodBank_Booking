@@ -63,10 +63,14 @@ export default function AccountEditForm({
   secondaryActionVariant = 'outlined',
 }: AccountEditFormProps) {
   const [form, setForm] = useState<AccountEditFormData>(initialData);
+  const [showPasswordField, setShowPasswordField] = useState(
+    initialData.onlineAccess && !initialData.hasPassword,
+  );
 
   useEffect(() => {
     if (open) {
       setForm(initialData);
+      setShowPasswordField(initialData.onlineAccess && !initialData.hasPassword);
     }
   }, [open, initialData]);
 
@@ -78,7 +82,8 @@ export default function AccountEditForm({
   }
 
   const title = `${form.firstName} ${form.lastName}`.trim();
-  const showPasswordField = form.onlineAccess && !form.hasPassword;
+  const shouldForcePasswordField = form.onlineAccess && !form.hasPassword;
+  const isPasswordFieldVisible = shouldForcePasswordField || showPasswordField;
 
   function FormSection({ title, children }: { title: string; children: ReactNode }) {
     return (
@@ -112,10 +117,20 @@ export default function AccountEditForm({
                       control={
                         <Switch
                           checked={form.onlineAccess}
-                          onChange={e =>
-                            updateForm('onlineAccess', e.target.checked)
-                          }
-                          disabled={form.hasPassword}
+                          onChange={e => {
+                            const checked = e.target.checked;
+                            updateForm('onlineAccess', checked);
+                            setShowPasswordField(prev => {
+                              if (!checked) {
+                                updateForm('password', '');
+                                return false;
+                              }
+                              if (!form.hasPassword) {
+                                return true;
+                              }
+                              return prev;
+                            });
+                          }}
                           data-testid="online-access-toggle"
                         />
                       }
@@ -126,7 +141,25 @@ export default function AccountEditForm({
                 </span>
               </Tooltip>
             )}
-            {showPasswordField && (
+            {form.onlineAccess && form.hasPassword && (
+              <Button
+                variant="outlined"
+                onClick={() =>
+                  setShowPasswordField(prev => {
+                    const next = !prev;
+                    if (!next) {
+                      updateForm('password', '');
+                    }
+                    return next;
+                  })
+                }
+                data-testid="set-password-button"
+                sx={{ alignSelf: { sm: 'flex-start' } }}
+              >
+                {showPasswordField ? 'Cancel' : 'Set password'}
+              </Button>
+            )}
+            {isPasswordFieldVisible && (
               <PasswordField
                 fullWidth
                 label={passwordLabel}

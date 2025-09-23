@@ -62,6 +62,7 @@ export default function EditVolunteer() {
   const [phone, setPhone] = useState('');
   const [onlineAccess, setOnlineAccess] = useState(false);
   const [password, setPassword] = useState('');
+  const [showPasswordField, setShowPasswordField] = useState(false);
   const [saving, setSaving] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -124,6 +125,7 @@ export default function EditVolunteer() {
     setPhone(v.phone || '');
     setOnlineAccess(v.hasPassword);
     setPassword('');
+    setShowPasswordField(false);
     const names = v.trainedAreas
       .map(id => idToName.get(id))
       .filter((n): n is string => !!n);
@@ -161,6 +163,9 @@ export default function EditVolunteer() {
       (!!password && password.length > 0)
     );
   }, [volunteer, firstName, lastName, email, phone, onlineAccess, password]);
+
+  const shouldForcePasswordField = onlineAccess && !volunteer?.hasPassword;
+  const passwordFieldVisible = shouldForcePasswordField || showPasswordField;
 
   async function handleSave() {
     if (!volunteer || !hasChanges) return;
@@ -225,17 +230,13 @@ export default function EditVolunteer() {
         onlineAccess,
       };
 
-      if (
-        onlineAccess &&
-        !volunteer.hasPassword &&
-        !sendResetLink &&
-        password
-      ) {
+      if (password) {
         payload.password = password;
       }
 
       await updateVolunteer(volunteer.id, payload);
       setPassword('');
+      setShowPasswordField(false);
       if (!skipRefresh) {
         await refreshVolunteer(volunteer.id);
       }
@@ -287,6 +288,7 @@ export default function EditVolunteer() {
       setPhone(v.phone || '');
       setOnlineAccess(v.hasPassword);
       setPassword('');
+      setShowPasswordField(false);
       const names = v.trainedAreas
         .map(rid => idToName.get(rid))
         .filter((n): n is string => !!n);
@@ -427,13 +429,16 @@ export default function EditVolunteer() {
                                       <Switch
                                         checked={onlineAccess}
                                         onChange={e => {
-                                          setOnlineAccess(e.target.checked);
-                                          if (!e.target.checked) {
+                                          const checked = e.target.checked;
+                                          setOnlineAccess(checked);
+                                          if (!checked) {
                                             setPassword('');
+                                            setShowPasswordField(false);
+                                          } else if (!volunteer.hasPassword) {
+                                            setShowPasswordField(true);
                                           }
                                         }}
                                         color="primary"
-                                        disabled={volunteer.hasPassword}
                                         data-testid="online-access-toggle"
                                       />
                                     }
@@ -445,7 +450,25 @@ export default function EditVolunteer() {
                                 </FormControl>
                               </span>
                             </Tooltip>
-                            {onlineAccess && !volunteer.hasPassword && (
+                            {onlineAccess && volunteer.hasPassword && (
+                              <Button
+                                variant="outlined"
+                                onClick={() => {
+                                  setShowPasswordField(prev => {
+                                    const next = !prev;
+                                    if (!next) {
+                                      setPassword('');
+                                    }
+                                    return next;
+                                  });
+                                }}
+                                data-testid="set-volunteer-password-button"
+                                sx={{ alignSelf: { sm: 'flex-start' } }}
+                              >
+                                {showPasswordField ? 'Cancel' : 'Set password'}
+                              </Button>
+                            )}
+                            {passwordFieldVisible && (
                               <PasswordField
                                 fullWidth
                                 label="Password"
