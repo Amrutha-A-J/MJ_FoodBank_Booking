@@ -8,6 +8,15 @@ import './utils/mockDb';
 jest.mock('jsonwebtoken');
 
 jest.mock('../src/controllers/warehouse/warehouseOverallController', () => ({
+  listWarehouseOverall: (_req: express.Request, res: express.Response) =>
+    res.status(200).json([]),
+  listAvailableYears: (_req: express.Request, res: express.Response) =>
+    res.status(200).json([2024]),
+  rebuildWarehouseOverall: (_req: express.Request, res: express.Response) =>
+    res.status(200).json({ message: 'Rebuilt' }),
+  manualWarehouseOverall: (_req: express.Request, res: express.Response) =>
+    res.status(200).json({ message: 'Saved' }),
+  exportWarehouseOverall: (_req: express.Request, res: express.Response) => res.status(200).send('export'),
   listMonthlyDonationHistory: (_req: express.Request, res: express.Response) =>
     res.status(200).json({ years: [], entries: [] }),
   exportMonthlyDonationHistory: (_req: express.Request, res: express.Response) => res.status(200).send('ok'),

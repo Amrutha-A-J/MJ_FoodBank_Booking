@@ -1,5 +1,10 @@
 import { Router } from 'express';
 import {
+  listWarehouseOverall,
+  listAvailableYears,
+  rebuildWarehouseOverall,
+  manualWarehouseOverall,
+  exportWarehouseOverall,
   listMonthlyDonationHistory,
   exportMonthlyDonationHistory,
 } from '../../controllers/warehouse/warehouseOverallController';
@@ -9,6 +14,31 @@ const staffOrAccess = authorizeStaffOrAccess ?? authorizeAccess;
 
 const router = Router();
 
+router.get('/', authMiddleware, staffOrAccess('warehouse', 'donor_management'), listWarehouseOverall);
+router.get(
+  '/years',
+  authMiddleware,
+  staffOrAccess('warehouse', 'donor_management'),
+  listAvailableYears,
+);
+router.post(
+  '/rebuild',
+  authMiddleware,
+  staffOrAccess('warehouse', 'donor_management'),
+  rebuildWarehouseOverall,
+);
+router.post(
+  '/manual',
+  authMiddleware,
+  staffOrAccess('warehouse', 'donor_management'),
+  manualWarehouseOverall,
+);
+router.get(
+  '/export',
+  authMiddleware,
+  staffOrAccess('warehouse', 'donor_management'),
+  exportWarehouseOverall,
+);
 router.get(
   '/monthly-history',
   authMiddleware,
