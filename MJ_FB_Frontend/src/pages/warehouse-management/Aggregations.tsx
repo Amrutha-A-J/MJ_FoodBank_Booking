@@ -597,22 +597,22 @@ export default function Aggregations() {
           </Stack>
         ) : (
           (() => {
-            interface MonthlyHistoryRow {
-              monthLabel: string;
+            interface YearlyHistoryRow {
+              yearLabel: string;
               total: number;
               isTotal?: boolean;
-              [key: `y${number}`]: number | string | boolean | undefined;
+              [key: `m${number}`]: number | string | boolean | undefined;
             }
 
             const { years, entryMap, monthTotals, yearTotals, grandTotal } = monthlyHistoryDerived;
 
-            const columns: Column<MonthlyHistoryRow>[] = [
-              { field: 'monthLabel', header: 'Month' },
-              ...years.map(year => ({
-                field: `y${year}` as keyof MonthlyHistoryRow & string,
-                header: String(year),
-                render: (row: MonthlyHistoryRow) =>
-                  `${poundsFormatter.format(Number(row[`y${year}`] ?? 0))} lbs`,
+            const columns: Column<YearlyHistoryRow>[] = [
+              { field: 'yearLabel', header: 'Year' },
+              ...monthNames.map((name, idx) => ({
+                field: `m${idx + 1}` as keyof YearlyHistoryRow & string,
+                header: name,
+                render: (row: YearlyHistoryRow) =>
+                  `${poundsFormatter.format(Number(row[`m${idx + 1}`] ?? 0))} lbs`,
               })),
               {
                 field: 'total',
@@ -621,23 +621,27 @@ export default function Aggregations() {
               },
             ];
 
-            const rows: MonthlyHistoryRow[] = monthNames.map((name, idx) => {
-              const month = idx + 1;
-              const row: MonthlyHistoryRow = { monthLabel: name, total: monthTotals[idx] };
-              years.forEach(year => {
+            const rows: YearlyHistoryRow[] = years.map(year => {
+              const row: YearlyHistoryRow = {
+                yearLabel: String(year),
+                total: yearTotals[year] ?? 0,
+              };
+              monthNames.forEach((_, idx) => {
+                const month = idx + 1;
                 const entry = entryMap.get(`${year}-${month}`);
-                row[`y${year}`] = resolveMonthlyTotal(entry);
+                row[`m${month}`] = resolveMonthlyTotal(entry);
               });
               return row;
             });
 
-            const totalsRow: MonthlyHistoryRow = {
-              monthLabel: 'Total',
+            const totalsRow: YearlyHistoryRow = {
+              yearLabel: 'Total',
               total: grandTotal,
               isTotal: true,
             };
-            years.forEach(year => {
-              totalsRow[`y${year}`] = yearTotals[year] ?? 0;
+            monthNames.forEach((_, idx) => {
+              const month = idx + 1;
+              totalsRow[`m${month}`] = monthTotals[idx] ?? 0;
             });
             rows.push(totalsRow);
 
@@ -645,7 +649,7 @@ export default function Aggregations() {
               <ResponsiveTable
                 columns={columns}
                 rows={rows}
-                getRowKey={row => (row.isTotal ? 'total' : row.monthLabel)}
+                getRowKey={row => (row.isTotal ? 'total' : row.yearLabel)}
               />
             );
           })()
