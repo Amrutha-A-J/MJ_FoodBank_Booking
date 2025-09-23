@@ -68,4 +68,33 @@ describe('AccountEditForm', () => {
       expect.objectContaining({ password: 'Secret!23' }),
     );
   });
+
+  it('allows toggling online access when the user already has a password', () => {
+    const handleSave = jest.fn();
+
+    renderWithProviders(
+      <AccountEditForm
+        open
+        initialData={{
+          firstName: 'Ada',
+          lastName: 'Lovelace',
+          email: 'ada@example.com',
+          phone: '555-1234',
+          onlineAccess: true,
+          password: '',
+          hasPassword: true,
+        }}
+        onSave={handleSave}
+      />,
+    );
+
+    const toggle = screen.getByTestId('online-access-toggle');
+    fireEvent.click(toggle);
+
+    fireEvent.click(screen.getByTestId('save-button'));
+
+    expect(handleSave).toHaveBeenCalledWith(
+      expect.objectContaining({ onlineAccess: false }),
+    );
+  });
 });
