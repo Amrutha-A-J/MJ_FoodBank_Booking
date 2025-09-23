@@ -61,6 +61,37 @@ describe('recurring volunteer bookings', () => {
     setHolidays(null);
   });
 
+  it('rejects an invalid start date', async () => {
+    const res = await request(app)
+      .post('/volunteer-bookings/recurring')
+      .send({
+        roleId: 2,
+        startDate: 'not-a-date',
+        endDate: formatDate(addDays(new Date(), 1)),
+        pattern: 'daily',
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: 'Invalid date' });
+    expect(pool.query).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid end date', async () => {
+    const res = await request(app)
+      .post('/volunteer-bookings/recurring')
+      .send({
+        roleId: 2,
+        startDate: formatDate(addDays(new Date(), 1)),
+        endDate: 'bad-date',
+        pattern: 'weekly',
+        daysOfWeek: [1],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: 'Invalid date' });
+    expect(pool.query).not.toHaveBeenCalled();
+  });
+
   it('creates a recurring booking series', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({
