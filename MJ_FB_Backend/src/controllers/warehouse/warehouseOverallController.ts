@@ -105,6 +105,17 @@ export const manualWarehouseOverall = asyncHandler(async (req: Request, res: Res
   res.json({ message: 'Saved' });
 });
 
+function toNumber(value: unknown) {
+  if (typeof value === 'number') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
 export const listWarehouseOverall = asyncHandler(async (req: Request, res: Response) => {
   const year =
     parseInt((req.query.year as string) ?? '', 10) ||
@@ -116,7 +127,32 @@ export const listWarehouseOverall = asyncHandler(async (req: Request, res: Respo
        ORDER BY month`,
     [year],
   );
-  res.json(result.rows);
+
+  const rows = result.rows
+    .map(row => {
+      const month = Number(row.month);
+      if (!Number.isFinite(month)) {
+        return null;
+      }
+      return {
+        month,
+        donations: toNumber(row.donations),
+        petFood: toNumber(row.petFood),
+        surplus: toNumber(row.surplus),
+        pigPound: toNumber(row.pigPound),
+        outgoingDonations: toNumber(row.outgoingDonations),
+      };
+    })
+    .filter((row): row is {
+      month: number;
+      donations: number;
+      petFood: number;
+      surplus: number;
+      pigPound: number;
+      outgoingDonations: number;
+    } => row !== null);
+
+  res.json(rows);
 });
 
 export const listMonthlyDonationHistory = asyncHandler(async (_req: Request, res: Response) => {
