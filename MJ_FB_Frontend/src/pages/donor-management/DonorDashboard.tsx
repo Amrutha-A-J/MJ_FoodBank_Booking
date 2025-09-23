@@ -277,7 +277,7 @@ export default function DonorDashboard() {
             <Grid size={{ xs: 12, md: 6 }}>
               <SectionCard title="Top donors" icon={<EmojiEvents color="primary" />}>
                 {topDonors.length ? (
-                  <List disablePadding>
+                  <List disablePadding sx={{ maxHeight: 320, overflowY: 'auto' }}>
                     {topDonors.map((donor, index) => (
                       <Fragment key={donor.id}>
                         <ListItem alignItems="flex-start" sx={{ py: 1.25 }}>
@@ -312,7 +312,7 @@ export default function DonorDashboard() {
             <Grid size={{ xs: 12, md: 6 }}>
               <SectionCard title="First-time donor highlights" icon={<AutoAwesome color="primary" />}>
                 {firstTimeDonors.length ? (
-                  <List disablePadding>
+                  <List disablePadding sx={{ maxHeight: 320, overflowY: 'auto' }}>
                     {firstTimeDonors.map((donor, index) => (
                       <Fragment key={donor.id}>
                         <ListItem alignItems="flex-start" sx={{ py: 1.25 }}>
