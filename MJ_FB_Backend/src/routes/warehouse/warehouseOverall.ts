@@ -5,6 +5,8 @@ import {
   exportWarehouseOverall,
   listAvailableYears,
   manualWarehouseOverall,
+  listHistoricalDonations,
+  exportHistoricalDonations,
 } from '../../controllers/warehouse/warehouseOverallController';
 import { authMiddleware, authorizeAccess, authorizeStaffOrAccess } from '../../middleware/authMiddleware';
 
@@ -35,6 +37,18 @@ router.get(
   authMiddleware,
   staffOrAccess('warehouse', 'donor_management'),
   exportWarehouseOverall,
+);
+router.get(
+  '/history',
+  authMiddleware,
+  staffOrAccess('warehouse', 'donor_management'),
+  listHistoricalDonations,
+);
+router.get(
+  '/history/export',
+  authMiddleware,
+  staffOrAccess('warehouse', 'donor_management'),
+  exportHistoricalDonations,
 );
 router.get(
   '/years',
