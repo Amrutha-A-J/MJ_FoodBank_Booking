@@ -66,7 +66,12 @@ describe('Pantry record delivery route', () => {
     expect(
       await screen.findByRole('heading', { name: /record delivery/i }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/search client by name or id/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /find a client/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/search client by name or id/i),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: /back to outstanding deliveries/i }),
     ).toBeInTheDocument();
