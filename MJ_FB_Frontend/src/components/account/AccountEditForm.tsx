@@ -67,6 +67,7 @@ export default function AccountEditForm({
     initialData.onlineAccess && !initialData.hasPassword,
   );
   const firstNameInputRef = useRef<HTMLInputElement | null>(null);
+  const previousOpenRef = useRef(false);
 
   useEffect(() => {
     if (open) {
@@ -76,16 +77,22 @@ export default function AccountEditForm({
   }, [open, initialData]);
 
   useEffect(() => {
-    if (!open) return;
+    let timeout: number | undefined;
 
-    const timeout = window.setTimeout(() => {
-      firstNameInputRef.current?.focus();
-    }, 0);
+    if (open && !previousOpenRef.current) {
+      timeout = window.setTimeout(() => {
+        firstNameInputRef.current?.focus();
+      }, 0);
+    }
+
+    previousOpenRef.current = open;
 
     return () => {
-      window.clearTimeout(timeout);
+      if (timeout !== undefined) {
+        window.clearTimeout(timeout);
+      }
     };
-  }, [open, initialData]);
+  }, [open]);
 
   function updateForm<K extends keyof AccountEditFormData>(
     key: K,
