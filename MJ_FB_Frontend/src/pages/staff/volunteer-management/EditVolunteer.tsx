@@ -62,7 +62,7 @@ export default function EditVolunteer() {
   const [phone, setPhone] = useState('');
   const [onlineAccess, setOnlineAccess] = useState(false);
   const [password, setPassword] = useState('');
-  const [showPasswordOverride, setShowPasswordOverride] = useState(false);
+  const [showPasswordField, setShowPasswordField] = useState(false);
   const [saving, setSaving] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -125,7 +125,7 @@ export default function EditVolunteer() {
     setPhone(v.phone || '');
     setOnlineAccess(v.hasPassword);
     setPassword('');
-    setShowPasswordOverride(false);
+    setShowPasswordField(false);
     const names = v.trainedAreas
       .map(id => idToName.get(id))
       .filter((n): n is string => !!n);
@@ -227,13 +227,13 @@ export default function EditVolunteer() {
         onlineAccess,
       };
 
-      if (onlineAccess && password && !sendResetLink) {
+      if (password && !sendResetLink) {
         payload.password = password;
       }
 
       await updateVolunteer(volunteer.id, payload);
       setPassword('');
-      setShowPasswordOverride(false);
+      setShowPasswordField(false);
       if (!skipRefresh) {
         await refreshVolunteer(volunteer.id);
       }
@@ -285,7 +285,7 @@ export default function EditVolunteer() {
       setPhone(v.phone || '');
       setOnlineAccess(v.hasPassword);
       setPassword('');
-      setShowPasswordOverride(false);
+      setShowPasswordField(false);
       const names = v.trainedAreas
         .map(rid => idToName.get(rid))
         .filter((n): n is string => !!n);
@@ -426,14 +426,16 @@ export default function EditVolunteer() {
                                       <Switch
                                         checked={onlineAccess}
                                         onChange={e => {
-                                          setOnlineAccess(e.target.checked);
-                                          if (!e.target.checked) {
+                                          const enabled = e.target.checked;
+                                          setOnlineAccess(enabled);
+                                          if (!enabled) {
                                             setPassword('');
-                                            setShowPasswordOverride(false);
+                                            setShowPasswordField(false);
+                                          } else if (!volunteer.hasPassword) {
+                                            setShowPasswordField(true);
                                           }
                                         }}
                                         color="primary"
-                                        disabled={volunteer.hasPassword}
                                         data-testid="online-access-toggle"
                                       />
                                     }
@@ -449,20 +451,20 @@ export default function EditVolunteer() {
                               <Button
                                 variant="outlined"
                                 onClick={() => {
-                                  if (showPasswordOverride) {
+                                  if (showPasswordField) {
                                     setPassword('');
                                   }
-                                  setShowPasswordOverride(prev => !prev);
+                                  setShowPasswordField(prev => !prev);
                                 }}
                                 data-testid="volunteer-set-password-button"
                                 sx={{ alignSelf: { sm: 'flex-start' } }}
                               >
-                                {showPasswordOverride
+                                {showPasswordField
                                   ? 'Cancel password change'
                                   : 'Set password'}
                               </Button>
                             )}
-                            {onlineAccess && (!volunteer.hasPassword || showPasswordOverride) && (
+                            {onlineAccess && (!volunteer.hasPassword || showPasswordField) && (
                               <PasswordField
                                 fullWidth
                                 label="Password"
