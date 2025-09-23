@@ -88,13 +88,15 @@ describe('PantryAggregations page', () => {
 
     await waitFor(() => expect(mockGetPantryWeekly).toHaveBeenCalled());
 
-    const table = screen.queryByTestId('responsive-table-table');
-    if (table) {
-      expect(table).toBeInTheDocument();
-    } else {
-      const cards = screen.getAllByTestId('responsive-table-card');
+    await waitFor(() => {
+      const table = screen.queryByTestId('responsive-table-table');
+      if (table) {
+        expect(table).toBeInTheDocument();
+        return;
+      }
+      const cards = screen.queryAllByTestId('responsive-table-card');
       expect(cards.length).toBeGreaterThan(0);
-    }
+    });
     expect(screen.getByText('week')).toBeInTheDocument();
     expect(screen.getByText('people')).toBeInTheDocument();
     const ranges = getWeekRanges(currentYear, currentMonth - 1);
