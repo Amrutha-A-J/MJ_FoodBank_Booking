@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   DialogContent,
   DialogActions,
@@ -66,12 +66,25 @@ export default function AccountEditForm({
   const [showPasswordOverride, setShowPasswordOverride] = useState(
     initialData.onlineAccess && !initialData.hasPassword,
   );
+  const firstNameInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (open) {
       setForm(initialData);
       setShowPasswordOverride(initialData.onlineAccess && !initialData.hasPassword);
     }
+  }, [open, initialData]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const timeout = window.setTimeout(() => {
+      firstNameInputRef.current?.focus();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
   }, [open, initialData]);
 
   function updateForm<K extends keyof AccountEditFormData>(
@@ -178,6 +191,7 @@ export default function AccountEditForm({
               label="First Name"
               value={form.firstName}
               onChange={e => updateForm('firstName', e.target.value)}
+              inputRef={firstNameInputRef}
               inputProps={{ 'data-testid': 'first-name-input' }}
             />
             <TextField

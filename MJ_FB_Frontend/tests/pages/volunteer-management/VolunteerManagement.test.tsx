@@ -152,6 +152,22 @@ describe('VolunteerManagement edit dialog', () => {
     });
   });
 
+  it('focuses the first name field when opening the edit dialog', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<App />);
+
+    await user.click(screen.getByRole('button', { name: /select volunteer/i }));
+
+    const editButton = await screen.findByRole('button', { name: /edit/i });
+    await user.click(editButton);
+
+    const dialog = await screen.findByRole('dialog', { name: /edit volunteer/i });
+
+    await waitFor(() => {
+      expect(within(dialog).getByLabelText(/first name/i)).toHaveFocus();
+    });
+  });
+
   it('keeps focus and form values while typing through re-renders', async () => {
     const user = userEvent.setup();
     renderWithProviders(<App />);
