@@ -29,6 +29,7 @@ import {
   TextField,
   Typography,
   Stack,
+  Paper,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -241,6 +242,14 @@ export default function PantrySchedule({
       ? `Closed for weekend (${dayName})`
       : "";
 
+  const statusLabel = isClosed
+    ? isHoliday
+      ? `Closed for holiday${holidayObj?.reason ? ` · ${holidayObj.reason}` : ""}`
+      : "Closed today"
+    : "Open today";
+
+  const statusColor: "default" | "success" = isClosed ? "default" : "success";
+
   const bookingsBySlot = useMemo(() => {
     return bookings.reduce<Record<string, Booking[]>>((acc, booking) => {
       const slotKey = String(booking.slot_id);
@@ -352,86 +361,118 @@ export default function PantrySchedule({
 
   return (
     <Page title="Pantry Schedule" header={<PantryQuickLinks />}>
-      <Stack
-        direction={{ xs: "column", md: "row" }}
-        spacing={{ xs: 2, md: 1.5 }}
-        justifyContent={{ xs: "flex-start", md: "space-between" }}
-        alignItems={{ xs: "stretch", md: "center" }}
-        sx={{ mb: 2 }}
+      <Paper
+        variant="outlined"
+        elevation={0}
+        sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, mb: 2 }}
       >
-        <Button
-          onClick={() => changeDay(-1)}
-          variant="outlined"
-          color="primary"
-          fullWidth={isSmallScreen}
-        >
-          Previous
-        </Button>
-        <Typography
-          component="h3"
-          variant="h5"
-          sx={{
-            fontWeight: theme.typography.fontWeightBold,
-            textAlign: { xs: "center", md: "left" },
-          }}
-        >
-          {dateStr} - {dayName}
-          {isHoliday
-            ? ` (Holiday${holidayObj?.reason ? ": " + holidayObj.reason : ""})`
-            : isWeekend
-              ? " (Weekend)"
-              : ""}
-        </Typography>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1}
-          alignItems={{ xs: "stretch", sm: "center" }}
-        >
-          <Button
-            onClick={() =>
-              setCurrentDate(
-                fromZonedTime(`${formatDate()}T00:00:00`, reginaTimeZone),
-              )
-            }
-            variant="outlined"
-
-            color="primary"
-            fullWidth={isSmallScreen}
+        <Stack spacing={{ xs: 2, md: 3 }}>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={1.5}
+            alignItems={{ xs: "stretch", md: "center" }}
+            justifyContent="space-between"
+            sx={{ flexWrap: "wrap", rowGap: 1 }}
           >
-            Today
-          </Button>
-          <LocalizationProvider
-            dateAdapter={AdapterDayjs}
-            dateLibInstance={dayjs}
-          >
-            <DatePicker
-              value={dayjs(currentDate)}
-              format="YYYY-MM-DD"
-              onChange={(d) => {
-                if (d) {
-                  setCurrentDate(
-                    fromZonedTime(`${formatDate(d)}T00:00:00`, reginaTimeZone),
-                  );
-                }
+            <Typography
+              component="h3"
+              variant="h5"
+              sx={{
+                fontWeight: theme.typography.fontWeightBold,
+                textAlign: { xs: "center", md: "left" },
               }}
-              slotProps={{
-                textField: {
-                  size: "small",
-                  fullWidth: isSmallScreen,
-                },
-              }}
+            >
+              {dateStr} - {dayName}
+              {isHoliday
+                ? ` (Holiday${
+                    holidayObj?.reason ? ": " + holidayObj.reason : ""
+                  })`
+                : isWeekend
+                  ? " (Weekend)"
+                  : ""}
+            </Typography>
+            <Chip
+              label={statusLabel}
+              color={statusColor}
+              sx={{ fontWeight: 500, alignSelf: { xs: "center", md: "flex-end" } }}
             />
-          </LocalizationProvider>
-          <Button
-            onClick={() => changeDay(1)}
-            variant="outlined"
-            color="primary"
-            fullWidth={isSmallScreen}
+          </Stack>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={2}
+            useFlexGap
+            sx={{ flexWrap: "wrap" }}
           >
-            Next
-          </Button>
+            <Button
+              onClick={() => changeDay(-1)}
+              variant="outlined"
+              color="primary"
+              size="large"
+              fullWidth
+              sx={{ flexBasis: { xs: "100%", md: "25%" }, flexGrow: 1 }}
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={() =>
+                setCurrentDate(
+                  fromZonedTime(`${formatDate()}T00:00:00`, reginaTimeZone),
+                )
+              }
+              variant="outlined"
+              color="primary"
+              size="large"
+              fullWidth
+              sx={{ flexBasis: { xs: "100%", md: "25%" }, flexGrow: 1 }}
+            >
+              Today
+            </Button>
+            <Box
+              sx={{
+                flexBasis: { xs: "100%", md: "25%" },
+                flexGrow: 1,
+                minWidth: { md: 220 },
+              }}
+            >
+              <LocalizationProvider
+                dateAdapter={AdapterDayjs}
+                dateLibInstance={dayjs}
+              >
+                <DatePicker
+                  value={dayjs(currentDate)}
+                  format="YYYY-MM-DD"
+                  onChange={(d) => {
+                    if (d) {
+                      setCurrentDate(
+                        fromZonedTime(
+                          `${formatDate(d)}T00:00:00`,
+                          reginaTimeZone,
+                        ),
+                      );
+                    }
+                  }}
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      fullWidth: true,
+                    },
+                  }}
+                />
+              </LocalizationProvider>
+            </Box>
+            <Button
+              onClick={() => changeDay(1)}
+              variant="outlined"
+              color="primary"
+              size="large"
+              fullWidth
+              sx={{ flexBasis: { xs: "100%", md: "25%" }, flexGrow: 1 }}
+            >
+              Next
+            </Button>
+          </Stack>
         </Stack>
-      </Stack>
+      </Paper>
       <FeedbackSnackbar
         open={!!snackbar}
         onClose={() => setSnackbar(null)}
@@ -449,32 +490,42 @@ export default function PantrySchedule({
         </Alert>
       ) : (
         <>
-          <Stack
-            direction="row"
-            spacing={2}
-            alignItems="center"
-            sx={{ mb: 1 }}
+          <Paper
+            variant="outlined"
+            elevation={0}
+            sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, mb: 2 }}
           >
-            {[
-              { label: "Approved", color: statusColors.approved },
-              { label: "No Show", color: statusColors.no_show },
-              { label: "Visited", color: statusColors.visited },
-              {
-                label: "Capacity Exceeded",
-                color: theme.palette.warning.light,
-              },
-            ].map((item) => (
-              <Chip
-                key={item.label}
-                label={item.label}
-                
-                sx={{
-                  bgcolor: item.color,
-                  color: theme.palette.getContrastText(item.color),
-                }}
-              />
-            ))}
-          </Stack>
+            <Stack spacing={1.5}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Legend
+              </Typography>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={1.5}
+                alignItems={{ xs: "flex-start", sm: "center" }}
+                sx={{ flexWrap: "wrap", rowGap: 1 }}
+              >
+                {[
+                  { label: "Approved", color: statusColors.approved },
+                  { label: "No Show", color: statusColors.no_show },
+                  { label: "Visited", color: statusColors.visited },
+                  {
+                    label: "Capacity Exceeded",
+                    color: theme.palette.warning.light,
+                  },
+                ].map((item) => (
+                  <Chip
+                    key={item.label}
+                    label={item.label}
+                    sx={{
+                      bgcolor: item.color,
+                      color: theme.palette.getContrastText(item.color),
+                    }}
+                  />
+                ))}
+              </Stack>
+            </Stack>
+          </Paper>
           {isSmallScreen ? (
             <ScheduleCards maxSlots={maxSlots} rows={rows} />
           ) : (
