@@ -45,7 +45,19 @@ router.get(
   listHistoricalDonations,
 );
 router.get(
+  '/donation-history',
+  authMiddleware,
+  staffOrAccess('warehouse', 'donor_management'),
+  listHistoricalDonations,
+);
+router.get(
   '/history/export',
+  authMiddleware,
+  staffOrAccess('warehouse', 'donor_management'),
+  exportHistoricalDonations,
+);
+router.get(
+  '/donation-history/export',
   authMiddleware,
   staffOrAccess('warehouse', 'donor_management'),
   exportHistoricalDonations,
