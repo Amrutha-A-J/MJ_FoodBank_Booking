@@ -3,6 +3,7 @@ import pool from '../db';
 import { reginaStartOfDayISO } from '../utils/dateUtils';
 import { parsePaginationParams } from '../utils/parsePaginationParams';
 import asyncHandler from '../middleware/asyncHandler';
+import { refreshWarehouseOverall } from './warehouse/warehouseOverallController';
 
 export const listDonors = asyncHandler(async (req: Request, res: Response) => {
   const search = (req.query.search as string) ?? '';
@@ -48,12 +49,42 @@ export const updateDonor = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name, email, phone, isPetFood = false } = req.body;
   try {
+    const existingResult = await pool.query(
+      'SELECT is_pet_food AS "isPetFood" FROM donors WHERE id = $1',
+      [id],
+    );
+    if ((existingResult.rowCount ?? 0) === 0)
+      return res.status(404).json({ message: 'Donor not found' });
+    const previousIsPetFood = Boolean(existingResult.rows[0]?.isPetFood);
+
     const result = await pool.query(
       'UPDATE donors SET name = $2, email = $3, phone = $4, is_pet_food = $5 WHERE id = $1 RETURNING id, name, email, phone, is_pet_food AS "isPetFood"',
       [id, name, email ?? null, phone ?? null, isPetFood],
     );
     if ((result.rowCount ?? 0) === 0)
       return res.status(404).json({ message: 'Donor not found' });
+
+    if (previousIsPetFood !== Boolean(isPetFood)) {
+      const donationMonthsResult = await pool.query(
+        `SELECT DATE_TRUNC('month', date) AS "monthStart"
+           FROM donations
+           WHERE donor_id = $1
+           GROUP BY 1`,
+        [id],
+      );
+
+      const donationMonths = donationMonthsResult.rows as { monthStart: string | Date }[];
+      for (const { monthStart } of donationMonths) {
+        const monthDate = new Date(monthStart);
+        if (Number.isNaN(monthDate.valueOf())) {
+          continue;
+        }
+        const year = monthDate.getUTCFullYear();
+        const month = monthDate.getUTCMonth() + 1;
+        await refreshWarehouseOverall(year, month);
+      }
+    }
+
     res.json(result.rows[0]);
   } catch (error: any) {
     if (error.code === '23505') {
