@@ -24,6 +24,9 @@ import {
   getWarehouseDonationHistory,
   exportWarehouseDonationHistory,
   type WarehouseDonationHistoryEntry,
+  getWarehouseMonthlyHistory,
+  exportWarehouseMonthlyHistory,
+  type WarehouseMonthlyHistoryResponse,
 } from '../../api/warehouseOverall';
 import {
   getDonorAggregations,
@@ -39,6 +42,18 @@ import { exportTableToExcel } from '../../utils/exportTableToExcel';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 
 const RECENT_YEARS_LIMIT = 5;
+const DONOR_TAB = 0;
+const OVERALL_TAB = 1;
+const MONTHLY_HISTORY_TAB = 2;
+const HISTORICAL_TAB = 3;
+
+function resolveMonthlyTotal(entry?: WarehouseMonthlyHistoryResponse['entries'][number]) {
+  if (!entry) return 0;
+  if (typeof entry.total === 'number') return entry.total;
+  const donations = typeof entry.donations === 'number' ? entry.donations : 0;
+  const petFood = typeof entry.petFood === 'number' ? entry.petFood : 0;
+  return donations + petFood;
+}
 
 export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);
@@ -59,6 +74,9 @@ export default function Aggregations() {
   const [historyRows, setHistoryRows] = useState<WarehouseDonationHistoryEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyExportLoading, setHistoryExportLoading] = useState(false);
+  const [monthlyHistory, setMonthlyHistory] = useState<WarehouseMonthlyHistoryResponse | null>(null);
+  const [monthlyHistoryLoading, setMonthlyHistoryLoading] = useState(false);
+  const [monthlyHistoryExportLoading, setMonthlyHistoryExportLoading] = useState(false);
   const [insertOpen, setInsertOpen] = useState(false);
   const [insertMonth, setInsertMonth] = useState('');
   const [insertDonations, setInsertDonations] = useState('');
@@ -162,7 +180,7 @@ export default function Aggregations() {
   }, [overallYear]);
 
   useEffect(() => {
-    if (tab !== 0) return;
+    if (tab !== DONOR_TAB) return;
     setDonorLoading(true);
     setDonorRows([]);
     getDonorAggregations(donorYear)
@@ -260,7 +278,7 @@ export default function Aggregations() {
   }
 
   useEffect(() => {
-    if (tab !== 2) return;
+    if (tab !== HISTORICAL_TAB) return;
     setHistoryLoading(true);
     setHistoryRows([]);
     getWarehouseDonationHistory()
@@ -297,6 +315,85 @@ export default function Aggregations() {
       setHistoryExportLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (tab !== MONTHLY_HISTORY_TAB) return;
+    setMonthlyHistoryLoading(true);
+    setMonthlyHistory(null);
+    getWarehouseMonthlyHistory()
+      .then(data => {
+        setMonthlyHistory(data);
+      })
+      .catch(() => {
+        setSnackbar({
+          open: true,
+          message: 'Failed to load monthly history',
+          severity: 'error',
+        });
+        setMonthlyHistory(null);
+      })
+      .finally(() => setMonthlyHistoryLoading(false));
+  }, [tab]);
+
+  async function handleExportMonthlyHistory() {
+    setMonthlyHistoryExportLoading(true);
+    try {
+      const blob = await exportWarehouseMonthlyHistory();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'warehouse_monthly_history.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setSnackbar({ open: true, message: 'Export ready', severity: 'success' });
+    } catch {
+      setSnackbar({ open: true, message: 'Failed to export', severity: 'error' });
+    } finally {
+      setMonthlyHistoryExportLoading(false);
+    }
+  }
+
+  const monthlyHistoryDerived = useMemo(() => {
+    if (!monthlyHistory) {
+      return {
+        years: [] as number[],
+        entryMap: new Map<string, WarehouseMonthlyHistoryResponse['entries'][number]>(),
+        monthTotals: Array(12).fill(0) as number[],
+        yearTotals: {} as Record<number, number>,
+        grandTotal: 0,
+      };
+    }
+
+    const entryMap = new Map<string, WarehouseMonthlyHistoryResponse['entries'][number]>();
+    const monthTotals = Array(12).fill(0) as number[];
+    const yearTotals: Record<number, number> = {};
+
+    monthlyHistory.years.forEach(year => {
+      yearTotals[year] = 0;
+    });
+
+    monthlyHistory.entries.forEach(entry => {
+      const key = `${entry.year}-${entry.month}`;
+      const total = resolveMonthlyTotal(entry);
+      entryMap.set(key, entry);
+      if (entry.month >= 1 && entry.month <= 12) {
+        monthTotals[entry.month - 1] += total;
+      }
+      yearTotals[entry.year] = (yearTotals[entry.year] ?? 0) + total;
+    });
+
+    const grandTotal = Object.values(yearTotals).reduce((acc, total) => acc + total, 0);
+
+    return {
+      years: monthlyHistory.years,
+      entryMap,
+      monthTotals,
+      yearTotals,
+      grandTotal,
+    };
+  }, [monthlyHistory]);
 
   const donorContent = (
     <>
@@ -516,6 +613,88 @@ export default function Aggregations() {
     </>
   );
 
+  const monthlyHistoryContent = (
+    <>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={{ xs: 1.5, sm: 2 }}
+        sx={{
+          mb: 2,
+          alignItems: { xs: 'stretch', sm: 'center' },
+        }}
+      >
+        <Button
+          variant="contained"
+          onClick={handleExportMonthlyHistory}
+          disabled={monthlyHistoryExportLoading}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
+        >
+          {monthlyHistoryExportLoading ? <CircularProgress size={20} /> : 'Export'}
+        </Button>
+      </Stack>
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        {monthlyHistoryLoading ? (
+          <Stack alignItems="center" py={2}>
+            <CircularProgress size={24} />
+          </Stack>
+        ) : (
+          (() => {
+            interface MonthlyHistoryRow {
+              monthLabel: string;
+              total: number;
+              isTotal?: boolean;
+              [key: `y${number}`]: number | string | boolean | undefined;
+            }
+
+            const { years, entryMap, monthTotals, yearTotals, grandTotal } = monthlyHistoryDerived;
+
+            const columns: Column<MonthlyHistoryRow>[] = [
+              { field: 'monthLabel', header: 'Month' },
+              ...years.map(year => ({
+                field: `y${year}` as keyof MonthlyHistoryRow & string,
+                header: String(year),
+                render: row => `${poundsFormatter.format(Number(row[`y${year}`] ?? 0))} lbs`,
+              })),
+              {
+                field: 'total',
+                header: 'Total (lbs)',
+                render: row => `${poundsFormatter.format(row.total)} lbs`,
+              },
+            ];
+
+            const rows: MonthlyHistoryRow[] = monthNames.map((name, idx) => {
+              const month = idx + 1;
+              const row: MonthlyHistoryRow = { monthLabel: name, total: monthTotals[idx] };
+              years.forEach(year => {
+                const entry = entryMap.get(`${year}-${month}`);
+                row[`y${year}`] = resolveMonthlyTotal(entry);
+              });
+              return row;
+            });
+
+            const totalsRow: MonthlyHistoryRow = {
+              monthLabel: 'Total',
+              total: grandTotal,
+              isTotal: true,
+            };
+            years.forEach(year => {
+              totalsRow[`y${year}`] = yearTotals[year] ?? 0;
+            });
+            rows.push(totalsRow);
+
+            return (
+              <ResponsiveTable
+                columns={columns}
+                rows={rows}
+                getRowKey={row => (row.isTotal ? 'total' : row.monthLabel)}
+              />
+            );
+          })()
+        )}
+      </TableContainer>
+    </>
+  );
+
   const historicalContent = (
     <>
       <Stack
@@ -591,6 +770,7 @@ export default function Aggregations() {
   const tabs = [
     { label: 'Donor Aggregations', content: donorContent },
     { label: 'Yearly Overall Aggregations', content: overallContent },
+    { label: 'Monthly Donation History', content: monthlyHistoryContent },
     { label: 'Historical Donations', content: historicalContent },
   ];
 
