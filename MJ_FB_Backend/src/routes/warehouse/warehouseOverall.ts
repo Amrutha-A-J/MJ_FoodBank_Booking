@@ -1,12 +1,5 @@
 import { Router } from 'express';
 import {
-  listWarehouseOverall,
-  rebuildWarehouseOverall,
-  exportWarehouseOverall,
-  listAvailableYears,
-  manualWarehouseOverall,
-  listHistoricalDonations,
-  exportHistoricalDonations,
   listMonthlyDonationHistory,
   exportMonthlyDonationHistory,
 } from '../../controllers/warehouse/warehouseOverallController';
@@ -16,54 +9,6 @@ const staffOrAccess = authorizeStaffOrAccess ?? authorizeAccess;
 
 const router = Router();
 
-router.get(
-  '/',
-  authMiddleware,
-  staffOrAccess('warehouse', 'donor_management'),
-  listWarehouseOverall,
-);
-router.post(
-  '/manual',
-  authMiddleware,
-  staffOrAccess('warehouse', 'donor_management'),
-  manualWarehouseOverall,
-);
-router.post(
-  '/rebuild',
-  authMiddleware,
-  staffOrAccess('warehouse', 'donor_management'),
-  rebuildWarehouseOverall,
-);
-router.get(
-  '/export',
-  authMiddleware,
-  staffOrAccess('warehouse', 'donor_management'),
-  exportWarehouseOverall,
-);
-router.get(
-  '/history',
-  authMiddleware,
-  staffOrAccess('warehouse', 'donor_management'),
-  listHistoricalDonations,
-);
-router.get(
-  '/donation-history',
-  authMiddleware,
-  staffOrAccess('warehouse', 'donor_management'),
-  listHistoricalDonations,
-);
-router.get(
-  '/history/export',
-  authMiddleware,
-  staffOrAccess('warehouse', 'donor_management'),
-  exportHistoricalDonations,
-);
-router.get(
-  '/donation-history/export',
-  authMiddleware,
-  staffOrAccess('warehouse', 'donor_management'),
-  exportHistoricalDonations,
-);
 router.get(
   '/monthly-history',
   authMiddleware,
@@ -75,12 +20,6 @@ router.get(
   authMiddleware,
   staffOrAccess('warehouse', 'donor_management'),
   exportMonthlyDonationHistory,
-);
-router.get(
-  '/years',
-  authMiddleware,
-  staffOrAccess('warehouse', 'donor_management'),
-  listAvailableYears,
 );
 
 export default router;
