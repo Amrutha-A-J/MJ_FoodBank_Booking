@@ -10,4 +10,5 @@ From Client Management, searching for a numeric client ID that isn't found shows
 
 - Assign the **Delivery** role from **Staff → Client Management → Add Client** when setting up a delivery shopper.
 - Delivery options are controlled from **Admin → Settings → Pantry**. Update delivery categories and items there so the Book Delivery page stays in sync.
+- Submit requests on behalf of clients from **Pantry → Deliveries → Record Delivery**. The form mirrors `/delivery/book`, requires address and phone confirmation, and offers optional email collection.
 - Review [docs/delivery.md](delivery.md) for the complete request flow, notification email details, and guidance on helping delivery clients.
