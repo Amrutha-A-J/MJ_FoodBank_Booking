@@ -92,6 +92,11 @@ export default function BookingManagementBase({
 
   const pageSize = 10;
 
+  const handleUpdated = useCallback((m: string, s: AlertColor) => {
+    setSeverity(s);
+    setMessage(m);
+  }, []);
+
   const loadBookings = useCallback(() => {
     const opts: Record<string, unknown> = {
       includeVisits: true,
@@ -333,10 +338,7 @@ export default function BookingManagementBase({
           open: editOpen,
           onClose: () => setEditOpen(false),
           user,
-          onUpdated: (m, s) => {
-            setSeverity(s);
-            setMessage(m);
-          },
+          onUpdated: handleUpdated,
         })}
       <FormDialog open={cancelId !== null} onClose={() => setCancelId(null)} maxWidth="xs">
         <DialogCloseButton onClose={() => setCancelId(null)} />
