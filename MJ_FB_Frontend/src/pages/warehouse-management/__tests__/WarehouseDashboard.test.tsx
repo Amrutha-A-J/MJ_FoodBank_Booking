@@ -39,8 +39,9 @@ jest.mock('../../../components/WarehouseQuickLinks', () => ({
   default: () => null,
 }));
 
-import { fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import WarehouseDashboard from '../WarehouseDashboard';
 import {
   getWarehouseOverall,
@@ -101,4 +102,46 @@ describe('WarehouseDashboard', () => {
     expect(outgoingValue).toBe(mockTrendPoint.outgoing);
     expect(petFoodValue).toBe(mockTrendPoint.petFood);
   }, 15000);
+
+  it('navigates to the donor detail without re-querying donors using the formatted label', async () => {
+    const donorOption = {
+      id: 1,
+      name: 'Generous Giver',
+      contact: { phone: '555-1212' },
+    };
+
+    (getDonors as jest.Mock).mockImplementation(async (term: string) => {
+      if (!term) return [];
+      return [donorOption];
+    });
+
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={[{ pathname: '/warehouse-management' }]}>
+        <Routes>
+          <Route path="/warehouse-management" element={<WarehouseDashboard />} />
+          <Route path="/warehouse-management/donors/:id" element={<div>Donor page</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const searchInput = await screen.findByPlaceholderText('Find donor/receiver');
+    await user.click(searchInput);
+    await user.type(searchInput, 'Generous');
+
+    await waitFor(() => expect(getDonors).toHaveBeenCalledWith('Generous'));
+
+    const optionLabel = 'Generous Giver (ID 1 • 555-1212)';
+    await user.keyboard('{ArrowDown}');
+    const option = await screen.findByRole('option', { name: optionLabel });
+    await user.click(option);
+
+    await screen.findByText('Donor page');
+
+    const donorCalls = (getDonors as jest.Mock).mock.calls.map(([value]: [string]) => value);
+    expect(donorCalls).toContain('');
+    expect(donorCalls).toContain('Generous');
+    expect(donorCalls).toContain('1');
+    expect(donorCalls).not.toContain(optionLabel);
+  });
 });
