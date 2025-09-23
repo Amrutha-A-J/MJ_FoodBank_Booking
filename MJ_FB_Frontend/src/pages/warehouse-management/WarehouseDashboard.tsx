@@ -362,9 +362,15 @@ export default function WarehouseDashboard() {
             options={donorOptions}
             getOptionLabel={o => formatDonorDisplay(o)}
             inputValue={search}
-            onInputChange={(_e, v) => setSearch(v)}
+            onInputChange={(_e, v, reason) => {
+              if (reason === 'input') setSearch(v);
+              if (reason === 'clear') setSearch('');
+            }}
             onChange={(_e, v) => {
-              if (v) navigate(`/warehouse-management/donors/${v.id}`);
+              if (v) {
+                setSearch(String(v.id));
+                navigate(`/warehouse-management/donors/${v.id}`);
+              }
             }}
             renderInput={params => (
               <TextField
