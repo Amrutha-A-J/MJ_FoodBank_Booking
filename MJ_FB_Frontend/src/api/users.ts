@@ -211,6 +211,7 @@ export interface UserByClientId {
   lastName: string | null;
   email: string | null;
   phone: string | null;
+  address?: string | null;
   clientId: number;
   onlineAccess: boolean;
   hasPassword: boolean;

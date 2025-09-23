@@ -26,17 +26,13 @@ import {
 } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import ClientBottomNav from '../../components/ClientBottomNav';
-import {
-  API_BASE,
-  apiFetch,
-  getApiErrorMessage,
-  handleResponse,
-} from '../../api/client';
+import { API_BASE, apiFetch, getApiErrorMessage, handleResponse } from '../../api/client';
 import type { DeliveryCategory, DeliveryItem } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { getUserProfile } from '../../api/users';
 import { useNavigate } from 'react-router-dom';
 import FormDialog from '../../components/FormDialog';
+import { resolveCategoryLimit, useDeliveryCategories } from '../../utils/deliveryCategories';
 
 type SelectionState = Record<number, boolean>;
 
@@ -58,21 +54,10 @@ type FormErrors = {
 const PHONE_REGEX = /^\+?[0-9 ()-]{7,}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function resolveCategoryLimit(category: DeliveryCategory): number {
-  const rawLimit =
-    category.limit ??
-    category.maxItems ??
-    category.maxSelections ??
-    category.limitPerOrder ??
-    0;
-  return rawLimit && rawLimit > 0 ? rawLimit : Number.POSITIVE_INFINITY;
-}
-
 export default function BookDelivery() {
-  const [categories, setCategories] = useState<DeliveryCategory[]>([]);
+  const { categories, loading, error: categoriesError, clearError: clearCategoriesError } =
+    useDeliveryCategories();
   const [selectedItems, setSelectedItems] = useState<SelectionState>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -131,34 +116,10 @@ export default function BookDelivery() {
   }, []);
 
   useEffect(() => {
-    let active = true;
-    async function loadCategories() {
-      setLoading(true);
-      try {
-        const res = await apiFetch(`${API_BASE}/delivery/categories`);
-        const data = await handleResponse<DeliveryCategory[]>(res);
-        if (active) {
-          setCategories(data);
-          setError('');
-        }
-      } catch (err) {
-        if (active) {
-          const message = getApiErrorMessage(
-            err,
-            "We couldn't load your delivery options. Please try again.",
-          );
-          setError(message);
-          setSnackbar({ open: true, message, severity: 'error' });
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
+    if (categoriesError) {
+      setSnackbar({ open: true, message: categoriesError, severity: 'error' });
     }
-    void loadCategories();
-    return () => {
-      active = false;
-    };
-  }, []);
+  }, [categoriesError]);
 
   useEffect(() => {
     const validIds = new Set<number>();
@@ -226,6 +187,7 @@ export default function BookDelivery() {
 
   const handleSnackbarClose = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
+    clearCategoriesError();
   };
 
   const handleSuccessDialogClose = () => {
@@ -383,9 +345,9 @@ export default function BookDelivery() {
         information. We will follow up with your delivery details.
       </Typography>
 
-      {error && (
+      {categoriesError && (
         <Box mb={3}>
-          <Typography color="error">{error}</Typography>
+          <Typography color="error">{categoriesError}</Typography>
         </Box>
       )}
 
