@@ -322,7 +322,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         ...g.roles
           .filter(r => r.has_shifts)
           .map(r => (
-            <MenuItem key={r.name} value={r.name}>
+            <MenuItem key={`${r.role_id}-${r.name}`} value={r.name}>
               {r.name}
             </MenuItem>
           )),
@@ -978,7 +978,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                     ...roleInfos.map(r => r.max_volunteers),
                   );
                   return (
-                    <Box key={r.name} mt={3}>
+                    <Box key={`${r.role_id}-${r.name}`} mt={3}>
                       <Typography
                         variant="h6"
                         sx={{ fontWeight: theme.typography.fontWeightBold, mb: 1 }}
@@ -1129,7 +1129,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                             {g.category}
                           </ListSubheader>,
                           ...g.roles.map(r => (
-                            <MenuItem key={r.name} value={r.name}>
+                            <MenuItem key={`${r.role_id}-${r.name}`} value={r.name}>
                               {r.name}
                             </MenuItem>
                           )),
@@ -1242,7 +1242,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 {groupedRoles.flatMap(g => [
                   <ListSubheader key={`${g.category}-header`}>{g.category}</ListSubheader>,
                   ...g.roles.map(r => (
-                    <MenuItem key={r.name} value={r.name}>
+                    <MenuItem key={`${r.role_id}-${r.name}`} value={r.name}>
                       <Checkbox checked={selectedCreateRoles.includes(r.name)} />
                       <ListItemText primary={r.name} />
                     </MenuItem>
