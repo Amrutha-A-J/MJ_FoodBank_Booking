@@ -18,6 +18,56 @@ function createClient(database: string) {
   return new Client({ ...baseDbConfig, database });
 }
 
+type DonorColumnInfo = {
+  column_name: string;
+  is_nullable: 'YES' | 'NO';
+  column_default: string | null;
+};
+
+type DonorNameParts = {
+  firstName: string;
+  lastName: string;
+};
+
+function splitDonorName(rawName: string): DonorNameParts {
+  const trimmed = rawName.trim();
+  if (!trimmed) {
+    return { firstName: 'Donor', lastName: 'Unknown' };
+  }
+
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return { firstName: 'Donor', lastName: 'Unknown' };
+  }
+
+  if (parts.length === 1) {
+    return { firstName: parts[0], lastName: parts[0] };
+  }
+
+  const [first, ...rest] = parts;
+  const last = rest.join(' ').trim();
+  return {
+    firstName: first || trimmed,
+    lastName: last || first || trimmed,
+  };
+}
+
+function generateDonorEmail(
+  rawName: string,
+  index: number,
+  emailCounts: Map<string, number>,
+): string {
+  const baseSlug = rawName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  const base = baseSlug || `donor-${index + 1}`;
+  const currentCount = emailCounts.get(base) ?? 0;
+  emailCounts.set(base, currentCount + 1);
+  const suffix = currentCount === 0 ? '' : `-${currentCount}`;
+  return `${base}${suffix}@example.com`;
+}
+
 async function upsertDonors(client: Client): Promise<DonorSeedResult> {
   const donorList = [
     'AAWARRIORS',
@@ -180,7 +230,13 @@ async function upsertDonors(client: Client): Promise<DonorSeedResult> {
     'ZOMBIE WALK',
     'ZION CHURCH',
   ];
-  const donors = [...new Set(donorList.map(name => name.trim()))];
+  const donors = [
+    ...new Set(
+      donorList
+        .map(name => name.trim())
+        .filter(name => name.length > 0),
+    ),
+  ];
 
   const hasNameColumn = await client
     .query<{ exists: boolean }>(
@@ -204,13 +260,85 @@ async function upsertDonors(client: Client): Promise<DonorSeedResult> {
     "ALTER TABLE donors ADD COLUMN IF NOT EXISTS is_pet_food boolean DEFAULT false NOT NULL;",
   );
 
+  const donorColumns = await client
+    .query<DonorColumnInfo>(
+      `SELECT column_name, is_nullable, column_default
+         FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'donors';`,
+    )
+    .then(result => result.rows);
+
+  const requireFirstName = donorColumns.some(
+    column =>
+      column.column_name === 'first_name' &&
+      column.is_nullable === 'NO' &&
+      column.column_default == null,
+  );
+  const requireLastName = donorColumns.some(
+    column =>
+      column.column_name === 'last_name' &&
+      column.is_nullable === 'NO' &&
+      column.column_default == null,
+  );
+  const requireEmail = donorColumns.some(
+    column =>
+      column.column_name === 'email' &&
+      column.is_nullable === 'NO' &&
+      column.column_default == null,
+  );
+
+  type ExtraColumnGenerator = {
+    column: string;
+    generator: (args: { rawName: string; index: number; parts: DonorNameParts }) => string;
+  };
+
+  const extraColumnGenerators: ExtraColumnGenerator[] = [];
+  if (requireFirstName) {
+    extraColumnGenerators.push({
+      column: 'first_name',
+      generator: ({ parts }) => parts.firstName,
+    });
+  }
+  if (requireLastName) {
+    extraColumnGenerators.push({
+      column: 'last_name',
+      generator: ({ parts }) => parts.lastName,
+    });
+  }
+
+  const emailCounts = new Map<string, number>();
+  if (requireEmail) {
+    extraColumnGenerators.push({
+      column: 'email',
+      generator: ({ rawName, index }) => generateDonorEmail(rawName, index, emailCounts),
+    });
+  }
+
+  const insertColumns = [
+    'name',
+    ...extraColumnGenerators.map(({ column }) => column),
+    'is_pet_food',
+  ];
+
   const donorValues: string[] = [];
   const params: (string | boolean)[] = [];
-  donors.forEach((name, index) => {
+  const namePartsCache = donors.map(splitDonorName);
+
+  donors.forEach((name, donorIndex) => {
     const normalized = name.replace(/[^a-z]/gi, '').toLowerCase();
     const isPetFood = /petfood/.test(normalized) || /petvalue/.test(normalized);
-    params.push(name, isPetFood);
-    donorValues.push(`($${index * 2 + 1}, $${index * 2 + 2})`);
+    const parts = namePartsCache[donorIndex];
+
+    const rowValues: (string | boolean)[] = [name];
+    extraColumnGenerators.forEach(({ generator }) => {
+      rowValues.push(generator({ rawName: name, index: donorIndex, parts }));
+    });
+    rowValues.push(isPetFood);
+
+    const placeholders = rowValues.map((_, valueIndex) => `$${params.length + valueIndex + 1}`);
+    donorValues.push(`(${placeholders.join(', ')})`);
+    params.push(...rowValues);
   });
 
   const hasUniqueNameConstraint = await client
@@ -254,7 +382,7 @@ async function upsertDonors(client: Client): Promise<DonorSeedResult> {
   }
 
   await client.query(
-    `INSERT INTO donors (name, is_pet_food) VALUES ${donorValues.join(',')}${onConflictClause};`,
+    `INSERT INTO donors (${insertColumns.join(', ')}) VALUES ${donorValues.join(',')}${onConflictClause};`,
     params,
   );
 
