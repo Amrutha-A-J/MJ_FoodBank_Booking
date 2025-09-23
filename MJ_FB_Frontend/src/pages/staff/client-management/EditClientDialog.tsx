@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Chip, DialogTitle } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from '../../../components/DialogCloseButton';
@@ -71,6 +71,11 @@ export default function EditClientDialog({
   onUpdated,
   onClientUpdated,
 }: Props) {
+  const onUpdatedRef = useRef(onUpdated);
+  useEffect(() => {
+    onUpdatedRef.current = onUpdated;
+  }, [onUpdated]);
+
   const [form, setForm] = useState<AccountEditFormData>({
     firstName: '',
     lastName: '',
@@ -101,13 +106,15 @@ export default function EditClientDialog({
       })
       .catch(err => {
         if (!active) return;
-        onUpdated(getApiErrorMessage(err, 'Failed to load client details'), 'error');
+        onUpdatedRef.current(
+          getApiErrorMessage(err, 'Failed to load client details'),
+          'error',
+        );
       });
 
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, clientId]);
 
   return (

@@ -192,6 +192,10 @@ export default function BookingManagementBase({
     setMessage(m);
   }, []);
 
+  const handleEditClose = useCallback(() => {
+    setEditOpen(false);
+  }, []);
+
   async function confirmCancel() {
     if (cancelId == null) return;
     try {
@@ -336,7 +340,7 @@ export default function BookingManagementBase({
       {renderEditDialog &&
         renderEditDialog({
           open: editOpen,
-          onClose: () => setEditOpen(false),
+          onClose: handleEditClose,
           user,
           onUpdated: handleUpdated,
         })}
