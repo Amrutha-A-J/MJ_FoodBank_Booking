@@ -112,7 +112,7 @@ describe('EditVolunteer volunteer info display', () => {
     );
 
     fireEvent.click(await screen.findByRole('button', { name: /edit profile/i }));
-    fireEvent.click(await screen.findByTestId('volunteer-set-password-button'));
+    fireEvent.click(await screen.findByTestId('set-password-button'));
 
     const passwordInput = await screen.findByTestId('volunteer-password-input');
     fireEvent.change(passwordInput, { target: { value: 'Secret!1' } });
@@ -354,7 +354,9 @@ describe('EditVolunteer profile editing', () => {
       expect(getVolunteerById).toHaveBeenCalledWith(1);
     });
     await waitFor(() =>
-      expect(screen.getByLabelText(/email/i)).toHaveValue('new@example.com'),
+      expect(screen.getByTestId('volunteer-email')).toHaveTextContent(
+        'new@example.com',
+      ),
     );
   });
 

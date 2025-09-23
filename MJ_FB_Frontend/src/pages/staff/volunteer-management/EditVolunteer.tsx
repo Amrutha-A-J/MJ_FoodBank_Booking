@@ -24,6 +24,7 @@ import {
   Container,
   DialogActions,
   DialogContent,
+  DialogTitle,
   FormControl,
   FormControlLabel,
   FormHelperText,
@@ -36,7 +37,6 @@ import {
   Stack,
   Switch,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -48,7 +48,9 @@ import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import DialogCloseButton from '../../../components/DialogCloseButton';
 import FormDialog from '../../../components/FormDialog';
-import PasswordField from '../../../components/PasswordField';
+import AccountEditForm, {
+  type AccountEditFormData,
+} from '../../../components/account/AccountEditForm';
 
 export default function EditVolunteer() {
   const [volunteer, setVolunteer] =
@@ -56,13 +58,6 @@ export default function EditVolunteer() {
   const [roles, setRoles] = useState<VolunteerRoleWithShifts[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [initialSelected, setInitialSelected] = useState<string[]>([]);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [onlineAccess, setOnlineAccess] = useState(false);
-  const [password, setPassword] = useState('');
-  const [showPasswordField, setShowPasswordField] = useState(false);
   const [saving, setSaving] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -76,6 +71,28 @@ export default function EditVolunteer() {
   const [history, setHistory] = useState<VolunteerBooking[]>([]);
   const [expanded, setExpanded] =
     useState<'profile' | 'roles' | 'history' | false>('profile');
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+
+  function ProfileDetail({
+    label,
+    value,
+    testId,
+  }: {
+    label: string;
+    value: string;
+    testId: string;
+  }) {
+    return (
+      <Stack spacing={0.5}>
+        <Typography variant="body2" color="text.secondary">
+          {label}
+        </Typography>
+        <Typography variant="body1" data-testid={testId}>
+          {value}
+        </Typography>
+      </Stack>
+    );
+  }
 
   useEffect(() => {
     getVolunteerRoles()
@@ -119,13 +136,7 @@ export default function EditVolunteer() {
   function handleSelect(v: VolunteerSearchResult) {
     setVolunteer(v);
     setHasShopper(v.hasShopper);
-    setFirstName(v.firstName);
-    setLastName(v.lastName);
-    setEmail(v.email || '');
-    setPhone(v.phone || '');
-    setOnlineAccess(v.hasPassword);
-    setPassword('');
-    setShowPasswordField(false);
+    setProfileDialogOpen(false);
     const names = v.trainedAreas
       .map(id => idToName.get(id))
       .filter((n): n is string => !!n);
@@ -152,18 +163,6 @@ export default function EditVolunteer() {
     return a.some((v, i) => v !== b[i]);
   }, [selected, initialSelected]);
 
-  const profileChanged = useMemo(() => {
-    if (!volunteer) return false;
-    return (
-      firstName !== volunteer.firstName ||
-      lastName !== volunteer.lastName ||
-      email !== (volunteer.email || '') ||
-      phone !== (volunteer.phone || '') ||
-      onlineAccess !== volunteer.hasPassword ||
-      (!!password && password.length > 0)
-    );
-  }, [volunteer, firstName, lastName, email, phone, onlineAccess, password]);
-
   async function handleSave() {
     if (!volunteer || !hasChanges) return;
     setSaving(true);
@@ -186,24 +185,36 @@ export default function EditVolunteer() {
     skipRefresh?: boolean;
   }
 
-  async function saveProfile({
-    sendResetLink = false,
-    skipRefresh = false,
-  }: SaveProfileOptions = {}): Promise<boolean> {
+  async function saveProfile(
+    data: AccountEditFormData,
+    {
+      sendResetLink = false,
+      skipRefresh = false,
+    }: SaveProfileOptions = {},
+  ): Promise<boolean> {
     if (!volunteer) return false;
+
+    const profileChanged =
+      data.firstName !== volunteer.firstName ||
+      data.lastName !== volunteer.lastName ||
+      data.email !== (volunteer.email || '') ||
+      data.phone !== (volunteer.phone || '') ||
+      data.onlineAccess !== volunteer.hasPassword ||
+      (!!data.password && data.password.length > 0);
+
     if (!profileChanged && !sendResetLink) return false;
 
-    if (onlineAccess && !email) {
+    if (data.onlineAccess && !data.email) {
       setMessage('Email required for online access');
       setSeverity('error');
       return false;
     }
 
     if (
-      onlineAccess &&
+      data.onlineAccess &&
       !volunteer.hasPassword &&
       !sendResetLink &&
-      !password
+      !data.password
     ) {
       setMessage('Password required');
       setSeverity('error');
@@ -220,20 +231,18 @@ export default function EditVolunteer() {
         onlineAccess?: boolean;
         password?: string;
       } = {
-        firstName,
-        lastName,
-        email: email || undefined,
-        phone: phone || undefined,
-        onlineAccess,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email || undefined,
+        phone: data.phone || undefined,
+        onlineAccess: data.onlineAccess,
       };
 
-      if (password && !sendResetLink) {
-        payload.password = password;
+      if (data.password && !sendResetLink) {
+        payload.password = data.password;
       }
 
       await updateVolunteer(volunteer.id, payload);
-      setPassword('');
-      setShowPasswordField(false);
       if (!skipRefresh) {
         await refreshVolunteer(volunteer.id);
       }
@@ -251,17 +260,15 @@ export default function EditVolunteer() {
     }
   }
 
-  async function handleProfileSave() {
-    await saveProfile();
-  }
-
-  async function handleSendReset() {
-    if (!volunteer) return;
-    const saved = await saveProfile({ sendResetLink: true, skipRefresh: true });
-    if (!saved) return;
-    setProfileSaving(true);
+  async function handleSendReset(data: AccountEditFormData): Promise<boolean> {
+    if (!volunteer) return false;
+    const saved = await saveProfile(data, {
+      sendResetLink: true,
+      skipRefresh: true,
+    });
+    if (!saved) return false;
     try {
-      await requestPasswordReset({ email });
+      await requestPasswordReset({ email: data.email });
       setMessage('Password reset link sent');
       setSeverity('success');
     } catch (err: unknown) {
@@ -271,21 +278,14 @@ export default function EditVolunteer() {
       setSeverity('error');
     } finally {
       await refreshVolunteer(volunteer.id);
-      setProfileSaving(false);
     }
+    return true;
   }
 
   async function refreshVolunteer(id: number) {
     try {
       const v = await getVolunteerById(id);
       setVolunteer(v);
-      setFirstName(v.firstName);
-      setLastName(v.lastName);
-      setEmail(v.email || '');
-      setPhone(v.phone || '');
-      setOnlineAccess(v.hasPassword);
-      setPassword('');
-      setShowPasswordField(false);
       const names = v.trainedAreas
         .map(rid => idToName.get(rid))
         .filter((n): n is string => !!n);
@@ -354,7 +354,7 @@ export default function EditVolunteer() {
             />
             {volunteer ? (
               <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="h6" data-testid="volunteer-name">
+                <Typography variant="h6">
                   {volunteer.name}
                 </Typography>
                 {volunteer.hasPassword && (
@@ -403,133 +403,55 @@ export default function EditVolunteer() {
                         Enable if this volunteer also shops at the pantry.
                       </FormHelperText>
                     </FormControl>
-                    <Accordion>
-                      <AccordionSummary
-                        expandIcon={<ExpandMoreIcon />}
-                        aria-controls="edit-profile-content"
-                        id="edit-profile-header"
-                      >
-                        <Typography>Edit Profile</Typography>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <Stack spacing={3}>
-                          <Stack spacing={2}>
-                            <Typography variant="subtitle1">Account</Typography>
-                            <Tooltip
-                              title="Volunteer already has a password"
-                              disableHoverListener={!volunteer.hasPassword}
+                    {volunteer && (
+                      <Stack spacing={3}>
+                        <Stack spacing={1}>
+                          <Typography variant="subtitle1">Profile</Typography>
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <Typography
+                              variant="h6"
+                              data-testid="volunteer-name"
                             >
-                              <span>
-                                <FormControl>
-                                  <FormControlLabel
-                                    control={
-                                      <Switch
-                                        checked={onlineAccess}
-                                        onChange={e => {
-                                          const enabled = e.target.checked;
-                                          setOnlineAccess(enabled);
-                                          if (!enabled) {
-                                            setPassword('');
-                                            setShowPasswordField(false);
-                                          } else if (!volunteer.hasPassword) {
-                                            setShowPasswordField(true);
-                                          }
-                                        }}
-                                        color="primary"
-                                        data-testid="online-access-toggle"
-                                      />
-                                    }
-                                    label="Online Access"
-                                  />
-                                  <FormHelperText>
-                                    Allow the volunteer to sign in online.
-                                  </FormHelperText>
-                                </FormControl>
-                              </span>
-                            </Tooltip>
-                            {onlineAccess && volunteer.hasPassword && (
-                              <Button
+                              {`${volunteer.firstName} ${volunteer.lastName}`.trim() ||
+                                volunteer.name}
+                            </Typography>
+                            {volunteer.hasPassword && (
+                              <Chip
+                                color="success"
+                                icon={<CheckCircleOutline />}
+                                label="Online account"
+                                size="small"
                                 variant="outlined"
-                                onClick={() => {
-                                  if (showPasswordField) {
-                                    setPassword('');
-                                  }
-                                  setShowPasswordField(prev => !prev);
-                                }}
-                                data-testid="volunteer-set-password-button"
-                                sx={{ alignSelf: { sm: 'flex-start' } }}
-                              >
-                                {showPasswordField
-                                  ? 'Cancel password change'
-                                  : 'Set password'}
-                              </Button>
-                            )}
-                            {onlineAccess && (!volunteer.hasPassword || showPasswordField) && (
-                              <PasswordField
-                                fullWidth
-                                label="Password"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                inputProps={{ 'data-testid': 'volunteer-password-input' }}
                               />
                             )}
-                            {onlineAccess && (
-                              <Button
-                                variant="outlined"
-                                onClick={handleSendReset}
-                                disabled={profileSaving}
-                                sx={{ alignSelf: { sm: 'flex-start' } }}
-                              >
-                                Send password reset link
-                              </Button>
-                            )}
                           </Stack>
-                          <Stack spacing={2}>
-                            <Typography variant="subtitle1">Contact</Typography>
-                            <TextField
-                              label="First Name"
-                              value={firstName}
-                              onChange={e => setFirstName(e.target.value)}
-                              fullWidth
-                              margin="normal"
-                            />
-                            <TextField
-                              label="Last Name"
-                              value={lastName}
-                              onChange={e => setLastName(e.target.value)}
-                              fullWidth
-                              margin="normal"
-                            />
-                            <TextField
-                              label="Email"
-                              type="email"
-                              value={email}
-                              onChange={e => setEmail(e.target.value)}
-                              fullWidth
-                              margin="normal"
-                            />
-                            <TextField
-                              label="Phone"
-                              type="tel"
-                              value={phone}
-                              onChange={e => setPhone(e.target.value)}
-                              fullWidth
-                              margin="normal"
-                            />
-                          </Stack>
-                          <Button
-                            variant="contained"
-                            onClick={handleProfileSave}
-                            disabled={profileSaving || !profileChanged}
-                            aria-label="Save profile changes"
-                            data-testid="save-profile-button"
-                            sx={{ alignSelf: { sm: 'flex-start' } }}
-                          >
-                            Save
-                          </Button>
                         </Stack>
-                      </AccordionDetails>
-                    </Accordion>
+                        <Stack spacing={2}>
+                          <ProfileDetail
+                            label="Email"
+                            value={volunteer.email || 'Not provided'}
+                            testId="volunteer-email"
+                          />
+                          <ProfileDetail
+                            label="Phone"
+                            value={volunteer.phone || 'Not provided'}
+                            testId="volunteer-phone"
+                          />
+                          <ProfileDetail
+                            label="Online Access"
+                            value={volunteer.hasPassword ? 'Enabled' : 'Disabled'}
+                            testId="volunteer-online-access"
+                          />
+                        </Stack>
+                        <Button
+                          variant="outlined"
+                          onClick={() => setProfileDialogOpen(true)}
+                          sx={{ alignSelf: { sm: 'flex-start' } }}
+                        >
+                          Edit Profile
+                        </Button>
+                      </Stack>
+                    )}
                   </Stack>
                 </AccordionDetails>
               </Accordion>
@@ -633,6 +555,48 @@ export default function EditVolunteer() {
             </Button>
           </Container>
         </Box>
+      )}
+      {volunteer && (
+        <FormDialog
+          open={profileDialogOpen}
+          onClose={() => setProfileDialogOpen(false)}
+        >
+          <DialogCloseButton onClose={() => setProfileDialogOpen(false)} />
+          <DialogTitle>Edit Volunteer</DialogTitle>
+          <AccountEditForm
+            open={profileDialogOpen}
+            initialData={{
+              firstName: volunteer.firstName || '',
+              lastName: volunteer.lastName || '',
+              email: volunteer.email || '',
+              phone: volunteer.phone || '',
+              onlineAccess: volunteer.hasPassword,
+              password: '',
+              hasPassword: volunteer.hasPassword,
+            }}
+            onSave={async data => {
+              if (profileSaving) return false;
+              const saved = await saveProfile(data);
+              if (saved) {
+                setProfileDialogOpen(false);
+              }
+              return saved;
+            }}
+            onSecondaryAction={async data => {
+              if (profileSaving) return;
+              const ok = await handleSendReset(data);
+              if (ok) {
+                setProfileDialogOpen(false);
+              }
+            }}
+            secondaryActionLabel="Send password reset link"
+            onlineAccessHelperText="Allow the volunteer to sign in online."
+            existingPasswordTooltip="Volunteer already has a password"
+            secondaryActionTestId="send-reset-button"
+            primaryActionTestId="save-profile-button"
+            passwordFieldTestId="volunteer-password-input"
+          />
+        </FormDialog>
       )}
       {shopperOpen && (
         <FormDialog open onClose={() => setShopperOpen(false)}>
