@@ -48,24 +48,6 @@ export async function exportWarehouseOverall(year: number): Promise<Blob> {
   return res.blob();
 }
 
-export interface WarehouseDonationHistoryEntry {
-  year: number;
-  donations: number;
-  petFood: number;
-  total: number;
-}
-
-export async function getWarehouseDonationHistory(): Promise<WarehouseDonationHistoryEntry[]> {
-  const res = await apiFetch(`${API_BASE}/warehouse-overall/donation-history`);
-  return handleResponse(res);
-}
-
-export async function exportWarehouseDonationHistory(): Promise<Blob> {
-  const res = await apiFetch(`${API_BASE}/warehouse-overall/donation-history/export`);
-  if (!res.ok) await handleResponse(res);
-  return res.blob();
-}
-
 export interface WarehouseMonthlyHistoryEntry {
   year: number;
   month: number;
