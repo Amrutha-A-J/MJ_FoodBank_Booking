@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../../../theme';
@@ -10,12 +10,7 @@ jest.mock('../../../api/maintenance', () => ({
   clearMaintenanceStats: jest.fn().mockResolvedValue(undefined),
   vacuumDatabase: jest.fn().mockResolvedValue({ message: 'Vacuum started' }),
   vacuumTable: jest.fn().mockResolvedValue({ message: 'Table vacuum started' }),
-  getVacuumDeadRows: jest.fn().mockResolvedValue({
-    deadRows: [
-      { table: 'users', deadRows: 10 },
-      { table: 'orders', deadRows: 5 },
-    ],
-  }),
+  getVacuumDeadRows: jest.fn(),
   getVacuumDeadRowTables: jest
     .fn()
     .mockImplementation(response => response.deadRows?.map((item: any) => item.table) ?? []),
@@ -55,7 +50,26 @@ import {
   purgeOldRecords,
 } from '../../../api/maintenance';
 
+const getVacuumDeadRowsMock = getVacuumDeadRows as jest.Mock;
+
 describe('Maintenance', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    getVacuumDeadRowsMock.mockImplementation((table?: string) => {
+      if (table === 'orders') {
+        return Promise.resolve({
+          deadRows: [{ table: 'orders', deadRows: 5 }],
+        });
+      }
+      return Promise.resolve({
+        deadRows: [
+          { table: 'users', deadRows: 10 },
+          { table: 'orders', deadRows: 5 },
+        ],
+      });
+    });
+  });
+
   beforeAll(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-06-15T12:00:00Z'));
@@ -90,6 +104,14 @@ describe('Maintenance', () => {
 
     await waitFor(() => expect(getVacuumDeadRows).toHaveBeenCalledTimes(1));
 
+    const deadRowsResults = await screen.findByTestId('dead-rows-results');
+    await waitFor(() => {
+      expect(within(deadRowsResults).getByText('users')).toBeInTheDocument();
+      expect(within(deadRowsResults).getByText('10 dead rows')).toBeInTheDocument();
+      expect(within(deadRowsResults).getByText('orders')).toBeInTheDocument();
+      expect(within(deadRowsResults).getByText('5 dead rows')).toBeInTheDocument();
+    });
+
     fireEvent.click(screen.getByRole('button', { name: /vacuum database/i }));
     await waitFor(() => expect(vacuumDatabase).toHaveBeenCalled());
 
@@ -112,11 +134,25 @@ describe('Maintenance', () => {
     fireEvent.click(screen.getByRole('button', { name: /check dead rows/i }));
     await waitFor(() => expect(getVacuumDeadRows).toHaveBeenCalledWith('orders'));
 
+    await waitFor(() => {
+      expect(within(deadRowsResults).getByText('orders')).toBeInTheDocument();
+      expect(within(deadRowsResults).getByText('5 dead rows')).toBeInTheDocument();
+      expect(within(deadRowsResults).queryByText('users')).not.toBeInTheDocument();
+      expect(within(deadRowsResults).queryByText('10 dead rows')).not.toBeInTheDocument();
+    });
+
     fireEvent.change(deadRowsInput as HTMLInputElement, { target: { value: '' } });
     fireEvent.click(screen.getByRole('button', { name: /check dead rows/i }));
     await waitFor(() => {
       expect(getVacuumDeadRows).toHaveBeenCalledTimes(3);
       expect(getVacuumDeadRows).toHaveBeenNthCalledWith(3, undefined);
+    });
+
+    await waitFor(() => {
+      expect(within(deadRowsResults).getByText('users')).toBeInTheDocument();
+      expect(within(deadRowsResults).getByText('10 dead rows')).toBeInTheDocument();
+      expect(within(deadRowsResults).getByText('orders')).toBeInTheDocument();
+      expect(within(deadRowsResults).getByText('5 dead rows')).toBeInTheDocument();
     });
   });
 

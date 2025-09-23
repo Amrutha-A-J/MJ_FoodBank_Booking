@@ -20,6 +20,9 @@ import {
   DialogContentText,
   DialogActions,
   InputLabel,
+  List,
+  ListItem,
+  ListItemText,
 } from '@mui/material';
 import Select, { type SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -38,6 +41,7 @@ import {
   getVacuumDeadRows,
   getVacuumDeadRowTables,
   purgeOldRecords,
+  type DeadRowInfo,
   type MaintenanceSettings,
 } from '../../api/maintenance';
 import dayjs, { type Dayjs } from '../../utils/date';
@@ -77,6 +81,7 @@ export default function Maintenance() {
   const [isVacuumingDatabase, setIsVacuumingDatabase] = useState(false);
   const [isVacuumingTable, setIsVacuumingTable] = useState(false);
   const [isCheckingDeadRows, setIsCheckingDeadRows] = useState(false);
+  const [deadRowsResults, setDeadRowsResults] = useState<DeadRowInfo[]>([]);
   const [selectedPurgeTables, setSelectedPurgeTables] = useState<PurgeTableKey[]>([]);
   const [purgeCutoff, setPurgeCutoff] = useState<Dayjs | null>(null);
   const [purgeTouched, setPurgeTouched] = useState(false);
@@ -105,6 +110,7 @@ export default function Maintenance() {
         const tables = getVacuumDeadRowTables(response);
         setVacuumTableOptions(tables);
         setVacuumTableName(prev => (prev && tables.includes(prev) ? prev : ''));
+        setDeadRowsResults(response.deadRows ?? []);
       } catch (err: any) {
         if (!isMounted) return;
         setMessage('');
@@ -196,16 +202,10 @@ export default function Maintenance() {
       setIsCheckingDeadRows(true);
       const table = deadRowsTable.trim() || undefined;
       const result = await getVacuumDeadRows(table);
+      setDeadRowsResults(result.deadRows ?? []);
       if (result.message) {
         setMessage(result.message);
-        return;
-      }
-      if (result.deadRows && result.deadRows.length > 0) {
-        const summary = result.deadRows
-          .map(item => `${item.table}: ${item.deadRows.toLocaleString()} dead rows`)
-          .join(', ');
-        setMessage(summary);
-      } else {
+      } else if (!result.deadRows || result.deadRows.length === 0) {
         setMessage('No dead rows reported.');
       }
     } catch (err: any) {
@@ -447,6 +447,49 @@ export default function Maintenance() {
                       Check Dead Rows
                     </Button>
                   </Box>
+                  <Paper
+                    variant="outlined"
+                    sx={{ mt: 2, borderRadius: 2, overflow: 'hidden' }}
+                    data-testid="dead-rows-results"
+                  >
+                    {deadRowsResults.length > 0 ? (
+                      <List disablePadding>
+                        {deadRowsResults.map((item, index) => (
+                          <ListItem
+                            key={item.table}
+                            divider={index < deadRowsResults.length - 1}
+                            sx={{
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              rowGap: 0.5,
+                              columnGap: 2,
+                              py: 1,
+                              px: 2,
+                            }}
+                          >
+                            <ListItemText
+                              primary={item.table}
+                              primaryTypographyProps={{ variant: 'body1', fontWeight: 600 }}
+                              sx={{ flex: '1 1 200px', mr: 2 }}
+                            />
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{ flex: '0 0 auto' }}
+                            >
+                              {item.deadRows.toLocaleString()} dead rows
+                            </Typography>
+                          </ListItem>
+                        ))}
+                      </List>
+                    ) : (
+                      <Box px={2} py={3}>
+                        <Typography variant="body2" color="text.secondary">
+                          No dead rows reported.
+                        </Typography>
+                      </Box>
+                    )}
+                  </Paper>
                 </Grid>
               </Grid>
             </TabPanel>
