@@ -119,6 +119,31 @@ export const listWarehouseOverall = asyncHandler(async (req: Request, res: Respo
   res.json(result.rows);
 });
 
+export const listHistoricalDonations = asyncHandler(async (_req: Request, res: Response) => {
+  const result = await pool.query(
+    `SELECT
+         year,
+         COALESCE(SUM(donations)::int, 0) AS donations,
+         COALESCE(SUM(pet_food)::int, 0) AS "petFood"
+       FROM warehouse_overall
+       GROUP BY year
+       ORDER BY year DESC`,
+  );
+
+  const formatted = result.rows.map(row => {
+    const donations = Number(row.donations ?? 0);
+    const petFood = Number(row.petFood ?? 0);
+    return {
+      year: row.year,
+      donations,
+      petFood,
+      total: donations + petFood,
+    };
+  });
+
+  res.json(formatted);
+});
+
 export const listAvailableYears = asyncHandler(async (_req: Request, res: Response) => {
   const result = await pool.query('SELECT DISTINCT year FROM warehouse_overall ORDER BY year DESC');
   res.json(result.rows.map(r => r.year));
@@ -220,6 +245,73 @@ export const exportWarehouseOverall = asyncHandler(async (req: Request, res: Res
       'Content-Disposition',
       `attachment; filename=${year}_warehouse_overall_stats.xlsx`,
     );
+
+  res.send(buffer);
+});
+
+export const exportHistoricalDonations = asyncHandler(async (_req: Request, res: Response) => {
+  const result = await pool.query(
+    `SELECT
+         year,
+         COALESCE(SUM(donations)::int, 0) AS donations,
+         COALESCE(SUM(pet_food)::int, 0) AS "petFood"
+       FROM warehouse_overall
+       GROUP BY year
+       ORDER BY year`,
+  );
+
+  const headerStyle = {
+    backgroundColor: '#000000',
+    color: '#FFFFFF',
+    fontWeight: 'bold' as const,
+  };
+
+  const rows: Row[] = [
+    [
+      { value: 'Year', ...headerStyle },
+      { value: 'Donations', ...headerStyle },
+      { value: 'Pet Food Donations', ...headerStyle },
+      { value: 'Total Donations', ...headerStyle },
+    ],
+  ];
+
+  let totals = { donations: 0, petFood: 0, total: 0 };
+
+  for (const row of result.rows) {
+    const donations = Number(row.donations ?? 0);
+    const petFood = Number(row.petFood ?? 0);
+    const total = donations + petFood;
+    rows.push([
+      { value: row.year },
+      { value: donations },
+      { value: petFood },
+      { value: total },
+    ]);
+    totals = {
+      donations: totals.donations + donations,
+      petFood: totals.petFood + petFood,
+      total: totals.total + total,
+    };
+  }
+
+  rows.push([
+    { value: 'Total', fontWeight: 'bold' },
+    { value: totals.donations, fontWeight: 'bold' },
+    { value: totals.petFood, fontWeight: 'bold' },
+    { value: totals.total, fontWeight: 'bold' },
+  ]);
+
+  const buffer = await writeXlsxFile(rows, {
+    sheet: 'Historical Donations',
+    buffer: true,
+  });
+
+  res
+    .setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    .setHeader('Content-Disposition', 'attachment; filename=warehouse_historical_donations.xlsx');
 
   res.send(buffer);
 });
