@@ -1,8 +1,18 @@
 import mockDb from './utils/mockDb';
-import { createDeliveryOrder, cancelDeliveryOrder } from '../src/controllers/deliveryOrderController';
+import {
+  createDeliveryOrder,
+  cancelDeliveryOrder,
+  completeDeliveryOrder,
+} from '../src/controllers/deliveryOrderController';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import { getDeliverySettings } from '../src/utils/deliverySettings';
 import config from '../src/config';
+import {
+  refreshPantryMonthly,
+  refreshPantryWeekly,
+  refreshPantryYearly,
+} from '../src/controllers/pantry/pantryAggregationController';
+import { refreshClientVisitCount } from '../src/controllers/clientVisitController';
 
 jest.mock('../src/config', () => {
   const actual = jest.requireActual('../src/config');
@@ -19,6 +29,24 @@ jest.mock('../src/utils/emailUtils', () => ({
 jest.mock('../src/utils/deliverySettings', () => ({
   getDeliverySettings: jest.fn(),
 }));
+
+jest.mock('../src/controllers/pantry/pantryAggregationController', () => {
+  const actual = jest.requireActual('../src/controllers/pantry/pantryAggregationController');
+  return {
+    ...actual,
+    refreshPantryWeekly: jest.fn().mockResolvedValue(undefined),
+    refreshPantryMonthly: jest.fn().mockResolvedValue(undefined),
+    refreshPantryYearly: jest.fn().mockResolvedValue(undefined),
+  };
+});
+
+jest.mock('../src/controllers/clientVisitController', () => {
+  const actual = jest.requireActual('../src/controllers/clientVisitController');
+  return {
+    ...actual,
+    refreshClientVisitCount: jest.fn().mockResolvedValue(undefined),
+  };
+});
 
 const flushPromises = () => new Promise(process.nextTick);
 
@@ -37,6 +65,10 @@ describe('deliveryOrderController', () => {
       requestEmail: 'ops@example.com',
       monthlyOrderLimit: MOCK_MONTHLY_LIMIT,
     });
+    (refreshPantryWeekly as jest.Mock).mockClear();
+    (refreshPantryMonthly as jest.Mock).mockClear();
+    (refreshPantryYearly as jest.Mock).mockClear();
+    (refreshClientVisitCount as jest.Mock).mockClear();
   });
 
   describe('createDeliveryOrder', () => {
@@ -811,6 +843,88 @@ describe('deliveryOrderController', () => {
         notes: null,
         createdAt: baseOrderRow.createdAt.toISOString(),
       });
+    });
+  });
+
+  describe('completeDeliveryOrder', () => {
+    it('records a pantry visit with the delivered weight', async () => {
+      const baseOrderRow = {
+        id: 101,
+        clientId: 123,
+        address: '123 Main St',
+        phone: '555-1111',
+        email: 'client@example.com',
+        status: 'completed',
+        scheduledFor: new Date('2024-07-15T18:00:00Z'),
+        notes: 'Leave at door',
+        createdAt: new Date('2024-07-01T15:00:00Z'),
+      };
+
+      (mockDb.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [baseOrderRow], rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+      const req = {
+        user: { role: 'staff', id: '7', type: 'staff' },
+        params: { id: '101' },
+        body: { weight: 37.5 },
+      } as any;
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      await completeDeliveryOrder(req, res, jest.fn());
+      await flushPromises();
+
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        1,
+        expect.stringContaining("SET status = 'completed'"),
+        [101],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining('INSERT INTO client_visits'),
+        [expect.any(String), 123, 37.5, 1, 0],
+      );
+      expect(refreshClientVisitCount).toHaveBeenCalledWith(123);
+      expect(refreshPantryWeekly).toHaveBeenCalled();
+      expect(refreshPantryMonthly).toHaveBeenCalled();
+      expect(refreshPantryYearly).toHaveBeenCalled();
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith({
+        id: 101,
+        clientId: 123,
+        address: '123 Main St',
+        phone: '555-1111',
+        email: 'client@example.com',
+        status: 'completed',
+        scheduledFor: new Date('2024-07-15T18:00:00Z').toISOString(),
+        notes: 'Leave at door',
+        createdAt: new Date('2024-07-01T15:00:00Z').toISOString(),
+      });
+    });
+
+    it('returns 404 when the delivery order is not found', async () => {
+      (mockDb.query as jest.Mock).mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+      const req = {
+        user: { role: 'staff', id: '7', type: 'staff' },
+        params: { id: '999' },
+        body: { weight: 12 },
+      } as any;
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      await completeDeliveryOrder(req, res, jest.fn());
+      await flushPromises();
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Delivery order not found' });
+      expect(mockDb.query).toHaveBeenCalledTimes(1);
+      expect(refreshClientVisitCount).not.toHaveBeenCalled();
     });
   });
 });

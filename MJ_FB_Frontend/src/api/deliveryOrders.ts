@@ -32,9 +32,14 @@ export async function getOutstandingDeliveryOrders(): Promise<DeliveryOutstandin
   return handleResponse<DeliveryOutstandingOrder[]>(res);
 }
 
-export async function markDeliveryOrderCompleted(orderId: number): Promise<void> {
+export async function markDeliveryOrderCompleted(
+  orderId: number,
+  weight: number,
+): Promise<void> {
   const res = await apiFetch(`${API_BASE}/delivery/orders/${orderId}/complete`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ weight }),
   });
   await handleResponse(res);
 }

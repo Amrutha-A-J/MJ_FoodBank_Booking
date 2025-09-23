@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   Box,
@@ -7,11 +7,16 @@ import {
   CardContent,
   CardHeader,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   List,
   ListItem,
   ListItemText,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
@@ -53,15 +58,33 @@ type SnackbarState = {
   severity: 'success' | 'error';
 };
 
+type CompletionDialogState = {
+  open: boolean;
+  order: DeliveryOutstandingOrder | null;
+  weight: string;
+  submitting: boolean;
+  error: string;
+};
+
+const initialCompletionDialogState: CompletionDialogState = {
+  open: false,
+  order: null,
+  weight: '',
+  submitting: false,
+  error: '',
+};
+
 export default function Deliveries() {
   const [orders, setOrders] = useState<DeliveryOutstandingOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [completingId, setCompletingId] = useState<number | null>(null);
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
     message: '',
     severity: 'success',
+  });
+  const [completionDialog, setCompletionDialog] = useState<CompletionDialogState>({
+    ...initialCompletionDialogState,
   });
 
   useEffect(() => {
@@ -95,10 +118,51 @@ export default function Deliveries() {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  const handleMarkCompleted = useCallback(async (orderId: number) => {
-    setCompletingId(orderId);
+  const handleOpenCompleteDialog = useCallback((order: DeliveryOutstandingOrder) => {
+    setCompletionDialog({
+      open: true,
+      order,
+      weight: '',
+      submitting: false,
+      error: '',
+    });
+  }, []);
+
+  const handleCompletionWeightChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setCompletionDialog(prev => ({ ...prev, weight: value, error: '' }));
+  };
+
+  const handleCloseCompletionDialog = () => {
+    if (completionDialog.submitting) return;
+    setCompletionDialog(() => ({ ...initialCompletionDialogState }));
+  };
+
+  const handleCompleteSubmit = async () => {
+    if (!completionDialog.order) return;
+    const trimmed = completionDialog.weight.trim();
+    if (!trimmed) {
+      setCompletionDialog(prev => ({
+        ...prev,
+        error: 'Enter the delivered weight.',
+      }));
+      return;
+    }
+
+    const parsedWeight = Number(trimmed);
+    if (!Number.isFinite(parsedWeight) || parsedWeight < 0) {
+      setCompletionDialog(prev => ({
+        ...prev,
+        error: 'Enter a valid weight of 0 or more.',
+      }));
+      return;
+    }
+
+    const orderId = completionDialog.order.id;
+    setCompletionDialog(prev => ({ ...prev, submitting: true, error: '' }));
+
     try {
-      await markDeliveryOrderCompleted(orderId);
+      await markDeliveryOrderCompleted(orderId, parsedWeight);
       setOrders(prev => prev.filter(order => order.id !== orderId));
       setError('');
       setSnackbar({
@@ -106,25 +170,67 @@ export default function Deliveries() {
         message: 'Delivery marked completed.',
         severity: 'success',
       });
+      setCompletionDialog(() => ({ ...initialCompletionDialogState }));
     } catch (err) {
       const message = getApiErrorMessage(
         err,
         'We could not mark this delivery as completed. Please try again.',
       );
+      setCompletionDialog(prev => ({ ...prev, submitting: false }));
       setSnackbar({ open: true, message, severity: 'error' });
-    } finally {
-      setCompletingId(null);
     }
-  }, []);
+  };
 
   return (
-    <Page title="Delivery Orders" header={<PantryQuickLinks />}> 
+    <Page title="Delivery Orders" header={<PantryQuickLinks />}>
       <FeedbackSnackbar
         open={snackbar.open}
         onClose={handleSnackbarClose}
         message={snackbar.message}
         severity={snackbar.severity}
       />
+
+      <Dialog
+        open={completionDialog.open}
+        onClose={completionDialog.submitting ? undefined : handleCloseCompletionDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Record delivery weight</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary">
+            Enter the total pounds delivered so we can log this visit.
+          </Typography>
+          <TextField
+            autoFocus
+            margin="normal"
+            label="Weight (lb)"
+            type="number"
+            value={completionDialog.weight}
+            onChange={handleCompletionWeightChange}
+            fullWidth
+            size="medium"
+            inputProps={{ min: 0, step: 0.1 }}
+            error={Boolean(completionDialog.error)}
+            helperText={
+              completionDialog.error ||
+              'Record the pounds of food delivered to the client.'
+            }
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseCompletionDialog} disabled={completionDialog.submitting}>
+            Cancel
+          </Button>
+          <LoadingButton
+            onClick={() => void handleCompleteSubmit()}
+            variant="contained"
+            loading={completionDialog.submitting}
+          >
+            Save weight &amp; complete
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
 
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
@@ -237,13 +343,13 @@ export default function Deliveries() {
                     )}
 
                     <Box>
-                      <LoadingButton
+                      <Button
                         variant="contained"
-                        onClick={() => void handleMarkCompleted(order.id)}
-                        loading={completingId === order.id}
+                        onClick={() => handleOpenCompleteDialog(order)}
+                        size="medium"
                       >
                         Mark Completed
-                      </LoadingButton>
+                      </Button>
                     </Box>
                   </Stack>
                 </CardContent>
