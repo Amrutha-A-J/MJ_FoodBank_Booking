@@ -83,8 +83,12 @@ export default function EditClientDialog({
 
   useEffect(() => {
     if (!open) return;
+
+    let active = true;
+
     getUserByClientId(String(clientId))
       .then(data => {
+        if (!active) return;
         setForm({
           firstName: data.firstName || '',
           lastName: data.lastName || '',
@@ -96,9 +100,15 @@ export default function EditClientDialog({
         });
       })
       .catch(err => {
+        if (!active) return;
         onUpdated(getApiErrorMessage(err, 'Failed to load client details'), 'error');
       });
-  }, [open, clientId, onUpdated]);
+
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, clientId]);
 
   return (
     <FormDialog open={open} onClose={onClose}>

@@ -187,6 +187,11 @@ export default function BookingManagementBase({
     }
   }
 
+  const handleUpdated = useCallback((m: string, s: AlertColor) => {
+    setSeverity(s);
+    setMessage(m);
+  }, []);
+
   async function confirmCancel() {
     if (cancelId == null) return;
     try {
@@ -333,10 +338,7 @@ export default function BookingManagementBase({
           open: editOpen,
           onClose: () => setEditOpen(false),
           user,
-          onUpdated: (m, s) => {
-            setSeverity(s);
-            setMessage(m);
-          },
+          onUpdated: handleUpdated,
         })}
       <FormDialog open={cancelId !== null} onClose={() => setCancelId(null)} maxWidth="xs">
         <DialogCloseButton onClose={() => setCancelId(null)} />
