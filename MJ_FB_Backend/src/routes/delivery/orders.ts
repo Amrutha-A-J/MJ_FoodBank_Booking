@@ -8,7 +8,10 @@ import {
 } from '../../controllers/deliveryOrderController';
 import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware';
 import { validate } from '../../middleware/validate';
-import { createDeliveryOrderSchema } from '../../schemas/delivery/orderSchemas';
+import {
+  createDeliveryOrderSchema,
+  completeDeliveryOrderSchema,
+} from '../../schemas/delivery/orderSchemas';
 
 const router = Router();
 
@@ -31,6 +34,7 @@ router.get(
 router.post(
   '/:id/complete',
   authorizeRoles('staff'),
+  validate(completeDeliveryOrderSchema),
   completeDeliveryOrder,
 );
 router.post('/:id/cancel', authorizeRoles('delivery', 'staff'), cancelDeliveryOrder);

@@ -6,13 +6,25 @@ import config from '../config';
 import { sendTemplatedEmail } from '../utils/emailUtils';
 import { getDeliverySettings } from '../utils/deliverySettings';
 import logger from '../utils/logger';
-import { reginaStartOfDayISO } from '../utils/dateUtils';
+import {
+  formatReginaDate,
+  getWeekForDate,
+  reginaStartOfDayISO,
+} from '../utils/dateUtils';
 import {
   createDeliveryOrderSchema,
   type DeliveryOrderSelectionInput,
   deliveryOrderStatusSchema,
   type DeliveryOrderStatus,
+  completeDeliveryOrderSchema,
+  type CompleteDeliveryOrderInput,
 } from '../schemas/delivery/orderSchemas';
+import { refreshClientVisitCount } from './clientVisitController';
+import {
+  refreshPantryMonthly,
+  refreshPantryWeekly,
+  refreshPantryYearly,
+} from './pantry/pantryAggregationController';
 
 interface ItemInfoRow {
   itemId: number;
@@ -61,6 +73,9 @@ interface DeliveryOrderItemDetail {
 }
 
 type NormalizedSelection = { itemId: number; quantity: number };
+
+const DELIVERY_ADULT_COUNT = 1;
+const DELIVERY_CHILD_COUNT = 0;
 
 interface CountRow {
   count: string;
@@ -566,6 +581,12 @@ export const completeDeliveryOrder = asyncHandler(async (req: Request, res: Resp
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
+  const parsedBody = completeDeliveryOrderSchema.safeParse(req.body ?? {});
+  if (!parsedBody.success) {
+    return res.status(400).json({ errors: parsedBody.error.issues });
+  }
+  const { weight } = parsedBody.data as CompleteDeliveryOrderInput;
+
   const orderId = parseIdParam(req.params.id);
   if (!orderId) {
     return res.status(400).json({ message: 'Invalid order id' });
@@ -582,6 +603,41 @@ export const completeDeliveryOrder = asyncHandler(async (req: Request, res: Resp
   const order = updatedResult.rows[0];
   if (!order) {
     return res.status(404).json({ message: 'Delivery order not found' });
+  }
+
+  if (order.clientId != null) {
+    const visitDate = formatReginaDate(new Date());
+    await pool.query(
+      `INSERT INTO client_visits (
+         date,
+         client_id,
+         weight_with_cart,
+         weight_without_cart,
+         pet_item,
+         is_anonymous,
+         note,
+         adults,
+         children,
+         verified
+       )
+       VALUES ($1, $2, NULL, $3, 0, false, NULL, $4, $5, false)
+       ON CONFLICT (client_id, date)
+       DO UPDATE SET
+         weight_with_cart = NULL,
+         weight_without_cart = EXCLUDED.weight_without_cart,
+         adults = EXCLUDED.adults,
+         children = EXCLUDED.children`,
+      [visitDate, order.clientId, weight, DELIVERY_ADULT_COUNT, DELIVERY_CHILD_COUNT],
+    );
+
+    await refreshClientVisitCount(order.clientId);
+
+    const { week, month, year } = getWeekForDate(visitDate);
+    await Promise.all([
+      refreshPantryWeekly(year, month, week),
+      refreshPantryMonthly(year, month),
+      refreshPantryYearly(year),
+    ]);
   }
 
   res.json({

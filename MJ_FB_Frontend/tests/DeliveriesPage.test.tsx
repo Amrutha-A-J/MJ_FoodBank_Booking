@@ -152,7 +152,13 @@ describe('Pantry Deliveries page', () => {
     const buttons = await screen.findAllByRole('button', { name: /mark completed/i });
     await user.click(buttons[0]);
 
-    expect(mockedMarkCompleted).toHaveBeenCalledWith(101);
+    const weightField = await screen.findByLabelText(/weight \(lb\)/i);
+    await user.clear(weightField);
+    await user.type(weightField, '42');
+
+    await user.click(screen.getByRole('button', { name: /save weight & complete/i }));
+
+    expect(mockedMarkCompleted).toHaveBeenCalledWith(101, 42);
 
     await waitFor(() => {
       expect(screen.queryByText(/Client 1234/)).not.toBeInTheDocument();
@@ -176,12 +182,18 @@ describe('Pantry Deliveries page', () => {
       const buttons = await screen.findAllByRole('button', { name: /mark completed/i });
       await user.click(buttons[0]);
 
-      expect(mockedMarkCompleted).toHaveBeenCalledWith(101);
+      const weightField = await screen.findByLabelText(/weight \(lb\)/i);
+      await user.clear(weightField);
+      await user.type(weightField, '38');
+
+      await user.click(screen.getByRole('button', { name: /save weight & complete/i }));
+
+      expect(mockedMarkCompleted).toHaveBeenCalledWith(101, 38);
 
       expect(screen.getByText(/Client 1234 · Jane Doe/)).toBeInTheDocument();
 
       await waitFor(() => {
-        expect(buttons[0]).toBeEnabled();
+        expect(screen.getByRole('button', { name: /save weight & complete/i })).not.toBeDisabled();
       });
 
       expect(

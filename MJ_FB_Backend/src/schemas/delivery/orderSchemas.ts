@@ -55,3 +55,12 @@ export const createDeliveryOrderSchema = z.object({
 export type DeliveryOrderSelectionInput = z.infer<typeof deliveryOrderSelectionSchema>;
 export type CreateDeliveryOrderInput = z.infer<typeof createDeliveryOrderSchema>;
 export type DeliveryOrderStatus = z.infer<typeof deliveryOrderStatusSchema>;
+
+export const completeDeliveryOrderSchema = z.object({
+  weight: z.coerce
+    .number({ invalid_type_error: 'Weight must be a number' })
+    .finite('Weight must be a valid number')
+    .min(0, 'Weight must be 0 or greater'),
+});
+
+export type CompleteDeliveryOrderInput = z.infer<typeof completeDeliveryOrderSchema>;

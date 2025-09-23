@@ -2,6 +2,12 @@ import request from 'supertest';
 import express from 'express';
 import deliveryOrdersRouter from '../src/routes/delivery/orders';
 import pool from '../src/db';
+import {
+  refreshPantryMonthly,
+  refreshPantryWeekly,
+  refreshPantryYearly,
+} from '../src/controllers/pantry/pantryAggregationController';
+import { refreshClientVisitCount } from '../src/controllers/clientVisitController';
 
 let mockUser: any = { id: '42', role: 'delivery', type: 'user' };
 
@@ -20,6 +26,24 @@ jest.mock('../src/middleware/authMiddleware', () => ({
     },
 }));
 
+jest.mock('../src/controllers/pantry/pantryAggregationController', () => {
+  const actual = jest.requireActual('../src/controllers/pantry/pantryAggregationController');
+  return {
+    ...actual,
+    refreshPantryWeekly: jest.fn().mockResolvedValue(undefined),
+    refreshPantryMonthly: jest.fn().mockResolvedValue(undefined),
+    refreshPantryYearly: jest.fn().mockResolvedValue(undefined),
+  };
+});
+
+jest.mock('../src/controllers/clientVisitController', () => {
+  const actual = jest.requireActual('../src/controllers/clientVisitController');
+  return {
+    ...actual,
+    refreshClientVisitCount: jest.fn().mockResolvedValue(undefined),
+  };
+});
+
 const app = express();
 app.use(express.json());
 app.use('/delivery/orders', deliveryOrdersRouter);
@@ -28,6 +52,10 @@ describe('delivery orders routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUser = { id: '42', role: 'delivery', type: 'user' };
+    (refreshPantryWeekly as jest.Mock).mockClear();
+    (refreshPantryMonthly as jest.Mock).mockClear();
+    (refreshPantryYearly as jest.Mock).mockClear();
+    (refreshClientVisitCount as jest.Mock).mockClear();
   });
 
   it('returns the authenticated client order history at /delivery/orders', async () => {
@@ -273,7 +301,9 @@ describe('delivery orders routes', () => {
       rowCount: 1,
     });
 
-    const res = await request(app).post('/delivery/orders/55/complete');
+    const res = await request(app)
+      .post('/delivery/orders/55/complete')
+      .send({ weight: 42 });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
@@ -291,5 +321,13 @@ describe('delivery orders routes', () => {
       expect.stringContaining("SET status = 'completed'"),
       [55],
     );
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO client_visits'),
+      [expect.any(String), 300, 42, 1, 0],
+    );
+    expect(refreshClientVisitCount).toHaveBeenCalledWith(300);
+    expect(refreshPantryWeekly).toHaveBeenCalled();
+    expect(refreshPantryMonthly).toHaveBeenCalled();
+    expect(refreshPantryYearly).toHaveBeenCalled();
   });
 });
