@@ -171,7 +171,8 @@ describe('FoodBankTrends page', () => {
       {
         id: 1,
         name: 'Donor One',
-        contact: { email: 'donor@example.com', phone: null },
+        email: 'donor@example.com',
+        phone: null,
         isPetFood: false,
         totalLbs: 420,
         lastDonationISO: '2024-04-01T12:00:00Z',

@@ -24,7 +24,8 @@ const mockGetDonors = jest.fn().mockResolvedValue([
   {
     id: 42,
     name: 'Jane Doe',
-    contact: { email: null, phone: '306-555-0100' },
+    email: null,
+    phone: '306-555-0100',
     isPetFood: false,
   },
 ]);
@@ -58,7 +59,8 @@ describe('Aggregations page', () => {
       {
         id: 42,
         name: 'Jane Doe',
-        contact: { email: null, phone: '306-555-0100' },
+        email: null,
+        phone: '306-555-0100',
         isPetFood: false,
       },
     ]);

@@ -1,26 +1,46 @@
 import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
 
-export interface DonorContact {
-  email?: string | null;
-  phone?: string | null;
-}
+type NormalizedContact<T extends { email?: string | null; phone?: string | null }> = Omit<
+  T,
+  'email' | 'phone'
+> & {
+  email: string | null;
+  phone: string | null;
+};
 
-export interface Donor {
+interface DonorResponseBase {
   id: number;
   name: string;
-  contact: DonorContact | null;
+  email?: string | null;
+  phone?: string | null;
   isPetFood: boolean;
 }
 
-export interface TopDonor extends Donor {
+export type Donor = NormalizedContact<DonorResponseBase>;
+
+export type TopDonor = NormalizedContact<
+  DonorResponseBase & {
+    totalLbs: number;
+    lastDonationISO: string;
+  }
+>;
+
+export type DonorDetail = NormalizedContact<
+  DonorResponseBase & {
+    totalLbs: number;
+    lastDonationISO: string | null;
+  }
+>;
+
+type TopDonorResponse = DonorResponseBase & {
   totalLbs: number;
   lastDonationISO: string;
-}
+};
 
-export interface DonorDetail extends Donor {
+type DonorDetailResponse = DonorResponseBase & {
   totalLbs: number;
   lastDonationISO: string | null;
-}
+};
 
 export interface DonorDonation {
   id: number;
@@ -28,15 +48,27 @@ export interface DonorDonation {
   weight: number;
 }
 
+function normalizeDonor<T extends { email?: string | null; phone?: string | null }>(
+  donor: T,
+): NormalizedContact<T> {
+  return {
+    ...donor,
+    email: donor.email ?? null,
+    phone: donor.phone ?? null,
+  } as NormalizedContact<T>;
+}
+
 export async function getDonors(search?: string): Promise<Donor[]> {
   const query = search ? `?search=${encodeURIComponent(search)}` : '';
   const res = await apiFetch(`${API_BASE}/donors${query}`);
-  return handleResponse(res);
+  const data = await handleResponse<DonorResponseBase[]>(res);
+  return data.map(donor => normalizeDonor(donor));
 }
 
 interface DonorPayload {
   name: string;
-  contact?: DonorContact | null;
+  email?: string | null;
+  phone?: string | null;
   isPetFood?: boolean;
 }
 
@@ -45,16 +77,19 @@ export async function createDonor(data: DonorPayload): Promise<Donor> {
     method: 'POST',
     body: {
       name: data.name,
-      contact: data.contact ?? null,
+      email: data.email ?? null,
+      phone: data.phone ?? null,
       isPetFood: data.isPetFood ?? false,
     },
   });
-  return handleResponse(res);
+  const donor = await handleResponse<DonorResponseBase>(res);
+  return normalizeDonor(donor);
 }
 
 export async function getDonor(id: number): Promise<DonorDetail> {
   const res = await apiFetch(`${API_BASE}/donors/${id}`);
-  return handleResponse(res);
+  const donor = await handleResponse<DonorDetailResponse>(res);
+  return normalizeDonor(donor);
 }
 
 export async function updateDonor(
@@ -65,11 +100,13 @@ export async function updateDonor(
     method: 'PUT',
     body: {
       name: data.name,
-      contact: data.contact ?? null,
+      email: data.email ?? null,
+      phone: data.phone ?? null,
       isPetFood: data.isPetFood ?? false,
     },
   });
-  return handleResponse(res);
+  const donor = await handleResponse<DonorResponseBase>(res);
+  return normalizeDonor(donor);
 }
 
 export async function getDonorDonations(
@@ -88,5 +125,6 @@ export async function getTopDonors(
   const res = await apiFetch(
     `${API_BASE}/donors/top?year=${year}&limit=${limit}`,
   );
-  return handleResponse(res);
+  const donors = await handleResponse<TopDonorResponse[]>(res);
+  return donors.map(donor => normalizeDonor(donor));
 }

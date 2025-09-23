@@ -36,7 +36,8 @@ describe('Warehouse Donor Profile', () => {
     (getDonor as jest.Mock).mockResolvedValue({
       id: 42,
       name: 'No Contact',
-      contact: null,
+      email: null,
+      phone: null,
       totalLbs: 540,
       lastDonationISO: null,
       isPetFood: false,
@@ -59,7 +60,8 @@ describe('Warehouse Donor Profile', () => {
       .mockResolvedValueOnce({
         id: 42,
         name: 'Alice Donor',
-        contact: { email: 'alice@example.com', phone: null },
+        email: 'alice@example.com',
+        phone: null,
         totalLbs: 800,
         lastDonationISO: '2024-04-10T12:00:00Z',
         isPetFood: false,
@@ -67,7 +69,8 @@ describe('Warehouse Donor Profile', () => {
       .mockResolvedValueOnce({
         id: 42,
         name: 'Alicia Donor',
-        contact: { email: null, phone: '306-555-0100' },
+        email: null,
+        phone: '306-555-0100',
         totalLbs: 800,
         lastDonationISO: '2024-04-10T12:00:00Z',
         isPetFood: true,
@@ -109,7 +112,8 @@ describe('Warehouse Donor Profile', () => {
     await waitFor(() =>
       expect(updateDonor).toHaveBeenCalledWith(42, {
         name: 'Alicia Donor',
-        contact: { email: null, phone: '306-555-0100' },
+        email: null,
+        phone: '306-555-0100',
         isPetFood: true,
       }),
     );

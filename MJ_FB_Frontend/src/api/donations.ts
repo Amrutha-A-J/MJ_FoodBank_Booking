@@ -1,10 +1,10 @@
 import { API_BASE, apiFetch, handleResponse, jsonApiFetch } from './client';
-import type { DonorContact } from './donors';
 
 export interface DonationDonor {
   id?: number;
   name?: string | null;
-  contact?: DonorContact | null;
+  email?: string | null;
+  phone?: string | null;
   isPetFood?: boolean | null;
 }
 

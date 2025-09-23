@@ -69,7 +69,7 @@ export default function Aggregations() {
   const [donorOptionsLoading, setDonorOptionsLoading] = useState(false);
 
   function formatDonorDisplay(donor: Donor) {
-    const contact = [donor.contact?.email, donor.contact?.phone]
+    const contact = [donor.email, donor.phone]
       .map(value => value?.trim())
       .filter((value): value is string => Boolean(value))
       .join(' • ');
