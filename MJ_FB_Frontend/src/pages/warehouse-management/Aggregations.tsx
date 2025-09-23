@@ -286,7 +286,8 @@ export default function Aggregations() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'warehouse_monthly_history.xlsx';
+      const exportYear = toDate().getFullYear();
+      link.download = `mjfb_historical_incoming_food_donation_export_${exportYear}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

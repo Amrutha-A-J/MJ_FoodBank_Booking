@@ -350,6 +350,8 @@ export const exportMonthlyDonationHistory = asyncHandler(async (_req: Request, r
     buffer: true,
   });
 
+  const currentYear = new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
+
   res
     .setHeader(
       'Content-Type',
@@ -357,7 +359,7 @@ export const exportMonthlyDonationHistory = asyncHandler(async (_req: Request, r
     )
     .setHeader(
       'Content-Disposition',
-      'attachment; filename=warehouse_monthly_donation_history.xlsx',
+      `attachment; filename=mjfb_historical_incoming_food_donation_export_${currentYear}.xlsx`,
     );
 
   res.send(buffer);
