@@ -27,7 +27,7 @@ describe('DELETE /users/id/:clientId', () => {
     const res = await request(app).delete('/users/id/5');
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ message: 'User deleted' });
-    expect(pool.query).toHaveBeenCalledWith('DELETE FROM clients WHERE client_id = $1', [ '5' ]);
+    expect(pool.query).toHaveBeenCalledWith('DELETE FROM clients WHERE client_id = $1', [5]);
   });
 
   it('returns 404 when user missing', async () => {

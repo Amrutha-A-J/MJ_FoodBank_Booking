@@ -321,26 +321,6 @@ async function upsertDonors(client: Client): Promise<DonorSeedResult> {
     'is_pet_food',
   ];
 
-  const donorValues: string[] = [];
-  const params: (string | boolean)[] = [];
-  const namePartsCache = donors.map(splitDonorName);
-
-  donors.forEach((name, donorIndex) => {
-    const normalized = name.replace(/[^a-z]/gi, '').toLowerCase();
-    const isPetFood = /petfood/.test(normalized) || /petvalue/.test(normalized);
-    const parts = namePartsCache[donorIndex];
-
-    const rowValues: (string | boolean)[] = [name];
-    extraColumnGenerators.forEach(({ generator }) => {
-      rowValues.push(generator({ rawName: name, index: donorIndex, parts }));
-    });
-    rowValues.push(isPetFood);
-
-    const placeholders = rowValues.map((_, valueIndex) => `$${params.length + valueIndex + 1}`);
-    donorValues.push(`(${placeholders.join(', ')})`);
-    params.push(...rowValues);
-  });
-
   const hasUniqueNameConstraint = await client
     .query(
       `SELECT 1
@@ -368,6 +348,55 @@ async function upsertDonors(client: Client): Promise<DonorSeedResult> {
        LIMIT 1`,
     )
     .then(res => (res.rowCount ?? 0) > 0);
+
+  const normalizeName = (raw: string | null | undefined) => raw?.trim().toLowerCase() ?? '';
+
+  let donorsToInsert = donors;
+  if (!hasUniqueNameConstraint && !hasUniqueNameIndex) {
+    const existingNameRows = await client
+      .query<{ name: string | null }>('SELECT name FROM donors;')
+      .then(res => res.rows ?? []);
+
+    const existingNames = new Set<string>();
+    existingNameRows.forEach(row => {
+      const normalized = normalizeName(row.name);
+      if (normalized) {
+        existingNames.add(normalized);
+      }
+    });
+
+    donorsToInsert = donors.filter(name => {
+      const normalized = normalizeName(name);
+      if (!normalized) {
+        return false;
+      }
+      if (existingNames.has(normalized)) {
+        return false;
+      }
+      existingNames.add(normalized);
+      return true;
+    });
+  }
+
+  const donorValues: string[] = [];
+  const params: (string | boolean)[] = [];
+  const namePartsCache = donorsToInsert.map(splitDonorName);
+
+  donorsToInsert.forEach((name, donorIndex) => {
+    const normalized = name.replace(/[^a-z]/gi, '').toLowerCase();
+    const isPetFood = /petfood/.test(normalized) || /petvalue/.test(normalized);
+    const parts = namePartsCache[donorIndex];
+
+    const rowValues: (string | boolean)[] = [name];
+    extraColumnGenerators.forEach(({ generator }) => {
+      rowValues.push(generator({ rawName: name, index: donorIndex, parts }));
+    });
+    rowValues.push(isPetFood);
+
+    const placeholders = rowValues.map((_, valueIndex) => `$${params.length + valueIndex + 1}`);
+    donorValues.push(`(${placeholders.join(', ')})`);
+    params.push(...rowValues);
+  });
 
   let onConflictClause = '';
   if (hasUniqueNameConstraint) {

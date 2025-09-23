@@ -53,7 +53,7 @@ describe('GET /users/id/:clientId', () => {
     });
     expect(pool.query).toHaveBeenCalledWith(
       `SELECT client_id, first_name, last_name, email, phone, address, online_access, password, consent, role\n       FROM clients WHERE client_id = $1`,
-      ['5'],
+      [5],
     );
   });
 });
