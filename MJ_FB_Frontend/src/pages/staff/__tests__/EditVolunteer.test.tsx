@@ -102,6 +102,31 @@ describe('EditVolunteer volunteer info display', () => {
     expect(await screen.findByTestId('online-badge')).toBeInTheDocument();
   });
 
+  it('allows updating password for volunteers with an existing account', async () => {
+    mockVolunteer.hasPassword = true;
+    mockVolunteer.email = 'john@example.com';
+    (updateVolunteer as jest.Mock).mockResolvedValue(undefined);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Select Volunteer' }),
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: /edit profile/i }));
+    fireEvent.click(await screen.findByTestId('volunteer-set-password-button'));
+
+    const passwordInput = await screen.findByTestId('volunteer-password-input');
+    fireEvent.change(passwordInput, { target: { value: 'Secret!1' } });
+
+    fireEvent.click(await screen.findByTestId('save-profile-button'));
+
+    await waitFor(() =>
+      expect(updateVolunteer).toHaveBeenCalledWith(
+        mockVolunteer.id,
+        expect.objectContaining({ password: 'Secret!1' }),
+      ),
+    );
+  });
+
   it('shows helper text when no roles are assigned', async () => {
     fireEvent.click(
       await screen.findByRole('button', { name: 'Select Volunteer' }),

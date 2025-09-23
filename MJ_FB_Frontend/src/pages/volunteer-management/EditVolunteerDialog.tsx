@@ -55,9 +55,7 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
         email: data.email || undefined,
         phone: data.phone || undefined,
         onlineAccess: data.hasPassword ? true : data.onlineAccess,
-        ...(data.onlineAccess && !data.hasPassword && data.password
-          ? { password: data.password }
-          : {}),
+        ...(data.onlineAccess && data.password ? { password: data.password } : {}),
       });
       setSnackbar({ open: true, message: 'Volunteer updated', severity: 'success' });
       onSaved();

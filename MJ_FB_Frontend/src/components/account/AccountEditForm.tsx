@@ -63,10 +63,14 @@ export default function AccountEditForm({
   secondaryActionVariant = 'outlined',
 }: AccountEditFormProps) {
   const [form, setForm] = useState<AccountEditFormData>(initialData);
+  const [showPasswordOverride, setShowPasswordOverride] = useState(
+    initialData.onlineAccess && !initialData.hasPassword,
+  );
 
   useEffect(() => {
     if (open) {
       setForm(initialData);
+      setShowPasswordOverride(initialData.onlineAccess && !initialData.hasPassword);
     }
   }, [open, initialData]);
 
@@ -78,7 +82,24 @@ export default function AccountEditForm({
   }
 
   const title = `${form.firstName} ${form.lastName}`.trim();
-  const showPasswordField = form.onlineAccess && !form.hasPassword;
+  const shouldShowPasswordField =
+    form.onlineAccess && (showPasswordOverride || !form.hasPassword);
+
+  useEffect(() => {
+    if (!form.onlineAccess && showPasswordOverride) {
+      setShowPasswordOverride(false);
+    }
+  }, [form.onlineAccess, showPasswordOverride]);
+
+  function togglePasswordField() {
+    if (!showPasswordOverride && !form.onlineAccess) {
+      updateForm('onlineAccess', true);
+    }
+    if (showPasswordOverride) {
+      updateForm('password', '');
+    }
+    setShowPasswordOverride(prev => !prev);
+  }
 
   function FormSection({ title, children }: { title: string; children: ReactNode }) {
     return (
@@ -126,7 +147,16 @@ export default function AccountEditForm({
                 </span>
               </Tooltip>
             )}
-            {showPasswordField && (
+            {form.onlineAccess && form.hasPassword && (
+              <Button
+                variant="outlined"
+                onClick={togglePasswordField}
+                data-testid="set-password-button"
+              >
+                {showPasswordOverride ? 'Cancel password change' : 'Set password'}
+              </Button>
+            )}
+            {shouldShowPasswordField && (
               <PasswordField
                 fullWidth
                 label={passwordLabel}
