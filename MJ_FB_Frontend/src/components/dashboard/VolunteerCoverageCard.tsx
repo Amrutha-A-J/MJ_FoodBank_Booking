@@ -154,8 +154,8 @@ export default function VolunteerCoverageCard({
         <DialogContent>
           {selected?.volunteers.length ? (
             <List sx={{ maxHeight: 300, overflowY: 'auto' }}>
-              {selected.volunteers.map(name => (
-                <ListItem key={name}>
+              {selected.volunteers.map((name, index) => (
+                <ListItem key={`${name}-${index}`}>
                   <ListItemText primary={name} />
                 </ListItem>
               ))}
