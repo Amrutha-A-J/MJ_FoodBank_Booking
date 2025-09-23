@@ -126,6 +126,8 @@ describe('Warehouse Donation Log', () => {
     const option = await screen.findByText('Jane Donor (ID: 2) • 306-555-0199');
     fireEvent.click(option);
 
+    expect(getDonors).not.toHaveBeenCalledWith('Jane Donor (ID: 2) • 306-555-0199');
+
     const weightInput = screen.getByLabelText(/weight \(lbs\)/i);
     fireEvent.change(weightInput, { target: { value: '75' } });
 

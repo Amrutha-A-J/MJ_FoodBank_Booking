@@ -291,7 +291,11 @@ export default function DonationLog() {
             <Autocomplete
               options={donorOptions}
               value={donorOptions.find(d => d.id === form.donorId) || null}
-              onInputChange={(_e, v) => setDonorSearch(v)}
+              onInputChange={(_event, value, reason) => {
+                if (reason === 'input' || reason === 'clear') {
+                  setDonorSearch(value);
+                }
+              }}
               onChange={(_e, v) => setForm({ ...form, donorId: v ? v.id : null })}
               renderInput={params => (
                 <TextField {...params} label="Donor (search by name or ID)" />
