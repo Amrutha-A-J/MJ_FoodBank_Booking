@@ -38,6 +38,7 @@ import {
   ListItemText,
   Checkbox,
   FormControlLabel,
+  Alert,
 } from "@mui/material";
 import ManageBookingDialog from "../../components/ManageBookingDialog";
 import PantryQuickLinks from "../../components/PantryQuickLinks";
@@ -234,6 +235,11 @@ export default function PantrySchedule({
   const isHoliday = !!holidayObj;
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
+  const closedMessage = isHoliday
+    ? `Closed for ${holidayObj?.reason ?? "Holiday"}`
+    : isWeekend
+      ? `Closed for weekend (${dayName})`
+      : "";
 
   const bookingsBySlot = useMemo(() => {
     return bookings.reduce<Record<string, Booking[]>>((acc, booking) => {
@@ -434,9 +440,13 @@ export default function PantrySchedule({
         action={snackbar?.action}
       />
       {isClosed ? (
-        <Typography align="center">
-          Moose Jaw food bank is closed for {dayName}
-        </Typography>
+        <Alert
+          severity="info"
+          variant="outlined"
+          sx={{ justifyContent: "center", textAlign: "center" }}
+        >
+          Moose Jaw Food Bank is {closedMessage}
+        </Alert>
       ) : (
         <>
           <Stack
