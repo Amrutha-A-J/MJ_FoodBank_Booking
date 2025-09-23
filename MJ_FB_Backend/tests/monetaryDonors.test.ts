@@ -212,6 +212,39 @@ describe('Monetary donor insights', () => {
 
     expect(res.status).toBe(500);
   });
+
+  it('allows staff without donor management access to view insights', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: [] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+
+    const res = await request(app)
+      .get('/monetary-donors/insights')
+      .set('Authorization', 'Bearer token');
+
+    expect(res.status).toBe(200);
+  });
+
+  it('blocks non-staff users without donor management access', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 2, role: 'volunteer', type: 'volunteer', access: [] });
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ id: 2, first_name: 'Val', last_name: 'Volunteer', email: 'v@example.com' }],
+    });
+
+    const res = await request(app)
+      .get('/monetary-donors/insights')
+      .set('Authorization', 'Bearer token');
+
+    expect(res.status).toBe(403);
+    expect(pool.query).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('Monetary donor CRUD', () => {

@@ -105,8 +105,8 @@ const givingTierLabels: Record<MonetaryDonorMonthBucket, string> = {
 };
 
 export default function FoodBankTrends() {
-  const { access } = useAuth();
-  const hasDonorInsightsAccess = access?.includes?.('donor_management') ?? false;
+  const { role } = useAuth();
+  const isStaff = role === 'staff';
 
   const [visitStats, setVisitStats] = useState<VisitStat[]>([]);
   const [pantryLoading, setPantryLoading] = useState(true);
@@ -148,7 +148,7 @@ export default function FoodBankTrends() {
 
   const donorInsights = useMonetaryDonorInsights({
     months: 12,
-    enabled: hasDonorInsightsAccess,
+    enabled: isStaff,
   });
 
   const donorInsightsPermissionMessage = 'You do not have permission to view monetary donor insights.';
@@ -212,7 +212,7 @@ export default function FoodBankTrends() {
   const ytdSummary = donorInsights.data?.ytd;
 
   useEffect(() => {
-    if (!hasDonorInsightsAccess) {
+    if (!isStaff) {
       setSelectedDonationMonth(null);
       return;
     }
@@ -223,7 +223,7 @@ export default function FoodBankTrends() {
     } else {
       setSelectedDonationMonth(null);
     }
-  }, [donorInsights.data?.monthly, hasDonorInsightsAccess]);
+  }, [donorInsights.data?.monthly, isStaff]);
 
   const handleDonationPointSelect = useCallback(
     (datum: { month?: string } | undefined) => {
@@ -241,12 +241,12 @@ export default function FoodBankTrends() {
   };
 
   useEffect(() => {
-    if (!hasDonorInsightsAccess) return;
+    if (!isStaff) return;
     if (donorInsightsForbidden) return;
     if (donorInsightsErrorMessage) {
       showError(donorInsightsErrorMessage);
     }
-  }, [donorInsightsErrorMessage, donorInsightsForbidden, hasDonorInsightsAccess]);
+  }, [donorInsightsErrorMessage, donorInsightsForbidden, isStaff]);
 
   useEffect(() => {
     let active = true;
@@ -591,7 +591,7 @@ export default function FoodBankTrends() {
             </SectionCard>
 
             <SectionCard title="Monetary Donations">
-              {!hasDonorInsightsAccess || donorInsightsForbidden ? (
+              {!isStaff || donorInsightsForbidden ? (
                 <Typography variant="body2" color="text.secondary">
                   {donorInsightsPermissionMessage}
                 </Typography>

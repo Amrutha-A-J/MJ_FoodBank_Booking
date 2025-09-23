@@ -202,7 +202,9 @@ describe('FoodBankTrends', () => {
     (getWarehouseOverall as jest.Mock).mockResolvedValue(warehouseTotals);
     (getTopDonors as jest.Mock).mockResolvedValue([]);
     (getTopReceivers as jest.Mock).mockResolvedValue([]);
-    mockUseAuth.mockReturnValue({ access: ['donor_management'] } as unknown as ReturnType<typeof useAuth>);
+    mockUseAuth.mockReturnValue(
+      { role: 'staff', access: ['donor_management'] } as unknown as ReturnType<typeof useAuth>,
+    );
     mockUseMonetaryDonorInsights.mockReturnValue({
       data: baseDonorInsights,
       isLoading: false,
@@ -269,7 +271,7 @@ describe('FoodBankTrends', () => {
     expect(screen.queryByText('Total visits: 999')).not.toBeInTheDocument();
   });
 
-  it('shows monetary donor insights when donor management access is granted', async () => {
+  it('shows monetary donor insights when staff is signed in', async () => {
     render(
       <MemoryRouter>
         <FoodBankTrends />
@@ -285,15 +287,10 @@ describe('FoodBankTrends', () => {
     expect(screen.getByTestId('monetary-giving-tier-chart')).toBeInTheDocument();
   });
 
-  it('shows a permission notice when donor management access is missing', async () => {
-    mockUseAuth.mockReturnValue({ access: [] } as unknown as ReturnType<typeof useAuth>);
-    mockUseMonetaryDonorInsights.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      isFetching: false,
-      isError: false,
-      error: null,
-    });
+  it('shows monetary donor insights for staff without donor management access', async () => {
+    mockUseAuth.mockReturnValue(
+      { role: 'staff', access: [] } as unknown as ReturnType<typeof useAuth>,
+    );
 
     render(
       <MemoryRouter>
@@ -301,11 +298,9 @@ describe('FoodBankTrends', () => {
       </MemoryRouter>,
     );
 
-    expect(mockUseMonetaryDonorInsights).toHaveBeenCalledWith({ months: 12, enabled: false });
-    expect(
-      await screen.findByText('You do not have permission to view monetary donor insights.'),
-    ).toBeInTheDocument();
-    expect(screen.queryByTestId('monetary-donation-trend-chart')).not.toBeInTheDocument();
+    expect(mockUseMonetaryDonorInsights).toHaveBeenCalledWith({ months: 12, enabled: true });
+    expect(await screen.findByTestId('donation-ytd-total')).toHaveTextContent('YTD total: $30,000.00');
+    expect(screen.queryByText('You do not have permission to view monetary donor insights.')).not.toBeInTheDocument();
   });
 
   it('shows a permission notice when the insights request returns 403', async () => {
