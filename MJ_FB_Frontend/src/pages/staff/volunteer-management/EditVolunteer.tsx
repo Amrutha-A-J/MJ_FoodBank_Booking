@@ -326,6 +326,25 @@ export default function EditVolunteer() {
     }
   }
 
+  const accountInitialData = useMemo<AccountEditFormData>(
+    () => ({
+      firstName: volunteer?.firstName || '',
+      lastName: volunteer?.lastName || '',
+      email: volunteer?.email || '',
+      phone: volunteer?.phone || '',
+      onlineAccess: volunteer?.hasPassword ?? false,
+      password: '',
+      hasPassword: volunteer?.hasPassword ?? false,
+    }),
+    [
+      volunteer?.firstName,
+      volunteer?.lastName,
+      volunteer?.email,
+      volunteer?.phone,
+      volunteer?.hasPassword,
+    ],
+  );
+
   async function removeShopper() {
     if (!volunteer) return;
     try {
@@ -565,15 +584,7 @@ export default function EditVolunteer() {
           <DialogTitle>Edit Volunteer</DialogTitle>
           <AccountEditForm
             open={profileDialogOpen}
-            initialData={{
-              firstName: volunteer.firstName || '',
-              lastName: volunteer.lastName || '',
-              email: volunteer.email || '',
-              phone: volunteer.phone || '',
-              onlineAccess: volunteer.hasPassword,
-              password: '',
-              hasPassword: volunteer.hasPassword,
-            }}
+            initialData={accountInitialData}
             onSave={async data => {
               if (profileSaving) return false;
               const saved = await saveProfile(data);
