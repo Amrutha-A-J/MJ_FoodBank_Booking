@@ -58,7 +58,7 @@ export type DeliveryOrderStatus = z.infer<typeof deliveryOrderStatusSchema>;
 
 export const completeDeliveryOrderSchema = z.object({
   weight: z.coerce
-    .number({ invalid_type_error: 'Weight must be a number' })
+    .number({ error: 'Weight must be a number' })
     .finite('Weight must be a valid number')
     .min(0, 'Weight must be 0 or greater'),
 });
