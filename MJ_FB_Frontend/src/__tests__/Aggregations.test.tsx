@@ -110,7 +110,7 @@ describe('Aggregations page', () => {
     await waitFor(() => expect(mockGetWarehouseDonationHistory).toHaveBeenCalledTimes(1));
 
     expect(screen.getByRole('cell', { name: '2023' })).toBeInTheDocument();
-    expect(screen.getAllByText(/\$1,200\.00/i)).not.toHaveLength(0);
+    expect(screen.getAllByText(/1,200 lbs/i)).not.toHaveLength(0);
   });
 
   it('exports donation history data', async () => {
