@@ -3,13 +3,30 @@ import type { MigrationBuilder } from 'node-pg-migrate';
 export async function up(pgm: MigrationBuilder): Promise<void> {
   pgm.noTransaction();
 
-  pgm.addColumn('donors', {
-    name: { type: 'text' },
-  });
+  pgm.addColumn(
+    'donors',
+    {
+      name: { type: 'text' },
+    },
+    { ifNotExists: true },
+  );
 
-  pgm.sql('DELETE FROM donors;');
-  pgm.sql('VACUUM FULL donors;');
-  pgm.sql('ALTER TABLE donors ALTER COLUMN id RESTART WITH 1;');
+  pgm.sql(`
+    UPDATE donors
+       SET name = COALESCE(
+         NULLIF(
+           BTRIM(
+             CONCAT_WS(
+               ' ',
+               NULLIF(BTRIM(first_name), ''),
+               NULLIF(BTRIM(last_name), '')
+             )
+           ),
+           ''
+         ),
+         CONCAT('Donor ', id)
+       )
+  `);
 
   const rawDonorNames = [
     'AAWARRIORS',
@@ -191,7 +208,12 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
         FROM UNNEST(ARRAY[
           ${donorArrayLiteral}
         ]::text[]) AS donor_name
-      WHERE donor_name <> '';
+      WHERE donor_name <> ''
+        AND NOT EXISTS (
+          SELECT 1
+            FROM donors existing
+           WHERE existing.name = donor_name
+        );
     `);
   }
 
