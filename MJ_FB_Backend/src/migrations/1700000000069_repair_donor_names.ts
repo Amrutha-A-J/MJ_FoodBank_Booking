@@ -4,7 +4,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
   pgm.noTransaction();
 
   pgm.sql(`
-    DO $$
+    DO $do$
     DECLARE
       has_name_column boolean;
       has_first_name_column boolean;
@@ -35,17 +35,17 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
       ) INTO has_last_name_column;
 
       IF has_name_column AND has_last_name_column THEN
-        EXECUTE $$
+        EXECUTE $fn$
           UPDATE donors
              SET last_name = COALESCE(
                NULLIF(BTRIM(REGEXP_REPLACE(name, '^\\S+\\s*', '')), ''),
                ''
              )
-        $$;
+        $fn$;
       END IF;
 
       IF has_name_column AND has_first_name_column AND has_last_name_column THEN
-        EXECUTE $$
+        EXECUTE $fn$
           UPDATE donors
              SET name = COALESCE(
                NULLIF(
@@ -60,9 +60,9 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
                ),
                name
              )
-        $$;
+        $fn$;
       END IF;
-    END $$;
+    END $do$;
   `);
 }
 
