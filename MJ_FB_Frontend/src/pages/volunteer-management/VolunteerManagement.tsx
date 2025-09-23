@@ -137,6 +137,16 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [editMsg, setEditMsg] = useState('');
   const [editSeverity, setEditSeverity] = useState<'success' | 'error'>('success');
 
+  const dialogVolunteer = useMemo<VolunteerSearchResult | null>(() => {
+    if (!editVolunteer) {
+      return null;
+    }
+    return {
+      ...editVolunteer,
+      clientId: editVolunteer.clientId ?? null,
+    };
+  }, [editVolunteer]);
+
 
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
@@ -1469,7 +1479,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       )}
 
       <EditVolunteerDialog
-        volunteer={editVolunteer ? { ...editVolunteer, clientId: editVolunteer.clientId ?? null } : null}
+        volunteer={dialogVolunteer}
         onClose={() => setEditVolunteer(null)}
         onSaved={() => {
           setEditVolunteer(null);
