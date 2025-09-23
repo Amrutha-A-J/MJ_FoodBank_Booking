@@ -193,10 +193,7 @@ export default function Aggregations() {
     { donations: 0, surplus: 0, pigPound: 0, petFood: 0, outgoingDonations: 0 },
   );
 
-  const currencyFormatter = useMemo(
-    () => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }),
-    [],
-  );
+  const poundsFormatter = useMemo(() => new Intl.NumberFormat('en-CA'), []);
 
   const historyTotals = historyRows.reduce(
     (acc, row) => ({
@@ -516,18 +513,18 @@ export default function Aggregations() {
               },
               {
                 field: 'donations',
-                header: 'Donations',
-                render: row => currencyFormatter.format(row.donations),
+                header: 'Donations (lbs)',
+                render: row => `${poundsFormatter.format(row.donations)} lbs`,
               },
               {
                 field: 'petFood',
-                header: 'Pet Food',
-                render: row => currencyFormatter.format(row.petFood),
+                header: 'Pet Food (lbs)',
+                render: row => `${poundsFormatter.format(row.petFood)} lbs`,
               },
               {
                 field: 'total',
-                header: 'Total',
-                render: row => currencyFormatter.format(row.total),
+                header: 'Total (lbs)',
+                render: row => `${poundsFormatter.format(row.total)} lbs`,
               },
             ];
 
