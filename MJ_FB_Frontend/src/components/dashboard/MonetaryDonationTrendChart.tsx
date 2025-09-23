@@ -1,3 +1,6 @@
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
 import { format, parse } from 'date-fns';
 import {
@@ -117,71 +120,90 @@ export default function MonetaryDonationTrendChart<T extends MonetaryDonationTre
   };
 
   return (
-    <ResponsiveContainer width="100%" height={320} data-testid="monetary-donation-trend-chart">
-      <LineChart data={chartData} onClick={handleClick}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="monthLabel" />
-        <YAxis
-          yAxisId="amount"
-          tickFormatter={value => currencyFormatter.format(value as number)}
-          width={90}
-        />
-        <YAxis yAxisId="count" orientation="right" allowDecimals={false} />
-        <Tooltip content={<TrendTooltip />} />
-        <Legend />
-        <Line
-          isAnimationActive={false}
-          type="monotone"
-          dataKey="amount"
-          name="Amount"
-          stroke={theme.palette.primary.main}
-          strokeWidth={2}
-          dot={{ r: 4, stroke: theme.palette.primary.main, fill: theme.palette.primary.main }}
-          activeDot={{ r: 6, stroke: theme.palette.primary.main, fill: theme.palette.primary.main }}
-          yAxisId="amount"
-        />
-        <Line
-          isAnimationActive={false}
-          type="monotone"
-          dataKey="averageGift"
-          name="Average Gift"
-          stroke={theme.palette.info.main}
-          strokeWidth={2}
-          dot={{ r: 4, stroke: theme.palette.info.main, fill: theme.palette.info.main }}
-          activeDot={{ r: 6, stroke: theme.palette.info.main, fill: theme.palette.info.main }}
-          yAxisId="amount"
-        />
-        <Line
-          isAnimationActive={false}
-          type="monotone"
-          dataKey="donationCount"
-          name="Donations"
-          stroke={theme.palette.success.main}
-          strokeWidth={2}
-          dot={{ r: 4, stroke: theme.palette.success.main, fill: theme.palette.success.main }}
-          activeDot={{ r: 6, stroke: theme.palette.success.main, fill: theme.palette.success.main }}
-          yAxisId="count"
-        />
-        <Line
-          isAnimationActive={false}
-          type="monotone"
-          dataKey="donorCount"
-          name="Donors"
-          stroke={theme.palette.warning.dark}
-          strokeWidth={2}
-          dot={{
-            r: 4,
-            stroke: theme.palette.warning.dark,
-            fill: theme.palette.warning.dark,
-          }}
-          activeDot={{
-            r: 6,
-            stroke: theme.palette.warning.dark,
-            fill: theme.palette.warning.dark,
-          }}
-          yAxisId="count"
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <Stack data-testid="monetary-donation-trend-chart" spacing={3} sx={{ height: '100%' }}>
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="subtitle2" color="text.secondary">
+          Donation amounts
+        </Typography>
+        <Box sx={{ flex: 1, minHeight: 160 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} onClick={handleClick}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="monthLabel" />
+              <YAxis
+                tickFormatter={value => currencyFormatter.format(value as number)}
+                width={90}
+              />
+              <Tooltip content={<TrendTooltip />} />
+              <Legend />
+              <Line
+                isAnimationActive={false}
+                type="monotone"
+                dataKey="amount"
+                name="Amount"
+                stroke={theme.palette.primary.main}
+                strokeWidth={2}
+                dot={{ r: 4, stroke: theme.palette.primary.main, fill: theme.palette.primary.main }}
+                activeDot={{ r: 6, stroke: theme.palette.primary.main, fill: theme.palette.primary.main }}
+              />
+              <Line
+                isAnimationActive={false}
+                type="monotone"
+                dataKey="averageGift"
+                name="Average Gift"
+                stroke={theme.palette.info.main}
+                strokeWidth={2}
+                dot={{ r: 4, stroke: theme.palette.info.main, fill: theme.palette.info.main }}
+                activeDot={{ r: 6, stroke: theme.palette.info.main, fill: theme.palette.info.main }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Box>
+      </Box>
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="subtitle2" color="text.secondary">
+          Donation activity
+        </Typography>
+        <Box sx={{ flex: 1, minHeight: 160 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} onClick={handleClick}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="monthLabel" />
+              <YAxis orientation="right" allowDecimals={false} width={60} />
+              <Tooltip content={<TrendTooltip />} />
+              <Legend />
+              <Line
+                isAnimationActive={false}
+                type="monotone"
+                dataKey="donationCount"
+                name="Donations"
+                stroke={theme.palette.success.main}
+                strokeWidth={2}
+                dot={{ r: 4, stroke: theme.palette.success.main, fill: theme.palette.success.main }}
+                activeDot={{ r: 6, stroke: theme.palette.success.main, fill: theme.palette.success.main }}
+              />
+              <Line
+                isAnimationActive={false}
+                type="monotone"
+                dataKey="donorCount"
+                name="Donors"
+                stroke={theme.palette.warning.dark}
+                strokeWidth={2}
+                dot={{
+                  r: 4,
+                  stroke: theme.palette.warning.dark,
+                  fill: theme.palette.warning.dark,
+                }}
+                activeDot={{
+                  r: 6,
+                  stroke: theme.palette.warning.dark,
+                  fill: theme.palette.warning.dark,
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Box>
+      </Box>
+    </Stack>
   );
 }
