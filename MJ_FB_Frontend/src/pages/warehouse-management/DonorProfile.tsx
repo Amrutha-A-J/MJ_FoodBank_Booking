@@ -92,8 +92,8 @@ export default function DonorProfile() {
     if (donor) {
       setForm({
         name: donor.name,
-        email: donor.contact?.email ?? '',
-        phone: donor.contact?.phone ?? '',
+        email: donor.email ?? '',
+        phone: donor.phone ?? '',
         isPetFood: donor.isPetFood,
       });
     }
@@ -110,8 +110,8 @@ export default function DonorProfile() {
     if (donor) {
       setForm({
         name: donor.name,
-        email: donor.contact?.email ?? '',
-        phone: donor.contact?.phone ?? '',
+        email: donor.email ?? '',
+        phone: donor.phone ?? '',
         isPetFood: donor.isPetFood,
       });
     }
@@ -137,10 +137,8 @@ export default function DonorProfile() {
     try {
       await updateDonor(donor.id, {
         name: trimmed.name,
-        contact:
-          trimmed.email || trimmed.phone
-            ? { email: trimmed.email || null, phone: trimmed.phone || null }
-            : null,
+        email: trimmed.email || null,
+        phone: trimmed.phone || null,
         isPetFood: form.isPetFood,
       });
       setSnackbar({ open: true, message: 'Donor updated', severity: 'success' });
@@ -157,11 +155,11 @@ export default function DonorProfile() {
     }
   };
 
-  const emailDisplay = donor?.contact?.email?.trim()
-    ? donor.contact.email
+  const emailDisplay = donor?.email?.trim()
+    ? donor.email
     : 'Email not provided';
-  const phoneDisplay = donor?.contact?.phone?.trim()
-    ? donor.contact.phone
+  const phoneDisplay = donor?.phone?.trim()
+    ? donor.phone
     : 'Phone not provided';
 
   const closeSnackbar = () =>

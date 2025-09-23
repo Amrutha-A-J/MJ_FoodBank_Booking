@@ -48,7 +48,8 @@ describe('WarehouseDashboard', () => {
     {
       id: 42,
       name: 'Alice Donor',
-      contact: { email: null, phone: '306-555-0100' },
+      email: null,
+      phone: '306-555-0100',
       isPetFood: false,
       totalLbs: 1200,
       lastDonationISO: '2024-04-01T12:00:00Z',
@@ -56,7 +57,8 @@ describe('WarehouseDashboard', () => {
     {
       id: 99,
       name: 'Bob Helper',
-      contact: null,
+      email: null,
+      phone: null,
       isPetFood: false,
       totalLbs: 600,
       lastDonationISO: '2024-03-01T12:00:00Z',
