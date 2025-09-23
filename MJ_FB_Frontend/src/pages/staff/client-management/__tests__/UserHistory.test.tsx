@@ -172,6 +172,7 @@ describe('UserHistory delivery orders', () => {
     );
 
     expect(screen.getByText('Delivery history')).toBeInTheDocument();
+    expect(screen.getByText('Active deliveries')).toBeInTheDocument();
     expect(screen.getByText('Order #10')).toBeInTheDocument();
     expect(screen.getByText('Scheduled: Tue, May 14, 2024')).toBeInTheDocument();
     expect(screen.getByText('Address: 123 Main St')).toBeInTheDocument();
@@ -182,11 +183,75 @@ describe('UserHistory delivery orders', () => {
     expect(screen.getByText('Bread × 1')).toBeInTheDocument();
     expect(screen.getByText('Dairy')).toBeInTheDocument();
     expect(screen.getByText('Bakery')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /show completed deliveries/i }),
+    ).toBeInTheDocument();
     await waitFor(() =>
       expect(screen.getByTestId('booking-management-base')).toHaveTextContent(
         'History for 456',
       ),
     );
+  });
+
+  it('only shows active delivery orders by default and reveals completed orders when expanded', async () => {
+    mockGetUserByClientId.mockResolvedValueOnce({
+      clientId: 456,
+      firstName: 'Search',
+      lastName: 'Result',
+      email: null,
+      phone: null,
+      onlineAccess: true,
+      hasPassword: true,
+      role: 'delivery',
+    });
+    mockGetDeliveryOrdersForClient.mockResolvedValueOnce([
+      {
+        id: 11,
+        clientId: 456,
+        status: 'approved',
+        createdAt: '2024-05-01T17:00:00.000Z',
+        scheduledFor: '2024-05-20T15:30:00.000Z',
+        address: '123 Main St',
+        phone: '306-555-1234',
+        email: 'client@example.com',
+        notes: null,
+        items: [],
+      },
+      {
+        id: 12,
+        clientId: 456,
+        status: 'completed',
+        createdAt: '2024-04-01T17:00:00.000Z',
+        scheduledFor: '2024-04-05T15:30:00.000Z',
+        address: '123 Main St',
+        phone: '306-555-1234',
+        email: 'client@example.com',
+        notes: 'Delivered successfully',
+        items: [],
+      },
+    ]);
+
+    renderWithProviders(
+      <MemoryRouter>
+        <UserHistory />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /select client/i }));
+
+    await waitFor(() =>
+      expect(mockGetDeliveryOrdersForClient).toHaveBeenCalledWith(456),
+    );
+
+    expect(screen.getByText('Order #11')).toBeInTheDocument();
+    const completedOrderHeading = screen.getByText('Order #12');
+    expect(completedOrderHeading).not.toBeVisible();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /show completed deliveries/i }),
+    );
+
+    expect(completedOrderHeading).toBeVisible();
   });
 
   it('shows an empty state when no delivery orders are found', async () => {
@@ -209,7 +274,13 @@ describe('UserHistory delivery orders', () => {
     );
 
     expect(screen.getByText('Delivery history')).toBeInTheDocument();
-    expect(screen.getByText('No delivery orders yet')).toBeInTheDocument();
+    expect(
+      screen.getByText('No active delivery requests right now.'),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', { name: /show completed deliveries/i }),
+    );
+    expect(screen.getByText('No completed deliveries yet.')).toBeInTheDocument();
     expect(mockGetUserByClientId).not.toHaveBeenCalled();
     await waitFor(() =>
       expect(screen.getByTestId('booking-management-base')).toHaveTextContent(
