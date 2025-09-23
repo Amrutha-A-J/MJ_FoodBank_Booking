@@ -118,5 +118,21 @@ describe('optionalAuthMiddleware', () => {
     expect(res.status).toBe(401);
     expect(res.body.message).toBe('Invalid token');
   });
+
+  it('allows access and clears token cookie when token expired', async () => {
+    (jwt.verify as jest.Mock).mockImplementation(() => {
+      throw new TokenExpiredError('jwt expired', new Date());
+    });
+
+    const res = await request(app)
+      .get('/optional')
+      .set('Cookie', 'token=stale');
+
+    expect(res.status).toBe(200);
+    expect(res.body.user).toBeNull();
+    const cookies = res.headers['set-cookie'] as unknown as string[];
+    expect(cookies).toBeDefined();
+    expect(cookies.some(c => c.startsWith('token=;'))).toBe(true);
+  });
 });
 
