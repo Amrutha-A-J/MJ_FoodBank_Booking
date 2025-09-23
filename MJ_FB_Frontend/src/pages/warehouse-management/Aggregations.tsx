@@ -43,7 +43,6 @@ import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 
 const RECENT_YEARS_LIMIT = 5;
 const DONOR_TAB = 0;
-const OVERALL_TAB = 1;
 const MONTHLY_HISTORY_TAB = 2;
 const HISTORICAL_TAB = 3;
 
@@ -653,7 +652,8 @@ export default function Aggregations() {
               ...years.map(year => ({
                 field: `y${year}` as keyof MonthlyHistoryRow & string,
                 header: String(year),
-                render: row => `${poundsFormatter.format(Number(row[`y${year}`] ?? 0))} lbs`,
+                render: (row: MonthlyHistoryRow) =>
+                  `${poundsFormatter.format(Number(row[`y${year}`] ?? 0))} lbs`,
               })),
               {
                 field: 'total',
