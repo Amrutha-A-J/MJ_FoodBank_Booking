@@ -203,8 +203,10 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
       .join(',\n      ');
 
     pgm.sql(`
-      INSERT INTO donors (name)
-      SELECT DISTINCT donor_name
+      INSERT INTO donors (name, first_name, last_name)
+      SELECT DISTINCT donor_name,
+             donor_name,
+             ''
         FROM UNNEST(ARRAY[
           ${donorArrayLiteral}
         ]::text[]) AS donor_name
