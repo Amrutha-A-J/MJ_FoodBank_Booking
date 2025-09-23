@@ -74,3 +74,51 @@ describe('PantrySchedule Today button', () => {
   });
 });
 
+describe('PantrySchedule closed messaging', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    (getBookings as jest.Mock).mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.clearAllMocks();
+  });
+
+  it('shows closed message for weekends', async () => {
+    jest.setSystemTime(new Date('2024-02-03T19:00:00Z'));
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getSlots as jest.Mock).mockResolvedValue([]);
+
+    await act(async () => {
+      renderWithProviders(<PantrySchedule />);
+    });
+
+    expect(
+      await screen.findByText(
+        'Moose Jaw Food Bank is Closed for weekend (Saturday)',
+      ),
+    ).toBeInTheDocument();
+    expect(getSlots).not.toHaveBeenCalled();
+  });
+
+  it('shows closed message for holidays', async () => {
+    jest.setSystemTime(new Date('2024-02-05T19:00:00Z'));
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([
+      { date: '2024-02-05', reason: 'Family Day' },
+    ]);
+
+    await act(async () => {
+      renderWithProviders(<PantrySchedule />);
+    });
+
+    expect(
+      await screen.findByText(
+        'Moose Jaw Food Bank is Closed for Family Day',
+      ),
+    ).toBeInTheDocument();
+  });
+});
+
