@@ -2,6 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import warehouseOverallRoutes from '../src/routes/warehouse/warehouseOverall';
 import pool from '../src/db';
+import './utils/mockDb';
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (
@@ -34,12 +35,15 @@ beforeEach(() => {
 });
 
 describe('POST /warehouse-overall/manual', () => {
-  it('returns 404 because the manual endpoint is no longer exposed', async () => {
+  it('saves manual warehouse totals when staff submit data', async () => {
     const res = await request(app)
       .post('/warehouse-overall/manual')
-      .send({ year: 2024, month: 5 });
+      .send({ year: 2024, month: 5, donations: 100 });
 
-    expect(res.status).toBe(404);
-    expect(pool.query).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO warehouse_overall'),
+      expect.arrayContaining([2024, 5]),
+    );
   });
 });
