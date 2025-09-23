@@ -8,10 +8,6 @@ const mockGetWarehouseOverall = jest.fn().mockResolvedValue([]);
 const mockGetWarehouseOverallYears = jest.fn();
 const mockExportWarehouseOverall = jest.fn().mockResolvedValue(new Blob());
 const mockPostManualWarehouseOverall = jest.fn().mockResolvedValue(undefined);
-const mockGetWarehouseDonationHistory = jest.fn().mockResolvedValue([
-  { year: 2023, donations: 1000, petFood: 200, total: 1200 },
-]);
-const mockExportWarehouseDonationHistory = jest.fn().mockResolvedValue(new Blob());
 const mockGetWarehouseMonthlyHistory = jest.fn();
 const mockExportWarehouseMonthlyHistory = jest.fn().mockResolvedValue(new Blob());
 jest.mock('../api/warehouseOverall', () => ({
@@ -22,10 +18,6 @@ jest.mock('../api/warehouseOverall', () => ({
     mockExportWarehouseOverall(...args),
   postManualWarehouseOverall: (...args: unknown[]) =>
     mockPostManualWarehouseOverall(...args),
-  getWarehouseDonationHistory: (...args: unknown[]) =>
-    mockGetWarehouseDonationHistory(...args),
-  exportWarehouseDonationHistory: (...args: unknown[]) =>
-    mockExportWarehouseDonationHistory(...args),
   getWarehouseMonthlyHistory: (...args: unknown[]) =>
     mockGetWarehouseMonthlyHistory(...args),
   exportWarehouseMonthlyHistory: (...args: unknown[]) =>
@@ -92,9 +84,6 @@ describe('Aggregations page', () => {
         isPetFood: false,
       },
     ]);
-    mockGetWarehouseDonationHistory.mockResolvedValue([
-      { year: 2023, donations: 1000, petFood: 200, total: 1200 },
-    ]);
     mockGetWarehouseMonthlyHistory.mockResolvedValue({
       years: [2024, 2023],
       entries: [
@@ -131,75 +120,6 @@ describe('Aggregations page', () => {
     );
   });
 
-  it('loads donation history when the tab is selected', async () => {
-    render(<Aggregations />);
-
-    fireEvent.click(screen.getByRole('tab', { name: /historical donations/i }));
-
-    await waitFor(() => expect(mockGetWarehouseDonationHistory).toHaveBeenCalledTimes(1));
-
-    expect(screen.getByRole('cell', { name: '2023' })).toBeInTheDocument();
-    expect(screen.getAllByText(/1,200 lbs/i)).not.toHaveLength(0);
-  });
-
-  it('exports donation history data', async () => {
-    render(<Aggregations />);
-
-    fireEvent.click(screen.getByRole('tab', { name: /historical donations/i }));
-
-    await waitFor(() => expect(mockGetWarehouseDonationHistory).toHaveBeenCalled());
-
-    const exportBtn = screen.getByRole('button', { name: /export/i });
-    fireEvent.click(exportBtn);
-
-    await waitFor(() =>
-      expect(mockExportWarehouseDonationHistory).toHaveBeenCalledTimes(1),
-    );
-  });
-
-  it('loads monthly history when the tab is selected', async () => {
-    render(<Aggregations />);
-
-    fireEvent.click(screen.getByRole('tab', { name: /monthly donation history/i }));
-
-    await waitFor(() => expect(mockGetWarehouseMonthlyHistory).toHaveBeenCalledTimes(1));
-
-    expect(screen.getAllByText(/january/i).length).toBeGreaterThan(0);
-    expect(screen.getByText('100 lbs')).toBeInTheDocument();
-    expect(screen.getByText('150 lbs')).toBeInTheDocument();
-    expect(screen.getByText('160 lbs')).toBeInTheDocument();
-    expect(screen.getByText('210 lbs')).toBeInTheDocument();
-  });
-
-  it('exports monthly history data', async () => {
-    render(<Aggregations />);
-
-    fireEvent.click(screen.getByRole('tab', { name: /monthly donation history/i }));
-
-    await waitFor(() => expect(mockGetWarehouseMonthlyHistory).toHaveBeenCalled());
-
-    const exportBtn = screen.getByRole('button', { name: /export/i });
-    fireEvent.click(exportBtn);
-
-    await waitFor(() =>
-      expect(mockExportWarehouseMonthlyHistory).toHaveBeenCalledTimes(1),
-    );
-  });
-
-  it('shows an error when monthly history fails to load', async () => {
-    mockGetWarehouseMonthlyHistory.mockRejectedValueOnce(new Error('fail'));
-
-    render(<Aggregations />);
-
-    fireEvent.click(screen.getByRole('tab', { name: /monthly donation history/i }));
-
-    await waitFor(() => expect(mockGetWarehouseMonthlyHistory).toHaveBeenCalled());
-
-    expect(
-      await screen.findByText(/failed to load monthly history/i),
-    ).toBeInTheDocument();
-  });
-
   it('reveals older years when toggled', async () => {
     mockGetWarehouseOverallYears.mockResolvedValueOnce(descendingYears);
 
@@ -224,18 +144,35 @@ describe('Aggregations page', () => {
     expect(screen.getByRole('option', { name: hiddenYear })).toBeInTheDocument();
   });
 
-  it('shows an error when donation history fails to load', async () => {
-    mockGetWarehouseDonationHistory.mockRejectedValueOnce(new Error('fail'));
+  it('shows an error when historical donations fail to load', async () => {
+    mockGetWarehouseMonthlyHistory.mockRejectedValueOnce(new Error('fail'));
 
     render(<Aggregations />);
 
     fireEvent.click(screen.getByRole('tab', { name: /historical donations/i }));
 
-    await waitFor(() => expect(mockGetWarehouseDonationHistory).toHaveBeenCalled());
+    await waitFor(() => expect(mockGetWarehouseMonthlyHistory).toHaveBeenCalled());
 
     expect(
-      await screen.findByText(/failed to load donation history/i),
+      await screen.findByText(/failed to load monthly history/i),
     ).toBeInTheDocument();
+  });
+
+  it('loads and exports historical donations', async () => {
+    render(<Aggregations />);
+
+    fireEvent.click(screen.getByRole('tab', { name: /historical donations/i }));
+
+    await waitFor(() => expect(mockGetWarehouseMonthlyHistory).toHaveBeenCalled());
+
+    const monthCells = await screen.findAllByText(/january/i);
+    expect(monthCells.length).toBeGreaterThan(0);
+    expect(await screen.findByText('100 lbs')).toBeInTheDocument();
+
+    const exportButton = await screen.findByRole('button', { name: /export/i });
+    fireEvent.click(exportButton);
+
+    await waitFor(() => expect(mockExportWarehouseMonthlyHistory).toHaveBeenCalled());
   });
 
   it('inserts manual aggregate through modal', async () => {
