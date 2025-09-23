@@ -1352,6 +1352,14 @@ export async function createRecurringVolunteerBookingForVolunteer(
           'volunteerId, roleId, startDate, endDate and pattern are required',
       });
   }
+  if (
+    typeof startDate !== 'string' ||
+    typeof endDate !== 'string' ||
+    !isValidDateString(startDate) ||
+    !isValidDateString(endDate)
+  ) {
+    return res.status(400).json({ message: 'Invalid date' });
+  }
   try {
     const slotRes = await pool.query(
       `SELECT vs.role_id, vs.max_volunteers, vs.start_time, vs.end_time, vmr.name AS category_name

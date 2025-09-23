@@ -100,6 +100,23 @@ describe('staff recurring volunteer bookings', () => {
     expect(client.query).toHaveBeenCalledTimes(3);
   });
 
+  it('returns 400 when start or end date is invalid', async () => {
+    const res = await request(app)
+      .post('/volunteer-bookings/recurring/staff')
+      .send({
+        volunteerId: 5,
+        roleId: 2,
+        startDate: 'invalid-date',
+        endDate: '2024-01-01',
+        pattern: 'daily',
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: 'Invalid date' });
+    expect((pool.query as jest.Mock).mock.calls.length).toBe(0);
+    expect(client.query).not.toHaveBeenCalled();
+  });
+
   it('lists recurring bookings for a volunteer', async () => {
     const start = getNextMonday();
     const end = addDays(start, 9);
