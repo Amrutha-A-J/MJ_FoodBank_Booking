@@ -411,7 +411,9 @@ export default function Maintenance() {
                     Check recent dead row counts to decide whether a manual vacuum is required.
                   </Typography>
                   <FormControl fullWidth size="medium" disabled={isLoadingVacuumTables}>
-                    <InputLabel id="dead-rows-table-label">Table Filter (optional)</InputLabel>
+                    <InputLabel id="dead-rows-table-label" shrink>
+                      Table Filter (optional)
+                    </InputLabel>
                     <Select<string>
                       labelId="dead-rows-table-label"
                       id="dead-rows-table-select"
