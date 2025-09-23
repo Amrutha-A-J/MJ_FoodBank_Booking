@@ -1,4 +1,4 @@
-import { render, fireEvent, screen, waitFor } from '@testing-library/react';
+import { render, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import Aggregations from '../pages/warehouse-management/Aggregations';
 import '../../tests/mockUrl';
 
@@ -12,6 +12,8 @@ const mockGetWarehouseDonationHistory = jest.fn().mockResolvedValue([
   { year: 2023, donations: 1000, petFood: 200, total: 1200 },
 ]);
 const mockExportWarehouseDonationHistory = jest.fn().mockResolvedValue(new Blob());
+const mockGetWarehouseMonthlyHistory = jest.fn();
+const mockExportWarehouseMonthlyHistory = jest.fn().mockResolvedValue(new Blob());
 jest.mock('../api/warehouseOverall', () => ({
   getWarehouseOverall: (...args: unknown[]) => mockGetWarehouseOverall(...args),
   getWarehouseOverallYears: (...args: unknown[]) =>
@@ -24,6 +26,10 @@ jest.mock('../api/warehouseOverall', () => ({
     mockGetWarehouseDonationHistory(...args),
   exportWarehouseDonationHistory: (...args: unknown[]) =>
     mockExportWarehouseDonationHistory(...args),
+  getWarehouseMonthlyHistory: (...args: unknown[]) =>
+    mockGetWarehouseMonthlyHistory(...args),
+  exportWarehouseMonthlyHistory: (...args: unknown[]) =>
+    mockExportWarehouseMonthlyHistory(...args),
 }));
 
 const mockGetDonorAggregations = jest.fn().mockResolvedValue([]);
@@ -48,7 +54,19 @@ jest.mock('../api/donors', () => ({
 
 describe('Aggregations page', () => {
   let anchorClick: jest.SpyInstance;
+  const originalMatchMedia = window.matchMedia;
   beforeAll(() => {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: jest.fn().mockImplementation(() => ({
+        matches: false,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      })),
+    });
     anchorClick = jest
       .spyOn(HTMLAnchorElement.prototype, 'click')
       .mockImplementation(function () {
@@ -58,6 +76,7 @@ describe('Aggregations page', () => {
   });
 
   afterAll(() => {
+    window.matchMedia = originalMatchMedia;
     anchorClick.mockRestore();
   });
 
@@ -76,6 +95,14 @@ describe('Aggregations page', () => {
     mockGetWarehouseDonationHistory.mockResolvedValue([
       { year: 2023, donations: 1000, petFood: 200, total: 1200 },
     ]);
+    mockGetWarehouseMonthlyHistory.mockResolvedValue({
+      years: [2024, 2023],
+      entries: [
+        { year: 2024, month: 1, total: 100 },
+        { year: 2023, month: 1, donations: 40, petFood: 10 },
+        { year: 2024, month: 2, total: 60 },
+      ],
+    });
   });
 
   it('loads donor data on mount and when returning to Donor tab', async () => {
@@ -130,6 +157,49 @@ describe('Aggregations page', () => {
     );
   });
 
+  it('loads monthly history when the tab is selected', async () => {
+    render(<Aggregations />);
+
+    fireEvent.click(screen.getByRole('tab', { name: /monthly donation history/i }));
+
+    await waitFor(() => expect(mockGetWarehouseMonthlyHistory).toHaveBeenCalledTimes(1));
+
+    expect(screen.getAllByText(/january/i).length).toBeGreaterThan(0);
+    expect(screen.getByText('100 lbs')).toBeInTheDocument();
+    expect(screen.getByText('150 lbs')).toBeInTheDocument();
+    expect(screen.getByText('160 lbs')).toBeInTheDocument();
+    expect(screen.getByText('210 lbs')).toBeInTheDocument();
+  });
+
+  it('exports monthly history data', async () => {
+    render(<Aggregations />);
+
+    fireEvent.click(screen.getByRole('tab', { name: /monthly donation history/i }));
+
+    await waitFor(() => expect(mockGetWarehouseMonthlyHistory).toHaveBeenCalled());
+
+    const exportBtn = screen.getByRole('button', { name: /export/i });
+    fireEvent.click(exportBtn);
+
+    await waitFor(() =>
+      expect(mockExportWarehouseMonthlyHistory).toHaveBeenCalledTimes(1),
+    );
+  });
+
+  it('shows an error when monthly history fails to load', async () => {
+    mockGetWarehouseMonthlyHistory.mockRejectedValueOnce(new Error('fail'));
+
+    render(<Aggregations />);
+
+    fireEvent.click(screen.getByRole('tab', { name: /monthly donation history/i }));
+
+    await waitFor(() => expect(mockGetWarehouseMonthlyHistory).toHaveBeenCalled());
+
+    expect(
+      await screen.findByText(/failed to load monthly history/i),
+    ).toBeInTheDocument();
+  });
+
   it('reveals older years when toggled', async () => {
     mockGetWarehouseOverallYears.mockResolvedValueOnce(descendingYears);
 
@@ -178,16 +248,19 @@ describe('Aggregations page', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: /insert aggregate/i }));
 
-    fireEvent.change(screen.getByLabelText(/month/i), { target: { value: '5' } });
-    fireEvent.change(screen.getByLabelText(/total donations/i), { target: { value: '1' } });
-    fireEvent.change(screen.getByLabelText(/surplus/i), { target: { value: '2' } });
-    fireEvent.change(screen.getByLabelText(/pig pound/i), { target: { value: '3' } });
-    fireEvent.change(screen.getByLabelText(/pet food/i), { target: { value: '5' } });
-    fireEvent.change(screen.getByLabelText(/outgoing donations/i), {
+    const dialog = await screen.findByRole('dialog', { name: /^insert aggregate$/i });
+    const dialogUtils = within(dialog);
+
+    fireEvent.change(dialogUtils.getByLabelText(/month/i), { target: { value: '5' } });
+    fireEvent.change(dialogUtils.getByLabelText(/total donations/i), { target: { value: '1' } });
+    fireEvent.change(dialogUtils.getByLabelText(/surplus/i), { target: { value: '2' } });
+    fireEvent.change(dialogUtils.getByLabelText(/pig pound/i), { target: { value: '3' } });
+    fireEvent.change(dialogUtils.getByLabelText(/pet food/i), { target: { value: '5' } });
+    fireEvent.change(dialogUtils.getByLabelText(/outgoing donations/i), {
       target: { value: '4' },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    fireEvent.click(dialogUtils.getByRole('button', { name: /save/i }));
 
     await waitFor(() =>
       expect(mockPostManualWarehouseOverall).toHaveBeenCalledWith({
@@ -213,8 +286,11 @@ describe('Aggregations page', () => {
 
     await waitFor(() => expect(mockGetDonors).toHaveBeenCalled());
 
-    fireEvent.change(screen.getByLabelText(/month/i), { target: { value: '5' } });
-    const donorInput = screen.getByRole('combobox', { name: /donor/i });
+    const dialog = await screen.findByRole('dialog', { name: /^insert aggregate$/i });
+    const dialogUtils = within(dialog);
+
+    fireEvent.change(dialogUtils.getByLabelText(/month/i), { target: { value: '5' } });
+    const donorInput = dialogUtils.getByRole('combobox', { name: /donor/i });
     fireEvent.change(donorInput, { target: { value: '42' } });
 
     await waitFor(() => expect(mockGetDonors).toHaveBeenCalledWith('42'));
@@ -223,9 +299,9 @@ describe('Aggregations page', () => {
       name: /jane doe \(306-555-0100\)/i,
     });
     fireEvent.click(option);
-    fireEvent.change(screen.getByLabelText(/total/i), { target: { value: '100' } });
+    fireEvent.change(dialogUtils.getByLabelText(/total/i), { target: { value: '100' } });
 
-    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    fireEvent.click(dialogUtils.getByRole('button', { name: /save/i }));
 
     await waitFor(() =>
       expect(mockPostManualDonorAggregation).toHaveBeenCalledWith({
@@ -245,7 +321,8 @@ describe('Aggregations page', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: /insert aggregate/i }));
 
-    const donorInput = screen.getByRole('combobox', { name: /donor/i });
+    const dialog = await screen.findByRole('dialog', { name: /^insert aggregate$/i });
+    const donorInput = within(dialog).getByRole('combobox', { name: /donor/i });
     fireEvent.change(donorInput, { target: { value: '007' } });
 
     await waitFor(() => expect(mockGetDonors).toHaveBeenCalledWith('007'));
