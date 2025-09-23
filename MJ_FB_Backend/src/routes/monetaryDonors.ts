@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
+import { authMiddleware, authorizeAccess, authorizeStaffOrAccess } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
 import {
   listDonors,
@@ -32,7 +32,12 @@ import {
 const router = Router();
 const upload = multer();
 
+const staffOrDonorAccess = authorizeStaffOrAccess ?? authorizeAccess;
+
 router.use(authMiddleware);
+
+router.get('/insights', staffOrDonorAccess('donor_management'), getMonetaryDonorInsights);
+
 router.use(authorizeAccess('donor_management'));
 
 router.post('/import', upload.single('file'), importZeffyDonations);
@@ -53,8 +58,6 @@ router.put(
   updateTestEmail,
 );
 router.delete('/test-emails/:id', deleteTestEmail);
-
-router.get('/insights', getMonetaryDonorInsights);
 
 router.get('/', listDonors);
 router.post('/', validate(addMonetaryDonorSchema), addDonor);
