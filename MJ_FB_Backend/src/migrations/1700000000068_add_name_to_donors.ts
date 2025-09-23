@@ -200,7 +200,12 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
   if (donorNames.length > 0) {
     pgm.alterColumn('donors', 'first_name', { notNull: false });
     pgm.alterColumn('donors', 'last_name', { notNull: false });
+  }
 
+  pgm.dropColumn('donors', 'first_name');
+  pgm.dropColumn('donors', 'last_name');
+
+  if (donorNames.length > 0) {
     const donorArrayLiteral = donorNames
       .map(name => `'${name.replace(/'/g, "''")}'`)
       .join(',\n      ');
@@ -221,9 +226,6 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
   }
 
   pgm.alterColumn('donors', 'name', { notNull: true });
-
-  pgm.dropColumn('donors', 'first_name');
-  pgm.dropColumn('donors', 'last_name');
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
