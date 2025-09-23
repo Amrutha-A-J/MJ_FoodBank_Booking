@@ -310,15 +310,29 @@ export default function Aggregations() {
       };
     }
 
+    const years = Array.isArray(monthlyHistory.years)
+      ? monthlyHistory.years.filter((year): year is number => typeof year === 'number')
+      : [];
+    const entries = Array.isArray(monthlyHistory.entries)
+      ? monthlyHistory.entries.filter(
+          (entry): entry is WarehouseMonthlyHistoryResponse['entries'][number] =>
+            Boolean(entry) && typeof entry.year === 'number' && typeof entry.month === 'number',
+        )
+      : [];
+
+    const derivedYears = years.length
+      ? years
+      : Array.from(new Set(entries.map(entry => entry.year))).sort((a, b) => a - b);
+
     const entryMap = new Map<string, WarehouseMonthlyHistoryResponse['entries'][number]>();
     const monthTotals = Array(12).fill(0) as number[];
     const yearTotals: Record<number, number> = {};
 
-    monthlyHistory.years.forEach(year => {
+    derivedYears.forEach(year => {
       yearTotals[year] = 0;
     });
 
-    monthlyHistory.entries.forEach(entry => {
+    entries.forEach(entry => {
       const key = `${entry.year}-${entry.month}`;
       const total = resolveMonthlyTotal(entry);
       entryMap.set(key, entry);
@@ -331,7 +345,7 @@ export default function Aggregations() {
     const grandTotal = Object.values(yearTotals).reduce((acc, total) => acc + total, 0);
 
     return {
-      years: monthlyHistory.years,
+      years: derivedYears,
       entryMap,
       monthTotals,
       yearTotals,
