@@ -285,11 +285,19 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   }, []);
 
   const groupedRoles = useMemo(() => {
-    const groups = new Map<string, { name: string; category_id: number; has_shifts: boolean }[]>();
+    const groups = new Map<
+      string,
+      { name: string; category_id: number; has_shifts: boolean; role_id: number }[]
+    >();
     roles.forEach(r => {
       const arr = groups.get(r.category_name) || [];
-      if (!arr.some(a => a.name === r.name)) {
-        arr.push({ name: r.name, category_id: r.category_id, has_shifts: r.has_shifts });
+      if (!arr.some(a => a.role_id === r.role_id)) {
+        arr.push({
+          name: r.name,
+          category_id: r.category_id,
+          has_shifts: r.has_shifts,
+          role_id: r.role_id,
+        });
       }
       groups.set(r.category_name, arr);
     });

@@ -422,7 +422,7 @@ export default function BookDelivery() {
             })}
           </Stack>
 
-          {categories.length === 0 && !error && (
+          {categories.length === 0 && !categoriesError && (
             <Typography color="text.secondary" sx={{ mt: 2 }}>
               No delivery items are currently available.
             </Typography>
