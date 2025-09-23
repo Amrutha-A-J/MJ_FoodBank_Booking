@@ -153,7 +153,7 @@ export async function optionalAuthMiddleware(
   if (result.status === 'expired') {
     const cookieOptions = getCookieOptions(req.get('user-agent'));
     res.clearCookie('token', cookieOptions);
-    return res.status(401).json({ message: 'Token expired' });
+    return next();
   }
   if (result.status === 'invalid') {
     return res.status(401).json({ message: 'Invalid token' });

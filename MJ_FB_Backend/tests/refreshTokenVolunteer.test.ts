@@ -2,9 +2,11 @@ import request from 'supertest';
 import express from 'express';
 import authRouter from '../src/routes/auth';
 import pool from '../src/db';
-import jwt from 'jsonwebtoken';
+import jwt, { TokenExpiredError } from 'jsonwebtoken';
+import { optionalAuthMiddleware } from '../src/middleware/authMiddleware';
 
 const app = express();
+app.use(optionalAuthMiddleware);
 app.use('/auth', authRouter);
 
 describe('POST /auth/refresh', () => {
@@ -84,5 +86,62 @@ describe('POST /auth/refresh', () => {
 
     expect(res.status).toBe(401);
     expect((pool.query as jest.Mock).mock.calls).toHaveLength(1);
+  });
+
+  it('refreshes tokens when access token is expired but refresh token is valid', async () => {
+    const payload = {
+      id: 1,
+      role: 'volunteer',
+      type: 'volunteer',
+      userId: 9,
+      userRole: 'shopper',
+      jti: 'still-valid',
+    };
+    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {
+      algorithm: 'HS256',
+      expiresIn: '7d',
+    });
+    const expiredAccessToken = 'expiredAccessToken';
+    const realVerify = jest.requireActual('jsonwebtoken').verify as typeof jwt.verify;
+    const verifySpy = jest.spyOn(jwt, 'verify').mockImplementation(((token: unknown, secret: any, options: any) => {
+      if (token === expiredAccessToken) {
+        throw new TokenExpiredError('jwt expired', new Date());
+      }
+      return realVerify(token as string, secret, options);
+    }) as typeof jwt.verify);
+
+    const future = new Date(Date.now() + 60_000).toISOString();
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ subject: 'volunteer:1', expires_at: future }],
+      })
+      .mockResolvedValueOnce({ rowCount: 1 });
+
+    try {
+      const res = await request(app)
+        .post('/auth/refresh')
+        .set('Cookie', [`token=${expiredAccessToken}`, `refreshToken=${refreshToken}`]);
+
+      expect(res.status).toBe(204);
+      const cookies = res.headers['set-cookie'] as unknown as string[];
+      expect(cookies).toBeDefined();
+      const newAccessCookie = cookies.find(c => c.startsWith('token=') && !c.startsWith('token=;'));
+      const refreshCookie = cookies.find(c => c.startsWith('refreshToken='));
+      expect(newAccessCookie).toBeDefined();
+      expect(refreshCookie).toBeDefined();
+      const newAccessToken = newAccessCookie!.split('token=')[1].split(';')[0];
+      const newRefreshToken = refreshCookie!.split('refreshToken=')[1].split(';')[0];
+      const decodedAccess = realVerify(newAccessToken, process.env.JWT_SECRET!, { algorithms: ['HS256'] }) as any;
+      expect(decodedAccess.userId).toBe(9);
+      expect(decodedAccess.userRole).toBe('shopper');
+      const decodedRefresh = realVerify(newRefreshToken, process.env.JWT_REFRESH_SECRET!, {
+        algorithms: ['HS256'],
+      }) as any;
+      expect(decodedRefresh.userId).toBe(9);
+      expect(decodedRefresh.userRole).toBe('shopper');
+    } finally {
+      verifySpy.mockRestore();
+    }
   });
 });
