@@ -95,14 +95,42 @@ export async function runVacuumForTable(
 }
 
 export async function getDeadRowStats(
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    const result = await pool.query(
-      `SELECT schemaname, relname, n_dead_tup FROM pg_stat_user_tables ORDER BY n_dead_tup DESC`,
-    );
+    const tableParam = (req.query as { table?: unknown }).table;
+    let queryText =
+      'SELECT schemaname, relname, n_dead_tup FROM pg_stat_user_tables ORDER BY n_dead_tup DESC';
+    const params: string[] = [];
+
+    if (tableParam !== undefined) {
+      if (Array.isArray(tableParam)) {
+        const error = new Error('table must be a single table name');
+        (error as Error & { status?: number }).status = 400;
+        throw error;
+      }
+
+      if (typeof tableParam !== 'string') {
+        const error = new Error('table must be a string');
+        (error as Error & { status?: number }).status = 400;
+        throw error;
+      }
+
+      const table = tableParam.trim();
+      if (!TABLE_NAME_PATTERN.test(table)) {
+        const error = new Error(`Invalid table name: ${table || tableParam}`);
+        (error as Error & { status?: number }).status = 400;
+        throw error;
+      }
+
+      queryText =
+        'SELECT schemaname, relname, n_dead_tup FROM pg_stat_user_tables WHERE relname = $1 ORDER BY n_dead_tup DESC';
+      params.push(table);
+    }
+
+    const result = await pool.query(queryText, params);
     const deadRows = result.rows.map(row => ({
       schema: row.schemaname,
       table: row.relname,

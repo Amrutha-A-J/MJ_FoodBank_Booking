@@ -278,6 +278,7 @@ describe('maintenance routes', () => {
       expect(res.status).toBe(200);
       expect(pool.query).toHaveBeenCalledWith(
         'SELECT schemaname, relname, n_dead_tup FROM pg_stat_user_tables ORDER BY n_dead_tup DESC',
+        [],
       );
       expect(res.body).toEqual({
         deadRows: [
@@ -285,6 +286,35 @@ describe('maintenance routes', () => {
           { schema: 'public', table: 'volunteer_bookings', deadRows: 2 },
         ],
       });
+    });
+
+    it('filters dead row counts when table query parameter is provided', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rows: [{ schemaname: 'public', relname: 'bookings', n_dead_tup: 3 }],
+      });
+
+      const res = await request(app).get('/maintenance/vacuum/dead-rows?table=bookings');
+
+      expect(res.status).toBe(200);
+      expect(pool.query).toHaveBeenCalledWith(
+        'SELECT schemaname, relname, n_dead_tup FROM pg_stat_user_tables WHERE relname = $1 ORDER BY n_dead_tup DESC',
+        ['bookings'],
+      );
+      expect(res.body).toEqual({
+        deadRows: [{ schema: 'public', table: 'bookings', deadRows: 3 }],
+      });
+    });
+
+    it('returns 400 when table query parameter is invalid', async () => {
+      const res = await request(app).get('/maintenance/vacuum/dead-rows?table=bad-table!');
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({ message: 'Invalid table name: bad-table!' });
+      expect(pool.query).not.toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalledWith(
+        'Failed to fetch dead row statistics',
+        expect.any(Error),
+      );
     });
 
     it('logs and forwards errors when fetching dead row counts fails', async () => {
