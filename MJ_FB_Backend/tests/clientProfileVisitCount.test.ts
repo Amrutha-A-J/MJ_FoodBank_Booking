@@ -14,6 +14,7 @@ jest.mock('../src/middleware/authMiddleware', () => ({
 
 jest.mock('../src/middleware/validate', () => ({
   validate: () => (_req: any, _res: any, next: any) => next(),
+  validateParams: () => (_req: any, _res: any, next: any) => next(),
 }));
 
 const app = express();

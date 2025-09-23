@@ -54,7 +54,7 @@ describe('PATCH /users/id/:clientId', () => {
     expect(res.status).toBe(200);
     expect(bcrypt.hash).not.toHaveBeenCalled();
     const params = (pool.query as jest.Mock).mock.calls[0][1];
-    expect(params).toEqual(['Jane', 'Doe', null, null, null, null, '5']);
+    expect(params).toEqual(['Jane', 'Doe', null, null, null, null, 5]);
   });
 
   it('enables online access with password', async () => {
