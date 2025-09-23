@@ -88,7 +88,7 @@ test('includes sendPasswordLink and email when sending link', async () => {
   expect(body.password).toBeUndefined();
 });
 
-test('includes password and omits sendPasswordLink when setting password', async () => {
+test('includes password and sets sendPasswordLink false when setting password', async () => {
   render(
     <MemoryRouter>
       <AddClient />
@@ -119,6 +119,6 @@ test('includes password and omits sendPasswordLink when setting password', async
     lastName: 'Doe',
     email: 'jane@example.com',
     password: 'P@ssword1',
+    sendPasswordLink: false,
   });
-  expect(body.sendPasswordLink).toBeUndefined();
 });

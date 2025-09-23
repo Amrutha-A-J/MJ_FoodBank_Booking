@@ -161,12 +161,14 @@ export async function addUser(
     role,
     onlineAccess,
   };
-  if (options.firstName) body.firstName = options.firstName;
-  if (options.lastName) body.lastName = options.lastName;
-  if (options.email) body.email = options.email;
-  if (options.phone) body.phone = options.phone;
-  if (options.password) body.password = options.password;
-  if (options.sendPasswordLink) body.sendPasswordLink = options.sendPasswordLink;
+  if (options.firstName !== undefined) body.firstName = options.firstName;
+  if (options.lastName !== undefined) body.lastName = options.lastName;
+  if (options.email !== undefined) body.email = options.email;
+  if (options.phone !== undefined) body.phone = options.phone;
+  if (options.password !== undefined) body.password = options.password;
+  if (options.sendPasswordLink !== undefined) {
+    body.sendPasswordLink = options.sendPasswordLink;
+  }
 
   const res = await jsonApiFetch(`${API_BASE}/users/add-client`, {
     method: "POST",
