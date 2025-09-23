@@ -40,6 +40,7 @@ function formatMonth(date = new Date()) {
 type DonorForDisplay = {
   id?: number | null;
   name?: string | null;
+  phone?: string | null;
   contact?: { phone?: string | null } | null;
 };
 
@@ -48,7 +49,8 @@ function formatDonorDisplay(
   fallbackId?: number | null,
 ) {
   const id = donor?.id ?? fallbackId ?? undefined;
-  const trimmedPhone = donor?.contact?.phone?.trim();
+  const rawPhone = donor?.phone ?? donor?.contact?.phone ?? null;
+  const trimmedPhone = typeof rawPhone === 'string' ? rawPhone.trim() : undefined;
   const name = donor?.name?.trim() ?? '';
 
   const base = name
@@ -194,7 +196,8 @@ export default function DonationLog() {
     if (name) {
       createDonor({
         name,
-        contact: email || phone ? { email: email || null, phone: phone || null } : null,
+        email: email || null,
+        phone: phone || null,
         isPetFood,
       })
         .then(d => {

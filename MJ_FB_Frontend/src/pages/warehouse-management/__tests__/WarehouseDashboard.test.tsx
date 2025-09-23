@@ -107,7 +107,9 @@ describe('WarehouseDashboard', () => {
     const donorOption = {
       id: 1,
       name: 'Generous Giver',
-      contact: { phone: '555-1212' },
+      email: null,
+      phone: '555-1212',
+      isPetFood: false,
     };
 
     (getDonors as jest.Mock).mockImplementation(async (term: string) => {

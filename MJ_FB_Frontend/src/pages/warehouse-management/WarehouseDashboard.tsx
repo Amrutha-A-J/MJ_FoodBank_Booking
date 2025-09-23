@@ -79,13 +79,9 @@ function kpiDelta(curr: number, prev?: number) {
   return { pct, up: pct >= 0 };
 }
 
-function formatDonorDisplay(donor: {
-  id: number;
-  name: string;
-  contact: { phone?: string | null } | null;
-}) {
+function formatDonorDisplay(donor: Donor) {
   const name = donor.name.trim() || 'Unnamed donor';
-  const phone = normalizeContactValue(donor.contact?.phone);
+  const phone = normalizeContactValue(donor.phone);
   const identifier = `ID ${donor.id}`;
   const suffix = phone ? `${identifier} • ${phone}` : identifier;
   return `${name} (${suffix})`;
@@ -279,8 +275,8 @@ export default function WarehouseDashboard() {
 
     return donors.filter(d => {
       const name = d.name.toLowerCase();
-      const email = normalizeContactSearchValue(d.contact?.email);
-      const phone = normalizeContactSearchValue(d.contact?.phone);
+      const email = normalizeContactSearchValue(d.email);
+      const phone = normalizeContactSearchValue(d.phone);
 
       return (
         d.id.toString().includes(term) ||

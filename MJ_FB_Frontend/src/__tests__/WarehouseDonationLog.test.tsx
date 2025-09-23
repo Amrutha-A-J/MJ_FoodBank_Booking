@@ -38,13 +38,15 @@ describe('Warehouse Donation Log', () => {
       {
         id: 1,
         name: 'No Email',
-        contact: null,
+        email: null,
+        phone: null,
         isPetFood: false,
       },
       {
         id: 2,
         name: 'Jane Donor',
-        contact: { email: 'jane@example.com', phone: '306-555-0199' },
+        email: 'jane@example.com',
+        phone: '306-555-0199',
         isPetFood: true,
       },
     ]);
@@ -56,7 +58,8 @@ describe('Warehouse Donation Log', () => {
         donor: {
           id: 1,
           name: 'No Email',
-          contact: null,
+          email: null,
+          phone: null,
           isPetFood: false,
         },
         weight: 120,
@@ -68,7 +71,8 @@ describe('Warehouse Donation Log', () => {
     (createDonor as jest.Mock).mockResolvedValue({
       id: 3,
       name: 'Added Donor',
-      contact: { email: null, phone: '306-555-0123' },
+      email: null,
+      phone: '306-555-0123',
       isPetFood: true,
     });
   });
@@ -180,7 +184,8 @@ describe('Warehouse Donation Log', () => {
     await waitFor(() =>
       expect(createDonor).toHaveBeenCalledWith({
         name: 'Added Donor',
-        contact: { email: null, phone: '306-555-0123' },
+        email: null,
+        phone: '306-555-0123',
         isPetFood: true,
       }),
     );

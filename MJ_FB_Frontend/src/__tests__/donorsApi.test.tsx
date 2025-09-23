@@ -5,7 +5,15 @@ jest.mock('../api/client', () => ({
   API_BASE: '/api/v1',
   apiFetch: jest.fn(),
   jsonApiFetch: jest.fn(),
-  handleResponse: jest.fn().mockResolvedValue(undefined),
+  handleResponse: jest
+    .fn()
+    .mockResolvedValue({
+      id: 7,
+      name: 'Alice Helper',
+      email: 'alice@example.com',
+      phone: '306-555-0100',
+      isPetFood: true,
+    }),
 }));
 
 describe('donors api', () => {
@@ -18,7 +26,8 @@ describe('donors api', () => {
   it('updates a donor with optional contact information', async () => {
     await updateDonor(7, {
       name: 'Alice Helper',
-      contact: { email: 'alice@example.com', phone: '306-555-0100' },
+      email: 'alice@example.com',
+      phone: '306-555-0100',
       isPetFood: true,
     });
 
@@ -28,7 +37,8 @@ describe('donors api', () => {
         method: 'PUT',
         body: {
           name: 'Alice Helper',
-          contact: { email: 'alice@example.com', phone: '306-555-0100' },
+          email: 'alice@example.com',
+          phone: '306-555-0100',
           isPetFood: true,
         },
       }),
