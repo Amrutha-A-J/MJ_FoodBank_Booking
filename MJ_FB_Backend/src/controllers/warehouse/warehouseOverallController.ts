@@ -260,12 +260,12 @@ export const exportWarehouseOverall = asyncHandler(async (req: Request, res: Res
   }
 
   rows.push([
-    { value: 'Total', fontWeight: 'bold' },
-    { value: totals.donations, fontWeight: 'bold' },
-    { value: totals.petFood, fontWeight: 'bold' },
-    { value: totals.surplus, fontWeight: 'bold' },
-    { value: totals.pigPound, fontWeight: 'bold' },
-    { value: totals.outgoingDonations, fontWeight: 'bold' },
+    { value: 'Total', fontWeight: 'bold' as const },
+    { value: totals.donations, fontWeight: 'bold' as const },
+    { value: totals.petFood, fontWeight: 'bold' as const },
+    { value: totals.surplus, fontWeight: 'bold' as const },
+    { value: totals.pigPound, fontWeight: 'bold' as const },
+    { value: totals.outgoingDonations, fontWeight: 'bold' as const },
   ]);
 
   const buffer = await writeXlsxFile(rows, {
@@ -331,10 +331,10 @@ export const exportHistoricalDonations = asyncHandler(async (_req: Request, res:
   }
 
   rows.push([
-    { value: 'Total', fontWeight: 'bold' },
-    { value: totals.donations, fontWeight: 'bold' },
-    { value: totals.petFood, fontWeight: 'bold' },
-    { value: totals.total, fontWeight: 'bold' },
+    { value: 'Total', fontWeight: 'bold' as const },
+    { value: totals.donations, fontWeight: 'bold' as const },
+    { value: totals.petFood, fontWeight: 'bold' as const },
+    { value: totals.total, fontWeight: 'bold' as const },
   ]);
 
   const buffer = await writeXlsxFile(rows, {
@@ -429,9 +429,9 @@ export const exportMonthlyDonationHistory = asyncHandler(async (_req: Request, r
   });
 
   rows.push([
-    { value: 'Total', fontWeight: 'bold' },
-    ...years.map(year => ({ value: yearlyTotals.get(year) ?? 0, fontWeight: 'bold' })),
-    { value: grandTotal, fontWeight: 'bold' },
+    { value: 'Total', fontWeight: 'bold' as const },
+    ...years.map(year => ({ value: yearlyTotals.get(year) ?? 0, fontWeight: 'bold' as const })),
+    { value: grandTotal, fontWeight: 'bold' as const },
   ]);
 
   const buffer = await writeXlsxFile(rows, {
