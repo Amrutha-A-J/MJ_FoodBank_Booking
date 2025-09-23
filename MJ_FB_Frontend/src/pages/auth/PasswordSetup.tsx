@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Button, Link } from '@mui/material';
+import { Button, Link, Stack, Typography } from '@mui/material';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FormCard from '../../components/FormCard';
@@ -82,16 +82,18 @@ export default function PasswordSetup() {
           )
         }
       >
-        {info?.clientId && (
-          <p>
-            Client ID: {info.clientId}
-          </p>
-        )}
-        {info?.email && (
-          <p>
-            Email: {info.email}
-          </p>
-        )}
+        <Stack spacing={0.5} component="div" aria-live="polite">
+          {info?.clientId && (
+            <Typography component="p" variant="body2">
+              Client ID: {info.clientId}
+            </Typography>
+          )}
+          {info?.email && (
+            <Typography component="p" variant="body2">
+              Email: {info.email}
+            </Typography>
+          )}
+        </Stack>
         {tokenInvalid ? (
           <>
             <p>Invalid or expired token.</p>

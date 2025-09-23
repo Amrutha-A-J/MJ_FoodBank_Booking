@@ -5,9 +5,28 @@ import {
   waitFor,
   act,
 } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import PasswordSetup from '../PasswordSetup';
-import { setPassword, getPasswordSetupInfo } from '../../../api/users';
+import {
+  setPassword,
+  getPasswordSetupInfo,
+  type PasswordSetupInfo,
+} from '../../../api/users';
+
+function createDeferred<T>() {
+  let resolve: (value: T) => void;
+  let reject: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return {
+    promise,
+    resolve: resolve!,
+    reject: reject!,
+  };
+}
 
 jest.mock('../../../api/users', () => ({
   ...jest.requireActual('../../../api/users'),
@@ -50,6 +69,45 @@ describe('PasswordSetup checklist', () => {
     fireEvent.change(input, { target: { value: 'Abcdefg@' } });
     expect(screen.getByTestId('min_length-check')).toBeInTheDocument();
     expect(screen.getByTestId('symbol-check')).toBeInTheDocument();
+  });
+
+  it('keeps focus on the password field while typing', async () => {
+    const input = await setup();
+
+    const user = userEvent.setup();
+
+    await user.click(input);
+    expect(document.activeElement).toBe(input);
+
+    await user.type(input, 'A');
+    expect(document.activeElement).toBe(input);
+
+    await user.type(input, 'b');
+    expect(document.activeElement).toBe(input);
+  });
+
+  it('keeps focus when account info loads mid-entry', async () => {
+    const pending = createDeferred<PasswordSetupInfo>();
+    (getPasswordSetupInfo as jest.Mock).mockReturnValue(pending.promise);
+
+    const input = await setup();
+    const user = userEvent.setup();
+
+    await user.click(input);
+    await user.type(input, 'A');
+    expect(document.activeElement).toBe(input);
+
+    await act(async () => {
+      pending.resolve({ clientId: '12345', email: 'user@example.com' });
+      await pending.promise;
+    });
+
+    expect(await screen.findByText(/client id: 12345/i)).toBeInTheDocument();
+    expect(await screen.findByText(/email: user@example.com/i)).toBeInTheDocument();
+    expect(document.activeElement).toBe(input);
+
+    await user.type(input, 'b');
+    expect(document.activeElement).toBe(input);
   });
 
   it('shows validation errors', async () => {
