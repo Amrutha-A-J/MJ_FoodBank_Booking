@@ -198,15 +198,16 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
   );
 
   if (donorNames.length > 0) {
+    pgm.alterColumn('donors', 'first_name', { notNull: false });
+    pgm.alterColumn('donors', 'last_name', { notNull: false });
+
     const donorArrayLiteral = donorNames
       .map(name => `'${name.replace(/'/g, "''")}'`)
       .join(',\n      ');
 
     pgm.sql(`
-      INSERT INTO donors (name, first_name, last_name)
-      SELECT DISTINCT donor_name,
-             donor_name,
-             ''
+      INSERT INTO donors (name)
+      SELECT DISTINCT donor_name
         FROM UNNEST(ARRAY[
           ${donorArrayLiteral}
         ]::text[]) AS donor_name
