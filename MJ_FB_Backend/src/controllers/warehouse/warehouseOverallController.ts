@@ -119,31 +119,6 @@ export const listWarehouseOverall = asyncHandler(async (req: Request, res: Respo
   res.json(result.rows);
 });
 
-export const listHistoricalDonations = asyncHandler(async (_req: Request, res: Response) => {
-  const result = await pool.query(
-    `SELECT
-         year,
-         COALESCE(SUM(donations)::int, 0) AS donations,
-         COALESCE(SUM(pet_food)::int, 0) AS "petFood"
-       FROM warehouse_overall
-       GROUP BY year
-       ORDER BY year DESC`,
-  );
-
-  const formatted = result.rows.map(row => {
-    const donations = Number(row.donations ?? 0);
-    const petFood = Number(row.petFood ?? 0);
-    return {
-      year: row.year,
-      donations,
-      petFood,
-      total: donations + petFood,
-    };
-  });
-
-  res.json(formatted);
-});
-
 export const listMonthlyDonationHistory = asyncHandler(async (_req: Request, res: Response) => {
   const result = await pool.query(
     `SELECT
@@ -155,29 +130,31 @@ export const listMonthlyDonationHistory = asyncHandler(async (_req: Request, res
        ORDER BY year DESC, month`,
   );
 
-  const history = new Map<number, { year: number; monthlyTotals: number[]; total: number }>();
-
-  for (const row of result.rows) {
+  const years = new Set<number>();
+  const entries = result.rows.map(row => {
     const year = Number(row.year);
     const month = Number(row.month);
     const donations = Number(row.donations ?? 0);
     const petFood = Number(row.petFood ?? 0);
-    if (!history.has(year)) {
-      history.set(year, { year, monthlyTotals: Array(12).fill(0), total: 0 });
-    }
-    const entry = history.get(year)!;
-    const incomingTotal = donations + petFood;
-    if (month >= 1 && month <= 12) {
-      entry.monthlyTotals[month - 1] = incomingTotal;
-    }
-    entry.total += incomingTotal;
-  }
+    years.add(year);
+    return {
+      year,
+      month,
+      donations,
+      petFood,
+      total: donations + petFood,
+    };
+  });
 
-  const response = Array.from(history.keys())
-    .sort((a, b) => b - a)
-    .map(year => history.get(year)!);
+  entries.sort((a, b) => {
+    if (a.year !== b.year) return b.year - a.year;
+    return a.month - b.month;
+  });
 
-  res.json(response);
+  res.json({
+    years: Array.from(years).sort((a, b) => b - a),
+    entries,
+  });
 });
 
 export const listAvailableYears = asyncHandler(async (_req: Request, res: Response) => {
@@ -285,72 +262,6 @@ export const exportWarehouseOverall = asyncHandler(async (req: Request, res: Res
   res.send(buffer);
 });
 
-export const exportHistoricalDonations = asyncHandler(async (_req: Request, res: Response) => {
-  const result = await pool.query(
-    `SELECT
-         year,
-         COALESCE(SUM(donations)::int, 0) AS donations,
-         COALESCE(SUM(pet_food)::int, 0) AS "petFood"
-       FROM warehouse_overall
-       GROUP BY year
-       ORDER BY year`,
-  );
-
-  const headerStyle = {
-    backgroundColor: '#000000',
-    color: '#FFFFFF',
-    fontWeight: 'bold' as const,
-  };
-
-  const rows: Row[] = [
-    [
-      { value: 'Year', ...headerStyle },
-      { value: 'Donations', ...headerStyle },
-      { value: 'Pet Food Donations', ...headerStyle },
-      { value: 'Total Donations', ...headerStyle },
-    ],
-  ];
-
-  let totals = { donations: 0, petFood: 0, total: 0 };
-
-  for (const row of result.rows) {
-    const donations = Number(row.donations ?? 0);
-    const petFood = Number(row.petFood ?? 0);
-    const total = donations + petFood;
-    rows.push([
-      { value: row.year },
-      { value: donations },
-      { value: petFood },
-      { value: total },
-    ]);
-    totals = {
-      donations: totals.donations + donations,
-      petFood: totals.petFood + petFood,
-      total: totals.total + total,
-    };
-  }
-
-  rows.push([
-    { value: 'Total', fontWeight: 'bold' as const },
-    { value: totals.donations, fontWeight: 'bold' as const },
-    { value: totals.petFood, fontWeight: 'bold' as const },
-    { value: totals.total, fontWeight: 'bold' as const },
-  ]);
-
-  const buffer = await writeXlsxFile(rows, {
-    sheet: 'Historical Donations',
-    buffer: true,
-  });
-
-  res
-    .setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    )
-    .setHeader('Content-Disposition', 'attachment; filename=warehouse_historical_donations.xlsx');
-
-  res.send(buffer);
-});
 
 export const exportMonthlyDonationHistory = asyncHandler(async (_req: Request, res: Response) => {
   const result = await pool.query(

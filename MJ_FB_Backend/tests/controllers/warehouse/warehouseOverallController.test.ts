@@ -3,7 +3,7 @@ import {
   refreshWarehouseOverall,
   listWarehouseOverall,
   manualWarehouseOverall,
-  listHistoricalDonations,
+  listMonthlyDonationHistory,
 } from '../../../src/controllers/warehouse/warehouseOverallController';
 
 const flushPromises = () => new Promise(process.nextTick);
@@ -140,34 +140,27 @@ describe('warehouseOverallController', () => {
     });
   });
 
-  describe('listHistoricalDonations', () => {
-    it('returns yearly aggregates with totals', async () => {
+  describe('listMonthlyDonationHistory', () => {
+    it('returns monthly donation entries with totals', async () => {
       const rows = [
-        { year: 2024, donations: 100, petFood: 25 },
-        { year: 2023, donations: 50, petFood: 10 },
+        { year: 2024, month: 1, donations: 50, petFood: 10 },
+        { year: 2023, month: 12, donations: 20, petFood: 5 },
       ];
       (mockDb.query as jest.Mock).mockResolvedValueOnce({ rows });
       const req = {} as any;
       const res = { json: jest.fn() } as any;
 
-      listHistoricalDonations(req, res, jest.fn());
+      listMonthlyDonationHistory(req, res, jest.fn());
       await flushPromises();
 
-      expect(mockDb.query).toHaveBeenCalledWith(expect.stringContaining('GROUP BY year'));
-      expect(res.json).toHaveBeenCalledWith([
-        { year: 2024, donations: 100, petFood: 25, total: 125 },
-        { year: 2023, donations: 50, petFood: 10, total: 60 },
-      ]);
-    });
-
-    it('handles empty results', async () => {
-      (mockDb.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
-      const res = { json: jest.fn() } as any;
-
-      listHistoricalDonations({} as any, res, jest.fn());
-      await flushPromises();
-
-      expect(res.json).toHaveBeenCalledWith([]);
+      expect(mockDb.query).toHaveBeenCalledWith(expect.stringContaining('ORDER BY year DESC, month'));
+      expect(res.json).toHaveBeenCalledWith({
+        years: [2024, 2023],
+        entries: [
+          { year: 2024, month: 1, donations: 50, petFood: 10, total: 60 },
+          { year: 2023, month: 12, donations: 20, petFood: 5, total: 25 },
+        ],
+      });
     });
   });
 });

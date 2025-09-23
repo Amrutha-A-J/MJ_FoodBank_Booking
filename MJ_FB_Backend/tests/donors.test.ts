@@ -262,6 +262,7 @@ describe('donor routes', () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse', 'donation_entry'] });
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ isPetFood: true }] })
       .mockResolvedValueOnce({
         rowCount: 1,
         rows: [
@@ -280,7 +281,7 @@ describe('donor routes', () => {
       .send({ name: 'Bob Brown', email: 'bob@example.com', phone: '555-0000', isPetFood: true });
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenNthCalledWith(
-      2,
+      3,
       'UPDATE donors SET name = $2, email = $3, phone = $4, is_pet_food = $5 WHERE id = $1 RETURNING id, name, email, phone, is_pet_food AS "isPetFood"',
       ['3', 'Bob Brown', 'bob@example.com', '555-0000', true],
     );
@@ -310,6 +311,7 @@ describe('donor routes', () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse', 'donation_entry'] });
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ isPetFood: false }] })
       .mockRejectedValueOnce({ code: '23505' });
     const res = await request(app)
       .put('/donors/3')
@@ -323,6 +325,7 @@ describe('donor routes', () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse', 'donation_entry'] });
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ isPetFood: false }] })
       .mockRejectedValueOnce(new Error('db failure'));
     const res = await request(app)
       .put('/donors/3')

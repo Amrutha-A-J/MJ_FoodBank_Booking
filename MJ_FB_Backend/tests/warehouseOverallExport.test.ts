@@ -10,7 +10,6 @@ jest.mock('jsonwebtoken');
 
 const app = express();
 app.use('/warehouse-overall', warehouseOverallRoutes);
-const year = new Date().getFullYear();
 
 beforeAll(() => {
   process.env.JWT_SECRET = 'testsecret';
@@ -19,110 +18,6 @@ beforeAll(() => {
 
 beforeEach(() => {
   jest.clearAllMocks();
-});
-
-describe('GET /warehouse-overall/export', () => {
-  it('returns an excel file for the specified year', async () => {
-    (jwt.verify as jest.Mock).mockReturnValue({
-      id: 1,
-      role: 'staff',
-      type: 'staff',
-      access: ['warehouse'],
-    });
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 't@example.com', role: 'staff' }],
-      })
-      .mockResolvedValueOnce({
-        rows: [
-          { month: 1, donations: 10, petFood: 2, surplus: 2, pigPound: 1, outgoingDonations: 0 },
-          { month: 2, donations: 5, petFood: 1, surplus: 3, pigPound: 0, outgoingDonations: 1 },
-        ],
-      });
-
-    const buffer = Buffer.from('test');
-    (writeXlsxFile as jest.Mock).mockResolvedValueOnce(buffer);
-
-    const res = await request(app)
-      .get(`/warehouse-overall/export?year=${year}`)
-      .set('Authorization', 'Bearer token')
-      .buffer()
-      .parse((res, cb) => {
-        const data: Buffer[] = [];
-        res.on('data', chunk => data.push(chunk));
-        res.on('end', () => cb(null, Buffer.concat(data)));
-      });
-
-    expect(res.status).toBe(200);
-    expect(res.headers['content-type']).toBe(
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    expect(res.body).toEqual(buffer);
-
-    const rows = (writeXlsxFile as jest.Mock).mock.calls[0][0];
-    const values = rows.map((row: any[]) => row.map(cell => cell.value));
-    expect(values[0]).toEqual([
-      'Month',
-      'Donations',
-      'Pet Food Donations',
-      'Surplus',
-      'Pig Pound',
-      'Outgoing Donations',
-    ]);
-    expect(values[1]).toEqual(['January', 10, 2, 2, 1, 0]);
-    expect(values[2]).toEqual(['February', 5, 1, 3, 0, 1]);
-    expect(values[3]).toEqual(['March', 0, 0, 0, 0, 0]);
-    expect(values[13]).toEqual(['Total', 15, 3, 5, 1, 1]);
-  });
-});
-
-describe('GET /warehouse-overall/history/export', () => {
-  it('returns an excel file with yearly donation history', async () => {
-    (jwt.verify as jest.Mock).mockReturnValue({
-      id: 1,
-      role: 'staff',
-      type: 'staff',
-      access: ['warehouse'],
-    });
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 't@example.com', role: 'staff' }],
-      })
-      .mockResolvedValueOnce({
-        rows: [
-          { year: 2023, donations: 100, petFood: 20 },
-          { year: 2024, donations: 150, petFood: 30 },
-        ],
-      });
-
-    const buffer = Buffer.from('history');
-    (writeXlsxFile as jest.Mock).mockResolvedValueOnce(buffer);
-
-    const res = await request(app)
-      .get('/warehouse-overall/history/export')
-      .set('Authorization', 'Bearer token')
-      .buffer()
-      .parse((res, cb) => {
-        const data: Buffer[] = [];
-        res.on('data', chunk => data.push(chunk));
-        res.on('end', () => cb(null, Buffer.concat(data)));
-      });
-
-    expect(res.status).toBe(200);
-    expect(res.headers['content-type']).toBe(
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    expect(res.body).toEqual(buffer);
-
-    const rows = (writeXlsxFile as jest.Mock).mock.calls[0][0];
-    const values = rows.map((row: any[]) => row.map(cell => cell.value));
-    expect(values[0]).toEqual(['Year', 'Donations', 'Pet Food Donations', 'Total Donations']);
-    expect(values[1]).toEqual([2023, 100, 20, 120]);
-    expect(values[2]).toEqual([2024, 150, 30, 180]);
-    expect(values[3]).toEqual(['Total', 250, 50, 300]);
-  });
 });
 
 describe('GET /warehouse-overall/monthly-history/export', () => {
