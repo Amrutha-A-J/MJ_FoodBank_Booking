@@ -1,4 +1,6 @@
 import { screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { setTimeout as nodeSetTimeout, clearTimeout as nodeClearTimeout } from 'timers';
 import EditClientDialog from '../client-management/EditClientDialog';
 import { getUserByClientId, updateUserInfo } from '../../../api/users';
@@ -109,6 +111,56 @@ describe('EditClientDialog', () => {
         expect.objectContaining({ password: 'Secret!1' }),
       ),
     );
+  });
+
+  it('keeps focus and values when parent rerenders with new callbacks', async () => {
+    (getUserByClientId as jest.Mock).mockResolvedValue({
+      firstName: 'Sam',
+      lastName: 'Taylor',
+      email: 'sam@example.com',
+      phone: '3065551212',
+      onlineAccess: true,
+      hasPassword: true,
+      role: 'shopper',
+    });
+
+    const user = userEvent.setup();
+
+    const handleClose = jest.fn();
+    const handleClientUpdated = jest.fn();
+
+    function Harness() {
+      const [onUpdated, setOnUpdated] = useState(() => jest.fn());
+      return (
+        <>
+          <EditClientDialog
+            open
+            clientId={5}
+            onClose={handleClose}
+            onUpdated={onUpdated}
+            onClientUpdated={handleClientUpdated}
+          />
+          <button
+            type="button"
+            onClick={() => setOnUpdated(() => jest.fn())}
+            data-testid="refresh-callback"
+          >
+            Refresh callback
+          </button>
+        </>
+      );
+    }
+
+    renderWithProviders(<Harness />);
+
+    const firstNameInput = await screen.findByTestId('first-name-input');
+    fireEvent.change(firstNameInput, { target: { value: 'Samuel' } });
+    await waitFor(() => expect(firstNameInput).toHaveValue('Samuel'));
+
+    await user.click(screen.getByTestId('refresh-callback'));
+
+    await waitFor(() => expect(getUserByClientId).toHaveBeenCalledTimes(1));
+    expect(getUserByClientId).toHaveBeenCalledTimes(1);
   });
 });
 

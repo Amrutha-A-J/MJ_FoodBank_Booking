@@ -187,9 +187,13 @@ export default function BookingManagementBase({
     }
   }
 
-  const handleUpdated = useCallback((m: string, s: AlertColor) => {
+  const handleEditDialogUpdated = useCallback((m: string, s: AlertColor) => {
     setSeverity(s);
     setMessage(m);
+  }, []);
+
+  const handleEditDialogClose = useCallback(() => {
+    setEditOpen(false);
   }, []);
 
   async function confirmCancel() {
@@ -336,9 +340,9 @@ export default function BookingManagementBase({
       {renderEditDialog &&
         renderEditDialog({
           open: editOpen,
-          onClose: () => setEditOpen(false),
+          onClose: handleEditDialogClose,
           user,
-          onUpdated: handleUpdated,
+          onUpdated: handleEditDialogUpdated,
         })}
       <FormDialog open={cancelId !== null} onClose={() => setCancelId(null)} maxWidth="xs">
         <DialogCloseButton onClose={() => setCancelId(null)} />
