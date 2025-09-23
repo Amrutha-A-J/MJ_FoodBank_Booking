@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import FoodBankTrends from '../pages/aggregations/FoodBankTrends';
@@ -187,7 +187,10 @@ describe('FoodBankTrends page', () => {
       },
     ]);
 
-    mockUseAuth.mockReturnValue({ access: ['donor_management'] } as ReturnType<typeof useAuth>);
+    mockUseAuth.mockReturnValue({
+      role: 'staff',
+      access: ['donor_management'],
+    } as ReturnType<typeof useAuth>);
     mockUseMonetaryDonorInsights.mockReturnValue({
       data: donorInsightsFixture,
       isLoading: false,
@@ -218,10 +221,25 @@ describe('FoodBankTrends page', () => {
     await waitFor(() => expect(mockGetTopDonors).toHaveBeenCalled());
     await waitFor(() => expect(mockGetTopReceivers).toHaveBeenCalled());
 
+    const trendSelect = await screen.findByRole('combobox', { name: /trend view/i });
+    expect(trendSelect).toHaveTextContent(/Pantry trends/i);
+
     expect(await screen.findByText(/Monthly Visits/i)).toBeInTheDocument();
     expect(screen.getByText(/Adults vs Children/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Monetary Donations/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Warehouse Overview/i)).not.toBeInTheDocument();
     expect(await screen.findByText('Community Food Drive')).toBeInTheDocument();
-    expect(screen.getByText(/Warehouse Overview/i)).toBeInTheDocument();
+
+    fireEvent.mouseDown(trendSelect);
+    await userEvent.click(await screen.findByRole('option', { name: /donation trends/i }));
+
+    expect(await screen.findByText(/Monetary Donations/i)).toBeInTheDocument();
+    expect(screen.getByTestId('donation-ytd-total')).toBeInTheDocument();
+
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: /trend view/i }));
+    await userEvent.click(await screen.findByRole('option', { name: /warehouse trends/i }));
+
+    expect(await screen.findByText(/Warehouse Overview/i)).toBeInTheDocument();
     expect(screen.getByText(/Monthly Trend/i)).toBeInTheDocument();
     expect(screen.getByText(/^Composition$/i)).toBeInTheDocument();
     expect(screen.getByText(/Top Donors/i)).toBeInTheDocument();
@@ -238,6 +256,9 @@ describe('FoodBankTrends page', () => {
         <FoodBankTrends />
       </MemoryRouter>,
     );
+
+    fireEvent.mouseDown(await screen.findByRole('combobox', { name: /trend view/i }));
+    await userEvent.click(await screen.findByRole('option', { name: /warehouse trends/i }));
 
     const openButton = await screen.findByRole('button', { name: /open composition/i });
     await userEvent.click(openButton);
