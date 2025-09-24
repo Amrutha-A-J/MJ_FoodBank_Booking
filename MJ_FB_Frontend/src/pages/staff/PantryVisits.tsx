@@ -173,15 +173,13 @@ export default function PantryVisits() {
   }, [form.sunshineBag, form.date]);
 
   const summary = useMemo(() => {
-    const clients = visits.filter(v => !v.anonymous).length;
+    const orders = visits.filter(v => !v.anonymous).length;
+    const anonymous = visits.length - orders;
     const totalWeight =
       visits.reduce((sum, v) => sum + v.weightWithoutCart, 0) + sunshineBagWeight;
-    const adults = visits.reduce((sum, v) => sum + (v.anonymous ? 0 : v.adults), 0);
-    const children = visits.reduce(
-      (sum, v) => sum + (v.anonymous ? 0 : v.children),
-      0,
-    );
-    return { clients, totalWeight, adults, children };
+    const adults = visits.reduce((sum, v) => sum + v.adults, 0);
+    const children = visits.reduce((sum, v) => sum + v.children, 0);
+    return { orders, anonymous, totalWeight, adults, children };
   }, [visits, sunshineBagWeight]);
 
   function handleSaveVisit() {
@@ -463,7 +461,7 @@ export default function PantryVisits() {
           sx={{ mb: 2 }}
         >
           <Typography variant="body2">
-            {`Clients: ${summary.clients}`}
+            {`Orders: ${summary.orders}${summary.anonymous > 0 ? ` (+ ${summary.anonymous} anonymous)` : ''}`}
           </Typography>
           <Typography variant="body2">
             {`Total Weight: ${summary.totalWeight}`}

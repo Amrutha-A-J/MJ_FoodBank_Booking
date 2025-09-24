@@ -246,8 +246,8 @@ describe('clientVisitController', () => {
     await getVisitStats(req, res, next);
     const sql = (mockDb.query as jest.Mock).mock.calls[0][0] as string;
     expect(sql).toMatch(/COUNT\(DISTINCT CASE WHEN NOT is_anonymous THEN client_id END\)::int AS clients/);
-    expect(sql).toMatch(/SUM\(adults\) FILTER \(WHERE NOT is_anonymous\)/);
-    expect(sql).toMatch(/SUM\(children\) FILTER \(WHERE NOT is_anonymous\)/);
+    expect(sql).toMatch(/COALESCE\(SUM\(adults\),0\)::int AS adults/);
+    expect(sql).toMatch(/COALESCE\(SUM\(children\),0\)::int AS children/);
   });
 
   it('returns 409 on concurrent duplicate visits', async () => {
