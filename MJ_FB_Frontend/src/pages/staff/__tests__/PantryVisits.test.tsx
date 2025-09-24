@@ -264,11 +264,11 @@ describe('PantryVisits', () => {
     const panel = getActivePanel();
     expect(await within(panel).findByText('111')).toBeInTheDocument();
     expect(within(panel).getByText('222 (ANONYMOUS)')).toBeInTheDocument();
-    expect(within(panel).getByText('Clients: 1')).toBeInTheDocument();
+    expect(within(panel).getByText('Orders: 1 (+ 1 anonymous)')).toBeInTheDocument();
     expect(within(panel).getByText('Sunshine Bag Clients: 2')).toBeInTheDocument();
     expect(within(panel).getByText('Total Weight: 32')).toBeInTheDocument();
-    expect(within(panel).getByText('Adults: 1')).toBeInTheDocument();
-    expect(within(panel).getByText('Children: 2')).toBeInTheDocument();
+    expect(within(panel).getByText('Adults: 4')).toBeInTheDocument();
+    expect(within(panel).getByText('Children: 6')).toBeInTheDocument();
     expect(within(panel).getByText('Sunshine Bag Weight: 12')).toBeInTheDocument();
   });
 

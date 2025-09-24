@@ -44,9 +44,9 @@ export async function refreshPantryWeekly(year: number, month: number, week: num
 
   const [visitsRes, bagRes] = await Promise.all([
     pool.query(
-      `SELECT COUNT(*) FILTER (WHERE NOT is_anonymous)::int AS visits,
-              COALESCE(SUM(adults) FILTER (WHERE NOT is_anonymous),0)::int AS adults,
-              COALESCE(SUM(children) FILTER (WHERE NOT is_anonymous),0)::int AS children,
+      `SELECT COUNT(*)::int AS visits,
+              COALESCE(SUM(adults),0)::int AS adults,
+              COALESCE(SUM(children),0)::int AS children,
               COALESCE(SUM(weight_without_cart),0)::int AS weight
          FROM client_visits
         WHERE date >= $1 AND date <= $2`,

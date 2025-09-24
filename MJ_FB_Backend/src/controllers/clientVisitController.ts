@@ -72,8 +72,8 @@ export async function getVisitStats(
       const result = await pool.query(
         `SELECT DATE_TRUNC('month', date) AS month,
                 COUNT(DISTINCT CASE WHEN NOT is_anonymous THEN client_id END)::int AS clients,
-                COALESCE(SUM(adults) FILTER (WHERE NOT is_anonymous),0)::int AS adults,
-                COALESCE(SUM(children) FILTER (WHERE NOT is_anonymous),0)::int AS children
+                COALESCE(SUM(adults),0)::int AS adults,
+                COALESCE(SUM(children),0)::int AS children
            FROM client_visits
           WHERE date >= DATE_TRUNC('month', CURRENT_DATE) - (($1::int - 1) * INTERVAL '1 month')
           GROUP BY DATE_TRUNC('month', date)
@@ -98,8 +98,8 @@ export async function getVisitStats(
     const result = await pool.query(
       `SELECT date,
               COUNT(*)::int AS total,
-              COALESCE(SUM(adults) FILTER (WHERE NOT is_anonymous),0)::int AS adults,
-              COALESCE(SUM(children) FILTER (WHERE NOT is_anonymous),0)::int AS children
+              COALESCE(SUM(adults),0)::int AS adults,
+              COALESCE(SUM(children),0)::int AS children
          FROM client_visits
         WHERE date >= CURRENT_DATE - ($1::int - 1)
         GROUP BY date
