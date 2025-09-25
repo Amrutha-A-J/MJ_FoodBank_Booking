@@ -25,6 +25,20 @@ export interface AccountEditFormData {
   hasPassword: boolean;
 }
 
+interface FormSectionProps {
+  title: string;
+  children: ReactNode;
+}
+
+function FormSection({ title, children }: FormSectionProps) {
+  return (
+    <Stack spacing={2} component="section">
+      <Typography variant="subtitle1">{title}</Typography>
+      {children}
+    </Stack>
+  );
+}
+
 interface AccountEditFormProps {
   open: boolean;
   initialData: AccountEditFormData;
@@ -125,15 +139,6 @@ export default function AccountEditForm({
       updateForm('password', '');
     }
     setShowPasswordOverride(prev => !prev);
-  }
-
-  function FormSection({ title, children }: { title: string; children: ReactNode }) {
-    return (
-      <Stack spacing={2} component="section">
-        <Typography variant="subtitle1">{title}</Typography>
-        {children}
-      </Stack>
-    );
   }
 
   return (
