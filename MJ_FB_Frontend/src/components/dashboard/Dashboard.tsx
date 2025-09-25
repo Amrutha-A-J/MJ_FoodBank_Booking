@@ -273,12 +273,6 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
     <Box sx={{ width: { xs: '100%', md: 360 }, flexShrink: 0 }}>
       <Stack spacing={2}>
         <SectionCard
-          title="News & Events"
-          icon={<Announcement color="primary" />}
-        >
-          <EventList events={generalEvents} limit={5} />
-        </SectionCard>
-        <SectionCard
           title="Staff Leave Notices"
           icon={<EventBusy color="primary" />}
         >
@@ -287,6 +281,12 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
           ) : (
             <Typography variant="body2">No staff leave notices</Typography>
           )}
+        </SectionCard>
+        <SectionCard
+          title="News & Events"
+          icon={<Announcement color="primary" />}
+        >
+          <EventList events={generalEvents} limit={5} />
         </SectionCard>
       </Stack>
     </Box>
