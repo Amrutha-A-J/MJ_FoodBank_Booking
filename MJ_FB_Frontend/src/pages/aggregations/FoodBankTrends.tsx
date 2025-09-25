@@ -995,7 +995,7 @@ export default function FoodBankTrends() {
           </Stack>
         </Grid>
         <Grid size={{ xs: 12, lg: 4 }}>
-          <SectionCard title="Notices & Events" icon={<Announcement color="primary" />}>
+          <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
             {eventsLoading ? (
               <Box display="flex" justifyContent="center" py={2}>
                 <CircularProgress size={24} />
