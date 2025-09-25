@@ -173,13 +173,13 @@ export default function PantryVisits() {
   }, [form.sunshineBag, form.date]);
 
   const summary = useMemo(() => {
-    const orders = visits.filter(v => !v.anonymous).length;
-    const anonymous = visits.length - orders;
+    const totalOrders = visits.length;
+    const anonymous = visits.filter(v => v.anonymous).length;
     const totalWeight =
       visits.reduce((sum, v) => sum + v.weightWithoutCart, 0) + sunshineBagWeight;
     const adults = visits.reduce((sum, v) => sum + v.adults, 0);
     const children = visits.reduce((sum, v) => sum + v.children, 0);
-    return { orders, anonymous, totalWeight, adults, children };
+    return { orders: totalOrders, anonymous, totalWeight, adults, children };
   }, [visits, sunshineBagWeight]);
 
   function handleSaveVisit() {
