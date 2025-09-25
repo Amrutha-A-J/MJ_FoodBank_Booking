@@ -3,6 +3,8 @@ import pool from '../db';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 
+const createDailyJob = scheduleDailyJob.createDailyJob ?? scheduleDailyJob;
+
 export async function cleanupOldPantryData(): Promise<void> {
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -39,7 +41,7 @@ export async function cleanupOldPantryData(): Promise<void> {
   }
 }
 
-const pantryRetentionJob = scheduleDailyJob(
+const pantryRetentionJob = createDailyJob(
   cleanupOldPantryData,
   '0 3 31 1 *',
   false,

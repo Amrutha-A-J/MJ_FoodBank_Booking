@@ -4,6 +4,8 @@ import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import { alertOps, notifyOps } from './opsAlert';
 
+const createDailyJob = scheduleDailyJob.createDailyJob ?? scheduleDailyJob;
+
 export async function cleanupEmailQueue(): Promise<void> {
   try {
     await pool.query(
@@ -25,7 +27,7 @@ export async function cleanupEmailQueue(): Promise<void> {
   }
 }
 
-const emailQueueCleanupJob = scheduleDailyJob(
+const emailQueueCleanupJob = createDailyJob(
   cleanupEmailQueue,
   '0 3 * * *',
   true,

@@ -2,6 +2,8 @@ import pool from '../db';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 
+const createDailyJob = scheduleDailyJob.createDailyJob ?? scheduleDailyJob;
+
 export const RETENTION_YEARS = 1;
 
 export function getRetentionCutoffDate(reference: Date = new Date()): Date {
@@ -61,7 +63,7 @@ export async function cleanupOldRecords(referenceDate: Date = new Date()): Promi
   }
 }
 
-const retentionJob = scheduleDailyJob(cleanupOldRecords, '0 3 * * *', true, true);
+const retentionJob = createDailyJob(cleanupOldRecords, '0 3 * * *', true, true);
 
 export const startRetentionJob = retentionJob.start;
 export const stopRetentionJob = retentionJob.stop;

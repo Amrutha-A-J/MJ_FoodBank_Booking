@@ -2,6 +2,8 @@ import pool from '../db';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 
+const createDailyJob = scheduleDailyJob.createDailyJob ?? scheduleDailyJob;
+
 /**
  * Remove expired password setup and email verification tokens.
  */
@@ -22,7 +24,7 @@ export async function cleanupExpiredTokens(): Promise<void> {
 /**
  * Schedule the cleanup job to run nightly at 3:00 AM Regina time.
  */
-const expiredTokenCleanupJob = scheduleDailyJob(
+const expiredTokenCleanupJob = createDailyJob(
   cleanupExpiredTokens,
   '0 3 * * *',
   false,

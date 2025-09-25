@@ -4,6 +4,8 @@ import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import { alertOps, notifyOps } from './opsAlert';
 
+const createDailyJob = scheduleDailyJob.createDailyJob ?? scheduleDailyJob;
+
 export async function checkDbBloat(): Promise<void> {
   try {
     const res = await pool.query<{ relname: string; n_dead_tup: string }>(
@@ -24,7 +26,7 @@ export async function checkDbBloat(): Promise<void> {
   }
 }
 
-const dbBloatMonitorJob = scheduleDailyJob(checkDbBloat, '0 2 * * *', true, true);
+const dbBloatMonitorJob = createDailyJob(checkDbBloat, '0 2 * * *', true, true);
 
 export const startDbBloatMonitorJob = dbBloatMonitorJob.start;
 export const stopDbBloatMonitorJob = dbBloatMonitorJob.stop;
