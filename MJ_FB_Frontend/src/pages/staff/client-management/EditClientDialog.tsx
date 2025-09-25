@@ -50,9 +50,9 @@ export async function handleSendReset(
   onClientUpdated: (name: string) => void,
   onUpdated: (message: string, severity: AlertColor) => void,
   onClose: () => void,
-) {
+): Promise<boolean> {
   const ok = await handleSave(clientId, data, onClientUpdated, onUpdated, onClose);
-  if (!ok) return;
+  if (!ok) return false;
   try {
     await requestPasswordReset({ clientId: String(clientId) });
     onUpdated('Password reset link sent', 'success');
@@ -62,6 +62,7 @@ export async function handleSendReset(
       'error',
     );
   }
+  return true;
 }
 
 export default function EditClientDialog({
@@ -72,6 +73,7 @@ export default function EditClientDialog({
   onClientUpdated,
 }: Props) {
   const onUpdatedRef = useRef(onUpdated);
+  const draftKey = `edit-client-${clientId}`;
   const [form, setForm] = useState<AccountEditFormData>({
     firstName: '',
     lastName: '',
@@ -85,6 +87,11 @@ export default function EditClientDialog({
   useEffect(() => {
     onUpdatedRef.current = onUpdated;
   }, [onUpdated]);
+
+  const clearDraft = () => {
+    if (typeof window === 'undefined') return;
+    window.sessionStorage.removeItem(draftKey);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -124,10 +131,27 @@ export default function EditClientDialog({
       <AccountEditForm
         open={open}
         initialData={form}
-        onSave={data => handleSave(clientId, data, onClientUpdated, onUpdated, onClose)}
-        onSecondaryAction={data =>
-          handleSendReset(clientId, data, onClientUpdated, onUpdated, onClose)
-        }
+        onSave={async data => {
+          const ok = await handleSave(
+            clientId,
+            data,
+            onClientUpdated,
+            onUpdated,
+            onClose,
+          );
+          if (ok) clearDraft();
+          return ok;
+        }}
+        onSecondaryAction={async data => {
+          const ok = await handleSendReset(
+            clientId,
+            data,
+            onClientUpdated,
+            onUpdated,
+            onClose,
+          );
+          if (ok) clearDraft();
+        }}
         secondaryActionLabel="Send password reset link"
         onlineAccessHelperText="Allow the client to sign in online."
         existingPasswordTooltip="Client already has a password"
@@ -142,6 +166,7 @@ export default function EditClientDialog({
             />
           ) : null
         }
+        draftKey={draftKey}
       />
     </FormDialog>
   );
