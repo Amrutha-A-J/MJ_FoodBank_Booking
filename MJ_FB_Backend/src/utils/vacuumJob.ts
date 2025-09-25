@@ -3,6 +3,8 @@ import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import { alertOps } from './opsAlert';
 
+const createDailyJob = scheduleDailyJob.createDailyJob ?? scheduleDailyJob;
+
 const tables = ['bookings', 'volunteer_bookings', 'email_queue'];
 
 export async function runVacuum(): Promise<void> {
@@ -17,7 +19,7 @@ export async function runVacuum(): Promise<void> {
   }
 }
 
-const vacuumJob = scheduleDailyJob(runVacuum, '0 1 * * *', false, true);
+const vacuumJob = createDailyJob(runVacuum, '0 1 * * *', false, true);
 
 export const startVacuumJob = vacuumJob.start;
 export const stopVacuumJob = vacuumJob.stop;

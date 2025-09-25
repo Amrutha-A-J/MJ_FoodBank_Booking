@@ -49,7 +49,9 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
 /**
  * Schedule the volunteer shift reminder job to run once a day at 9:00 AM Regina time.
  */
-const volunteerShiftReminderJob = scheduleDailyJob(
+const createDailyJob = scheduleDailyJob.createDailyJob ?? scheduleDailyJob;
+
+const volunteerShiftReminderJob = createDailyJob(
   sendNextDayVolunteerShiftReminders,
   '0 19 * * *',
   false,

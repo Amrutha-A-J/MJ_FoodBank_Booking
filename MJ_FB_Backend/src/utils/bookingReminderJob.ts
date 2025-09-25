@@ -12,6 +12,8 @@ import { buildCancelRescheduleLinks } from './emailUtils';
 import config from '../config';
 import { alertOps, notifyOps } from './opsAlert';
 
+const createDailyJob = scheduleDailyJob.createDailyJob ?? scheduleDailyJob;
+
 /**
  * Send reminder emails for bookings scheduled for the next day.
  *
@@ -89,7 +91,7 @@ export async function sendNextDayBookingReminders(
 /**
  * Schedule the reminder job to run once a day at 7:00 PM Regina time.
  */
-const bookingReminderJob = scheduleDailyJob(
+const bookingReminderJob = createDailyJob(
   sendNextDayBookingReminders,
   '0 19 * * *',
   false,

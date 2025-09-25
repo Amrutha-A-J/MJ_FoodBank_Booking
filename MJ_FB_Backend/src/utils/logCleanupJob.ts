@@ -4,6 +4,8 @@ import scheduleDailyJob from './scheduleDailyJob';
 import { refreshWarehouseOverall } from '../controllers/warehouse/warehouseOverallController';
 import { refreshSunshineBagOverall } from '../controllers/sunshineBagController';
 
+const createDailyJob = scheduleDailyJob.createDailyJob ?? scheduleDailyJob;
+
 export async function cleanupOldLogs(now: Date = new Date()): Promise<void> {
   const currentYear = now.getUTCFullYear();
   const previousYear = currentYear - 1;
@@ -27,7 +29,7 @@ export async function cleanupOldLogs(now: Date = new Date()): Promise<void> {
   }
 }
 
-const logCleanupJob = scheduleDailyJob(cleanupOldLogs, '0 2 31 1 *', false);
+const logCleanupJob = createDailyJob(cleanupOldLogs, '0 2 31 1 *', false);
 
 export const startLogCleanupJob = logCleanupJob.start;
 export const stopLogCleanupJob = logCleanupJob.stop;
