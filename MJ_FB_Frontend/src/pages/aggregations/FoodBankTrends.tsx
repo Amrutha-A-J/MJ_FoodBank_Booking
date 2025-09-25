@@ -114,7 +114,7 @@ const trendOptions: Array<{ value: TrendCategory; label: string }> = [
 
 export default function FoodBankTrends() {
   const { role } = useAuth();
-  const isStaff = role === 'staff';
+  const canViewMonetaryInsights = role === 'staff' || role === 'admin';
 
   const [selectedTrend, setSelectedTrend] = useState<TrendCategory>('pantry');
 
@@ -158,7 +158,7 @@ export default function FoodBankTrends() {
 
   const donorInsights = useMonetaryDonorInsights({
     months: 12,
-    enabled: isStaff,
+    enabled: canViewMonetaryInsights,
   });
 
   const donorInsightsPermissionMessage = 'You do not have permission to view monetary donor insights.';
@@ -222,7 +222,7 @@ export default function FoodBankTrends() {
   const ytdSummary = donorInsights.data?.ytd;
 
   useEffect(() => {
-    if (!isStaff) {
+    if (!canViewMonetaryInsights) {
       setSelectedDonationMonth(null);
       return;
     }
@@ -233,7 +233,7 @@ export default function FoodBankTrends() {
     } else {
       setSelectedDonationMonth(null);
     }
-  }, [donorInsights.data?.monthly, isStaff]);
+  }, [donorInsights.data?.monthly, canViewMonetaryInsights]);
 
   const handleDonationPointSelect = useCallback(
     (datum: { month?: string } | undefined) => {
@@ -251,12 +251,16 @@ export default function FoodBankTrends() {
   };
 
   useEffect(() => {
-    if (!isStaff) return;
+    if (!canViewMonetaryInsights) return;
     if (donorInsightsForbidden) return;
     if (donorInsightsErrorMessage) {
       showError(donorInsightsErrorMessage);
     }
-  }, [donorInsightsErrorMessage, donorInsightsForbidden, isStaff]);
+  }, [
+    donorInsightsErrorMessage,
+    donorInsightsForbidden,
+    canViewMonetaryInsights,
+  ]);
 
   useEffect(() => {
     let active = true;
@@ -635,7 +639,7 @@ export default function FoodBankTrends() {
 
               {selectedTrend === 'donation' ? (
                 <SectionCard title="Monetary Donations">
-                  {!isStaff || donorInsightsForbidden ? (
+                  {!canViewMonetaryInsights || donorInsightsForbidden ? (
                     <Typography variant="body2" color="text.secondary">
                       {donorInsightsPermissionMessage}
                     </Typography>

@@ -296,6 +296,22 @@ describe('FoodBankTrends', () => {
     expect(screen.getByTestId('monetary-giving-tier-chart')).toBeInTheDocument();
   });
 
+  it('shows monetary donor insights when an admin is signed in', async () => {
+    mockUseAuth.mockReturnValue(
+      { role: 'admin', access: [] } as unknown as ReturnType<typeof useAuth>,
+    );
+
+    render(
+      <MemoryRouter>
+        <FoodBankTrends />
+      </MemoryRouter>,
+    );
+
+    await selectTrend(/donation trends/i);
+    expect(mockUseMonetaryDonorInsights).toHaveBeenCalledWith({ months: 12, enabled: true });
+    expect(await screen.findByTestId('donation-ytd-total')).toHaveTextContent('YTD total: $30,000.00');
+  });
+
   it('shows monetary donor insights for staff without donor management access', async () => {
     mockUseAuth.mockReturnValue(
       { role: 'staff', access: [] } as unknown as ReturnType<typeof useAuth>,
