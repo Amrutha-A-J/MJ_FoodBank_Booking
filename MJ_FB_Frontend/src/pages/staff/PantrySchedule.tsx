@@ -408,8 +408,11 @@ export default function PantrySchedule({
               variant="outlined"
               color="primary"
               size="large"
-              fullWidth
-              sx={{ flexBasis: { xs: "100%", md: "25%" }, flexGrow: 1 }}
+              sx={{
+                width: { xs: "100%", md: "auto" },
+                minWidth: { md: 120 },
+                flexGrow: { md: 0 },
+              }}
             >
               Previous
             </Button>
@@ -422,16 +425,19 @@ export default function PantrySchedule({
               variant="outlined"
               color="primary"
               size="large"
-              fullWidth
-              sx={{ flexBasis: { xs: "100%", md: "25%" }, flexGrow: 1 }}
+              sx={{
+                width: { xs: "100%", md: "auto" },
+                minWidth: { md: 120 },
+                flexGrow: { md: 0 },
+              }}
             >
               Today
             </Button>
             <Box
               sx={{
-                flexBasis: { xs: "100%", md: "25%" },
-                flexGrow: 1,
-                minWidth: { md: 220 },
+                width: { xs: "100%", md: "auto" },
+                flexGrow: { md: 1 },
+                minWidth: { md: 200 },
               }}
             >
               <LocalizationProvider
@@ -465,8 +471,11 @@ export default function PantrySchedule({
               variant="outlined"
               color="primary"
               size="large"
-              fullWidth
-              sx={{ flexBasis: { xs: "100%", md: "25%" }, flexGrow: 1 }}
+              sx={{
+                width: { xs: "100%", md: "auto" },
+                minWidth: { md: 120 },
+                flexGrow: { md: 0 },
+              }}
             >
               Next
             </Button>
