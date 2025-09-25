@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { parse } from 'csv-parse/sync';
+import readXlsxFile from 'read-excel-file/node';
 import pool from '../db';
 import logger from '../utils/logger';
 import { sendTemplatedEmail } from '../utils/emailUtils';
@@ -814,20 +814,60 @@ export async function importZeffyDonations(req: Request, res: Response, next: Ne
   try {
     if (!req.file) return res.status(400).json({ message: 'File required' });
 
-    const records = parse(req.file.buffer.toString('utf8'), {
-      columns: true,
-      skip_empty_lines: true,
-    });
+    const rows = await readXlsxFile(req.file.buffer);
+    if (rows.length === 0) {
+      return res.status(400).json({ message: 'File is empty' });
+    }
+
+    const [headerRow, ...dataRows] = rows;
+    const headers = headerRow.map(cell => (cell ?? '').toString().trim());
+    const requiredHeaders = [
+      'First Name',
+      'Last Name',
+      'Email',
+      'Payment Date',
+      'Payment Status',
+      'Total Amount',
+    ];
+    const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
+    if (missingHeaders.length > 0) {
+      return res.status(400).json({ message: `Missing columns: ${missingHeaders.join(', ')}` });
+    }
+
+    const headerIndex = headers.reduce<Record<string, number>>((acc, header, index) => {
+      if (!(header in acc)) {
+        acc[header] = index;
+      }
+      return acc;
+    }, {});
 
     let donorsAdded = 0;
     let donationsImported = 0;
 
-    for (const row of records) {
-      if (row['Payment Status'] !== 'Succeeded') continue;
+    for (const row of dataRows) {
+      if (
+        !row.some(cell => {
+          if (cell === null || cell === undefined) return false;
+          if (cell instanceof Date) return true;
+          return cell.toString().trim() !== '';
+        })
+      ) {
+        continue;
+      }
 
-      const firstName = (row['First Name'] ?? '').trim();
-      const lastName = (row['Last Name'] ?? '').trim();
-      const email = (row['Email'] ?? '').trim() || null;
+      const getCell = (column: string) => {
+        const index = headerIndex[column];
+        if (index === undefined) return null;
+        return row[index] ?? null;
+      };
+
+      const paymentStatus = (getCell('Payment Status') ?? '').toString().trim();
+      if (paymentStatus !== 'Succeeded') continue;
+
+      const firstName = (getCell('First Name') ?? '').toString().trim();
+      const lastName = (getCell('Last Name') ?? '').toString().trim();
+      const emailValue = getCell('Email');
+      const email = emailValue ? emailValue.toString().trim() || null : null;
 
       let donorId: number;
       if (email) {
@@ -863,11 +903,20 @@ export async function importZeffyDonations(req: Request, res: Response, next: Ne
         }
       }
 
-      const date = new Date(row['Payment Date']);
+      const paymentDateCell = getCell('Payment Date');
+      const date = paymentDateCell instanceof Date ? paymentDateCell : new Date((paymentDateCell ?? '').toString());
+      if (Number.isNaN(date.getTime())) continue;
       const dateStr = date.toLocaleDateString('en-CA', { timeZone: 'America/Regina' });
-      const amount = Math.round(
-        parseFloat((row['Total Amount'] ?? '0').replace(/[^0-9.-]/g, '')) * 100,
-      );
+      const amountCell = getCell('Total Amount');
+      const amountNumber =
+        typeof amountCell === 'number'
+          ? amountCell
+          : (() => {
+              const numericString = ((amountCell ?? '').toString().replace(/[^0-9.-]/g, '')) || '0';
+              const parsed = parseFloat(numericString);
+              return Number.isFinite(parsed) ? parsed : 0;
+            })();
+      const amount = Math.round(amountNumber * 100);
 
       await pool.query(
         `INSERT INTO monetary_donations (donor_id, date, amount)

@@ -311,7 +311,7 @@ export default function DonationLog() {
             </Button>
             <input
               type="file"
-              accept=".csv"
+              accept=".xlsx,.xls"
               ref={fileInputRef}
               onChange={handleImport}
               style={{ display: 'none' }}
@@ -320,7 +320,7 @@ export default function DonationLog() {
               variant="outlined"
               onClick={() => fileInputRef.current?.click()}
             >
-              Import Zeffy CSV
+              Import Zeffy Excel
             </Button>
           </Stack>
           <Stack

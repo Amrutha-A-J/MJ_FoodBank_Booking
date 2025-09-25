@@ -14,7 +14,6 @@
     "bcrypt": "^6",
     "cookie": "^0.7",
     "cors": "^2",
-    "csv-parse": "^5.6.0",
     "dotenv": "^17",
     "express": "^5",
     "express-rate-limit": "^8.1.0",
@@ -24,6 +23,7 @@
     "multer": "^2.0.2",
     "node-cron": "^3",
     "pg": "^8",
+    "read-excel-file": "^6.0.1",
     "write-excel-file": "^2",
     "zod": "^4"
   },
