@@ -115,6 +115,7 @@ describe('FoodBankTrends', () => {
   const currentMonth = fakeNow.getMonth() + 1;
   const futureMonth = currentMonth + 1;
   const previousYear = currentYear - 1;
+  const currentMonthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
 
   const warehouseTotals = [
     { month: 1, donations: 1000, surplus: 150, pigPound: 50, petFood: 120, outgoingDonations: 700 },
@@ -287,13 +288,37 @@ describe('FoodBankTrends', () => {
     );
 
     await selectTrend(/donation trends/i);
-    expect(mockUseMonetaryDonorInsights).toHaveBeenCalledWith({ months: 12, enabled: true });
+    expect(mockUseMonetaryDonorInsights).toHaveBeenCalledWith({
+      months: 12,
+      endMonth: currentMonthKey,
+      enabled: true,
+    });
 
     const ytdChip = await screen.findByTestId('donation-ytd-total');
     expect(ytdChip).toHaveTextContent('YTD total: $30,000.00');
     expect(screen.getByTestId('donation-trend-amount')).toHaveTextContent('Amount: $6,000.00');
     expect(screen.getByTestId('monetary-donation-trend-chart')).toBeInTheDocument();
     expect(screen.getByTestId('monetary-giving-tier-chart')).toBeInTheDocument();
+  });
+
+  it('shows monetary donor insights when an admin is signed in', async () => {
+    mockUseAuth.mockReturnValue(
+      { role: 'admin', access: [] } as unknown as ReturnType<typeof useAuth>,
+    );
+
+    render(
+      <MemoryRouter>
+        <FoodBankTrends />
+      </MemoryRouter>,
+    );
+
+    await selectTrend(/donation trends/i);
+    expect(mockUseMonetaryDonorInsights).toHaveBeenCalledWith({
+      months: 12,
+      endMonth: currentMonthKey,
+      enabled: true,
+    });
+    expect(await screen.findByTestId('donation-ytd-total')).toHaveTextContent('YTD total: $30,000.00');
   });
 
   it('shows monetary donor insights for staff without donor management access', async () => {
@@ -308,7 +333,11 @@ describe('FoodBankTrends', () => {
     );
 
     await selectTrend(/donation trends/i);
-    expect(mockUseMonetaryDonorInsights).toHaveBeenCalledWith({ months: 12, enabled: true });
+    expect(mockUseMonetaryDonorInsights).toHaveBeenCalledWith({
+      months: 12,
+      endMonth: currentMonthKey,
+      enabled: true,
+    });
     expect(await screen.findByTestId('donation-ytd-total')).toHaveTextContent('YTD total: $30,000.00');
     expect(screen.queryByText('You do not have permission to view monetary donor insights.')).not.toBeInTheDocument();
   });
