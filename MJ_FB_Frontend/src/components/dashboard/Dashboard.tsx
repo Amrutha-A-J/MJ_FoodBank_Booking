@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Grid,
@@ -14,6 +14,7 @@ import CalendarToday from '@mui/icons-material/CalendarToday';
 import People from '@mui/icons-material/People';
 import EventAvailable from '@mui/icons-material/EventAvailable';
 import Announcement from '@mui/icons-material/Announcement';
+import EventBusy from '@mui/icons-material/EventBusy';
 import { getBookings, getSlotsRange } from '../../api/bookings';
 import { getVolunteerBookings } from '../../api/volunteers';
 import type { Role, Booking, VolunteerBooking, SlotsByDate } from '../../types';
@@ -144,6 +145,27 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
     volunteers: volunteerCount,
   };
 
+  const upcomingAndTodayEvents = useMemo(
+    () => [...events.today, ...events.upcoming],
+    [events.today, events.upcoming],
+  );
+
+  const staffLeaveEvents = useMemo(
+    () =>
+      upcomingAndTodayEvents.filter(
+        ev => ev.category?.toLowerCase() === 'staff leave',
+      ),
+    [upcomingAndTodayEvents],
+  );
+
+  const generalEvents = useMemo(
+    () =>
+      upcomingAndTodayEvents.filter(
+        ev => ev.category?.toLowerCase() !== 'staff leave',
+      ),
+    [upcomingAndTodayEvents],
+  );
+
   return (
     <Box
       sx={{
@@ -249,13 +271,24 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
       </SectionCard>
     </Box>
     <Box sx={{ width: { xs: '100%', md: 360 }, flexShrink: 0 }}>
-      <SectionCard
-        title="News & Events"
-        icon={<Announcement color="primary" />}
-        sx={{ height: '100%' }}
-      >
-        <EventList events={[...events.today, ...events.upcoming]} limit={5} />
-      </SectionCard>
+      <Stack spacing={2}>
+        <SectionCard
+          title="News & Events"
+          icon={<Announcement color="primary" />}
+        >
+          <EventList events={generalEvents} limit={5} />
+        </SectionCard>
+        <SectionCard
+          title="Staff Leave Notices"
+          icon={<EventBusy color="primary" />}
+        >
+          {staffLeaveEvents.length ? (
+            <EventList events={staffLeaveEvents} limit={5} />
+          ) : (
+            <Typography variant="body2">No staff leave notices</Typography>
+          )}
+        </SectionCard>
+      </Stack>
     </Box>
   </Box>
   );

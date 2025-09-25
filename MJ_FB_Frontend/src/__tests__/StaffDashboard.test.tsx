@@ -1,4 +1,4 @@
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor, act, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Dashboard from '../components/dashboard/Dashboard';
 import { getBookings } from '../api/bookings';
@@ -132,6 +132,63 @@ describe('StaffDashboard', () => {
     await waitFor(() => {
       expect(screen.getByText(/Staff Meeting/)).toBeInTheDocument();
     });
+  });
+
+  it('shows staff leave events separately from other events', async () => {
+    (getBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({
+      today: [
+        {
+          id: 1,
+          title: 'Fundraiser Meeting',
+          startDate: '2024-03-01',
+          endDate: '2024-03-01',
+          createdBy: 1,
+          createdByName: 'Alice',
+          category: 'fundraiser',
+          priority: 0,
+        },
+        {
+          id: 2,
+          title: 'Taylor PTO',
+          startDate: '2024-03-05',
+          endDate: '2024-03-07',
+          createdBy: 2,
+          createdByName: 'Taylor',
+          category: 'staff leave',
+          priority: 0,
+        },
+      ],
+      upcoming: [],
+      past: [],
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Dashboard role="staff" />
+        </MemoryRouter>,
+      );
+    });
+
+    const newsCardTitle = await screen.findByText('News & Events');
+    const staffLeaveCardTitle = await screen.findByText('Staff Leave Notices');
+    const newsCard = newsCardTitle.closest('.MuiCard-root');
+    const staffLeaveCard = staffLeaveCardTitle.closest('.MuiCard-root');
+
+    expect(newsCard).not.toBeNull();
+    expect(staffLeaveCard).not.toBeNull();
+    expect(
+      within(newsCard as HTMLElement).getByText(/Fundraiser Meeting/),
+    ).toBeInTheDocument();
+    expect(
+      within(staffLeaveCard as HTMLElement).getByText(/Taylor PTO/),
+    ).toBeInTheDocument();
+    expect(
+      within(newsCard as HTMLElement).queryByText(/Taylor PTO/),
+    ).not.toBeInTheDocument();
   });
 
   it('hides pantry quick links when disabled', async () => {
