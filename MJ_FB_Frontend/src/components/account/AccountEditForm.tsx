@@ -56,6 +56,7 @@ interface AccountEditFormProps {
   secondaryActionTestId?: string;
   passwordFieldTestId?: string;
   secondaryActionVariant?: ButtonProps['variant'];
+  draftKey?: string;
 }
 
 export default function AccountEditForm({
@@ -75,6 +76,7 @@ export default function AccountEditForm({
   secondaryActionTestId = 'secondary-action-button',
   passwordFieldTestId = 'password-input',
   secondaryActionVariant = 'outlined',
+  draftKey,
 }: AccountEditFormProps) {
   const [form, setForm] = useState<AccountEditFormData>(initialData);
   const [showPasswordOverride, setShowPasswordOverride] = useState(
@@ -82,13 +84,111 @@ export default function AccountEditForm({
   );
   const firstNameInputRef = useRef<HTMLInputElement | null>(null);
   const previousOpenRef = useRef(false);
+  const isDirtyRef = useRef(false);
+  const dirtyFieldsRef = useRef(new Set<keyof AccountEditFormData>());
+  const formRef = useRef(form);
+
+  type DraftPayload = {
+    data: AccountEditFormData;
+    dirtyKeys: Array<keyof AccountEditFormData>;
+  };
+
+  useEffect(() => {
+    formRef.current = form;
+  }, [form]);
+
+  const loadDraft = (): DraftPayload | null => {
+    if (!draftKey || typeof window === 'undefined') return null;
+    try {
+      const raw = window.sessionStorage.getItem(draftKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as Partial<DraftPayload> | AccountEditFormData;
+      if (parsed && typeof parsed === 'object' && 'data' in parsed) {
+        const payload = parsed as Partial<DraftPayload>;
+        if (payload.data) {
+          return {
+            data: payload.data,
+            dirtyKeys: payload.dirtyKeys ?? [],
+          };
+        }
+      }
+      return {
+        data: parsed as AccountEditFormData,
+        dirtyKeys: [],
+      };
+    } catch (err) {
+      console.warn('Failed to read account edit draft', err);
+      return null;
+    }
+  };
+
+  const saveDraft = (data: AccountEditFormData) => {
+    if (!draftKey || typeof window === 'undefined') return;
+    try {
+      const payload: DraftPayload = {
+        data,
+        dirtyKeys: Array.from(dirtyFieldsRef.current),
+      };
+      window.sessionStorage.setItem(draftKey, JSON.stringify(payload));
+    } catch (err) {
+      console.warn('Failed to store account edit draft', err);
+    }
+  };
 
   useEffect(() => {
     if (open) {
-      setForm(initialData);
-      setShowPasswordOverride(initialData.onlineAccess && !initialData.hasPassword);
+      const draft = loadDraft();
+      if (draft) {
+        const base: AccountEditFormData = {
+          ...initialData,
+          hasPassword: initialData.hasPassword,
+        };
+
+        const dirtyKeys = draft.dirtyKeys.length
+          ? draft.dirtyKeys
+          : (Object.keys(draft.data) as Array<keyof AccountEditFormData>).filter(
+              key => draft.data[key] !== base[key],
+            );
+
+        const merged: AccountEditFormData = { ...base };
+        dirtyKeys.forEach(key => {
+          merged[key] = draft.data[key];
+        });
+
+        dirtyFieldsRef.current = new Set(dirtyKeys);
+        isDirtyRef.current = dirtyFieldsRef.current.size > 0;
+        setForm(merged);
+        setShowPasswordOverride(
+          merged.onlineAccess && (!merged.hasPassword || Boolean(merged.password)),
+        );
+        if (isDirtyRef.current && dirtyFieldsRef.current.size > 0) {
+          saveDraft(merged);
+        }
+        return;
+      }
+
+      if (!isDirtyRef.current) {
+        dirtyFieldsRef.current.clear();
+        setForm(initialData);
+        setShowPasswordOverride(initialData.onlineAccess && !initialData.hasPassword);
+        return;
+      }
+
+      const merged: AccountEditFormData = {
+        ...initialData,
+        hasPassword: initialData.hasPassword,
+      };
+
+      dirtyFieldsRef.current.forEach(key => {
+        merged[key] = formRef.current[key];
+      });
+
+      setForm(merged);
+      setShowPasswordOverride(
+        merged.onlineAccess && (!merged.hasPassword || Boolean(merged.password)),
+      );
     }
-  }, [open, initialData]);
+  }, [open, initialData, draftKey]);
 
   useEffect(() => {
     let timeout: number | undefined;
@@ -112,6 +212,8 @@ export default function AccountEditForm({
     key: K,
     value: AccountEditFormData[K],
   ) {
+    isDirtyRef.current = true;
+    dirtyFieldsRef.current.add(key);
     setForm(prev => ({ ...prev, [key]: value }));
   }
 
@@ -127,9 +229,16 @@ export default function AccountEditForm({
 
   useEffect(() => {
     if (!form.onlineAccess && form.password) {
+      dirtyFieldsRef.current.delete('password');
       setForm(prev => ({ ...prev, password: '' }));
     }
   }, [form.onlineAccess, form.password]);
+
+  useEffect(() => {
+    if (!open || !draftKey) return;
+    if (!isDirtyRef.current || dirtyFieldsRef.current.size === 0) return;
+    saveDraft(formRef.current);
+  }, [form, open, draftKey]);
 
   function togglePasswordField() {
     if (!showPasswordOverride && !form.onlineAccess) {

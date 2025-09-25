@@ -22,6 +22,7 @@ jest.mock('../../../api/users', () => ({
 describe('EditClientDialog', () => {
   beforeEach(() => {
     (getUserByClientId as jest.Mock).mockReset();
+    window.sessionStorage.clear();
   });
 
   it('renders name and online badge when hasPassword is true', async () => {
@@ -163,6 +164,54 @@ describe('EditClientDialog', () => {
 
     await waitFor(() => expect(getUserByClientId).toHaveBeenCalledTimes(1));
     expect(getUserByClientId).toHaveBeenCalledTimes(1);
+  });
+
+  it('restores unsaved edits after closing and reopening', async () => {
+    (getUserByClientId as jest.Mock).mockResolvedValue({
+      firstName: 'Riley',
+      lastName: 'Johnson',
+      email: 'riley@example.com',
+      phone: '3065551000',
+      onlineAccess: true,
+      hasPassword: true,
+      role: 'shopper',
+    });
+
+    function Harness() {
+      const [open, setOpen] = useState(true);
+      return (
+        <>
+          <EditClientDialog
+            open={open}
+            clientId={8}
+            onClose={() => setOpen(false)}
+            onUpdated={jest.fn()}
+            onClientUpdated={jest.fn()}
+          />
+          <button type="button" data-testid="reopen" onClick={() => setOpen(true)}>
+            Reopen
+          </button>
+        </>
+      );
+    }
+
+    renderWithProviders(<Harness />);
+
+    fireEvent.change(screen.getByTestId('phone-input'), {
+      target: { value: '3065552020' },
+    });
+
+    await waitFor(() =>
+      expect(window.sessionStorage.getItem('edit-client-8')).toContain('3065552020'),
+    );
+
+    fireEvent.click(screen.getByLabelText('close'));
+
+    fireEvent.click(screen.getByTestId('reopen'));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('phone-input')).toHaveValue('3065552020'),
+    );
   });
 });
 

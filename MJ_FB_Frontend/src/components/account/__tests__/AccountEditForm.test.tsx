@@ -1,8 +1,12 @@
-import { fireEvent } from '@testing-library/react';
+import { fireEvent, waitFor } from '@testing-library/react';
 import { renderWithProviders, screen } from '../../../../testUtils/renderWithProviders';
 import AccountEditForm from '../AccountEditForm';
 
 describe('AccountEditForm', () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+  });
+
   it('shows account and contact fields without expanding any sections', () => {
     const handleSave = jest.fn();
 
@@ -96,5 +100,61 @@ describe('AccountEditForm', () => {
     expect(handleSave).toHaveBeenCalledWith(
       expect.objectContaining({ onlineAccess: true }),
     );
+  });
+
+  it('restores drafts when reopened with the same key', async () => {
+    const handleSave = jest.fn();
+
+    const initialData = {
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      email: 'ada@example.com',
+      phone: '555-1234',
+      onlineAccess: true,
+      password: '',
+      hasPassword: true,
+    };
+
+    const { unmount } = renderWithProviders(
+      <AccountEditForm
+        open
+        initialData={initialData}
+        onSave={handleSave}
+        draftKey="client-1"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('First Name'), {
+      target: { value: 'Grace' },
+    });
+    fireEvent.change(screen.getByLabelText('Email (optional)'), {
+      target: { value: 'grace@example.com' },
+    });
+
+    await waitFor(() =>
+      expect(window.sessionStorage.getItem('client-1')).toContain('Grace'),
+    );
+
+    unmount();
+
+    renderWithProviders(
+      <AccountEditForm
+        open
+        initialData={{
+          firstName: 'New',
+          lastName: 'Name',
+          email: 'new@example.com',
+          phone: '',
+          onlineAccess: false,
+          password: '',
+          hasPassword: false,
+        }}
+        onSave={handleSave}
+        draftKey="client-1"
+      />,
+    );
+
+    expect(screen.getByLabelText('First Name')).toHaveValue('Grace');
+    expect(screen.getByLabelText('Email (optional)')).toHaveValue('grace@example.com');
   });
 });
