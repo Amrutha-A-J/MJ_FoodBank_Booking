@@ -112,6 +112,8 @@ describe('EditVolunteer volunteer info display', () => {
     );
 
     fireEvent.click(await screen.findByRole('button', { name: /edit profile/i }));
+    const toggle = await screen.findByLabelText(/online access/i);
+    expect(toggle).toBeDisabled();
     fireEvent.click(await screen.findByTestId('set-password-button'));
 
     const passwordInput = await screen.findByTestId('volunteer-password-input');
@@ -365,7 +367,7 @@ describe('EditVolunteer profile editing', () => {
     (getVolunteerById as jest.Mock).mockResolvedValue({
       ...mockVolunteer,
       email: 'volunteer@example.com',
-      hasPassword: true,
+      hasPassword: false,
     });
 
     fireEvent.click(
@@ -373,7 +375,8 @@ describe('EditVolunteer profile editing', () => {
     );
     fireEvent.click(await screen.findByRole('button', { name: 'Edit Profile' }));
 
-    const toggle = await screen.findByTestId('online-access-toggle');
+    const toggle = await screen.findByLabelText(/online access/i);
+    expect(toggle).not.toBeDisabled();
     fireEvent.click(toggle);
 
     const passwordInput = await screen.findByLabelText('Password');
@@ -409,7 +412,7 @@ describe('EditVolunteer profile editing', () => {
     );
     fireEvent.click(await screen.findByRole('button', { name: 'Edit Profile' }));
 
-    const toggle = await screen.findByTestId('online-access-toggle');
+    const toggle = await screen.findByLabelText(/online access/i);
     fireEvent.click(toggle);
 
     fireEvent.click(

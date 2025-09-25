@@ -136,6 +136,8 @@ export default function AccountEditForm({
     );
   }
 
+  const disableOnlineAccessToggle = form.hasPassword && form.onlineAccess;
+
   return (
     <>
       <DialogContent>
@@ -151,7 +153,7 @@ export default function AccountEditForm({
             {showOnlineAccessToggle && (
               <Tooltip
                 title={existingPasswordTooltip}
-                disableHoverListener={!form.hasPassword}
+                disableHoverListener={!disableOnlineAccessToggle}
               >
                 <span>
                   <FormControl>
@@ -163,11 +165,17 @@ export default function AccountEditForm({
                             updateForm('onlineAccess', e.target.checked)
                           }
                           data-testid="online-access-toggle"
+                          disabled={disableOnlineAccessToggle}
                         />
                       }
                       label={onlineAccessLabel}
                     />
-                    <FormHelperText>{onlineAccessHelperText}</FormHelperText>
+                    <FormHelperText>
+                      {onlineAccessHelperText}
+                      {disableOnlineAccessToggle
+                        ? ' Users with a password always have online access.'
+                        : ''}
+                    </FormHelperText>
                   </FormControl>
                 </span>
               </Tooltip>

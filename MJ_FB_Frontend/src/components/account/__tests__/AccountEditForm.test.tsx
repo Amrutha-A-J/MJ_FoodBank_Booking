@@ -52,8 +52,8 @@ describe('AccountEditForm', () => {
       />,
     );
 
-    const toggle = screen.getByTestId('online-access-toggle');
-    expect(toggle).not.toBeDisabled();
+    const toggle = screen.getByLabelText('Online Access');
+    expect(toggle).toBeDisabled();
 
     expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
 
@@ -69,7 +69,7 @@ describe('AccountEditForm', () => {
     );
   });
 
-  it('allows toggling online access when the user already has a password', () => {
+  it('keeps online access enabled when the user already has a password', () => {
     const handleSave = jest.fn();
 
     renderWithProviders(
@@ -88,13 +88,13 @@ describe('AccountEditForm', () => {
       />,
     );
 
-    const toggle = screen.getByTestId('online-access-toggle');
-    fireEvent.click(toggle);
+    const toggle = screen.getByLabelText('Online Access');
+    expect(toggle).toBeDisabled();
 
     fireEvent.click(screen.getByTestId('save-button'));
 
     expect(handleSave).toHaveBeenCalledWith(
-      expect.objectContaining({ onlineAccess: false }),
+      expect.objectContaining({ onlineAccess: true }),
     );
   });
 });
