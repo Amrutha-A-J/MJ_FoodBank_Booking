@@ -144,16 +144,14 @@ export default function AccountEditForm({
           hasPassword: initialData.hasPassword,
         };
 
-        const dirtyKeys = draft.dirtyKeys.length
+        const dirtyKeys: Array<keyof AccountEditFormData> = draft.dirtyKeys.length
           ? draft.dirtyKeys
           : (Object.keys(draft.data) as Array<keyof AccountEditFormData>).filter(
               key => draft.data[key] !== base[key],
             );
 
         const merged: AccountEditFormData = { ...base };
-        dirtyKeys.forEach(key => {
-          merged[key] = draft.data[key];
-        });
+        mergeDirtyFields(merged, draft.data, dirtyKeys);
 
         dirtyFieldsRef.current = new Set(dirtyKeys);
         isDirtyRef.current = dirtyFieldsRef.current.size > 0;
@@ -179,9 +177,7 @@ export default function AccountEditForm({
         hasPassword: initialData.hasPassword,
       };
 
-      dirtyFieldsRef.current.forEach(key => {
-        merged[key] = formRef.current[key];
-      });
+      mergeDirtyFields(merged, formRef.current, dirtyFieldsRef.current);
 
       setForm(merged);
       setShowPasswordOverride(
@@ -215,6 +211,21 @@ export default function AccountEditForm({
     isDirtyRef.current = true;
     dirtyFieldsRef.current.add(key);
     setForm(prev => ({ ...prev, [key]: value }));
+  }
+
+  function mergeDirtyFields<K extends keyof AccountEditFormData>(
+    target: AccountEditFormData,
+    source: Partial<AccountEditFormData>,
+    keys: Iterable<K>,
+  ) {
+    for (const key of keys) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        const value = source[key];
+        if (value !== undefined) {
+          target[key] = value as AccountEditFormData[K];
+        }
+      }
+    }
   }
 
   const title = `${form.firstName} ${form.lastName}`.trim();
