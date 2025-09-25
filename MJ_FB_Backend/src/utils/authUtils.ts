@@ -92,6 +92,10 @@ export function getCookieOptions(userAgent?: string | null): CookieOptions {
 
 export const cookieOptions = getCookieOptions();
 
+export function getRefreshExpiryMs(): number {
+  return config.refreshTokenTtlDays * 24 * 60 * 60 * 1000;
+}
+
 export type AuthPayload = {
   id: number;
   role: string;
@@ -121,13 +125,13 @@ export async function issueAuthTokens(
     expiresIn: '1h',
     algorithm: 'HS256',
   });
+  const refreshExpiryMs = getRefreshExpiryMs();
   const refreshToken = jwt.sign({ ...payload, jti }, config.jwtRefreshSecret, {
-    expiresIn: '7d',
+    expiresIn: Math.floor(refreshExpiryMs / 1000),
     algorithm: 'HS256',
   });
 
-  const refreshExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
-  const refreshExpiresAt = new Date(Date.now() + refreshExpiry);
+  const refreshExpiresAt = new Date(Date.now() + refreshExpiryMs);
 
   await pool.query(
     `INSERT INTO refresh_tokens (token_id, subject, expires_at) VALUES ($1,$2,$3)`,
@@ -142,7 +146,7 @@ export async function issueAuthTokens(
   });
   res.cookie('refreshToken', refreshToken, {
     ...resolvedCookieOptions,
-    maxAge: refreshExpiry,
+    maxAge: refreshExpiryMs,
     expires: refreshExpiresAt,
   });
 

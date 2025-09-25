@@ -25,6 +25,10 @@ const envSchema = z.object({
   EMAIL_QUEUE_MAX_AGE_DAYS: z.coerce.number().default(30),
   EMAIL_QUEUE_WARNING_SIZE: z.coerce.number().default(100),
   ICS_BASE_URL: z.string().optional(),
+  REFRESH_TOKEN_TTL_DAYS: z.coerce
+    .number()
+    .default(365)
+    .transform(value => (value < 1 ? 1 : value)),
   PASSWORD_SETUP_TEMPLATE_ID: z.coerce.number().default(6),
   BOOKING_CONFIRMATION_TEMPLATE_ID: z.coerce.number().default(0),
   BOOKING_REMINDER_TEMPLATE_ID: z.coerce.number().default(0),
@@ -78,6 +82,7 @@ export default {
   emailQueueMaxAgeDays: env.EMAIL_QUEUE_MAX_AGE_DAYS,
   emailQueueWarningSize: env.EMAIL_QUEUE_WARNING_SIZE,
   icsBaseUrl: env.ICS_BASE_URL ?? '',
+  refreshTokenTtlDays: env.REFRESH_TOKEN_TTL_DAYS,
   passwordSetupTemplateId: env.PASSWORD_SETUP_TEMPLATE_ID,
   bookingConfirmationTemplateId: env.BOOKING_CONFIRMATION_TEMPLATE_ID,
   bookingReminderTemplateId: env.BOOKING_REMINDER_TEMPLATE_ID,
