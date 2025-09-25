@@ -3,6 +3,7 @@ import pool from '../src/db';
 import jwt from 'jsonwebtoken';
 import { Response } from 'express';
 import { randomUUID } from 'crypto';
+import config from '../src/config';
 
 jest.mock('../src/db', () => ({ __esModule: true, default: { query: jest.fn() } }));
 jest.mock('jsonwebtoken', () => ({ sign: jest.fn() }));
@@ -154,7 +155,7 @@ describe('issueAuthTokens', () => {
       ['uuid-1', 'user:1', expect.any(Date)],
     );
 
-    const refreshExpiry = 7 * 24 * 60 * 60 * 1000;
+    const refreshExpiry = config.refreshTokenTtlDays * 24 * 60 * 60 * 1000;
 
     expect(res.cookie).toHaveBeenNthCalledWith(
       1,

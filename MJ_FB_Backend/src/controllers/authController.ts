@@ -7,7 +7,7 @@ import logger from '../utils/logger';
 import { randomUUID } from 'crypto';
 import { validatePassword } from '../utils/passwordUtils';
 import cookie from 'cookie';
-import { getCookieOptions } from '../utils/authUtils';
+import { getCookieOptions, getRefreshExpiryMs } from '../utils/authUtils';
 import {
   generatePasswordSetupToken,
   verifyPasswordSetupToken,
@@ -393,8 +393,8 @@ export async function refreshToken(req: Request, res: Response, _next: NextFunct
       logger.warn('Refresh token expired for %s', subject);
       throw new Error('Invalid refresh token');
     }
-    const refreshExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
-    const newExpiresAt = new Date(Date.now() + refreshExpiry);
+    const refreshExpiryMs = getRefreshExpiryMs();
+    const newExpiresAt = new Date(Date.now() + refreshExpiryMs);
     const newJti = randomUUID();
     await pool.query(
       `UPDATE refresh_tokens SET token_id=$1, expires_at=$2 WHERE token_id=$3`,
@@ -416,7 +416,7 @@ export async function refreshToken(req: Request, res: Response, _next: NextFunct
     const newRefreshToken = jwt.sign(
       { ...basePayload, jti: newJti },
       config.jwtRefreshSecret,
-      { expiresIn: '7d', algorithm: 'HS256' },
+      { expiresIn: Math.floor(refreshExpiryMs / 1000), algorithm: 'HS256' },
     );
     res.cookie('token', accessToken, {
       ...cookieOptions,
@@ -424,7 +424,7 @@ export async function refreshToken(req: Request, res: Response, _next: NextFunct
     });
     res.cookie('refreshToken', newRefreshToken, {
       ...cookieOptions,
-      maxAge: refreshExpiry,
+      maxAge: refreshExpiryMs,
       expires: newExpiresAt,
     });
     return res.status(204).send();
