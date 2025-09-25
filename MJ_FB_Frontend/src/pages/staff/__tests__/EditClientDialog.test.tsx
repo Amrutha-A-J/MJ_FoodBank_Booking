@@ -47,6 +47,8 @@ describe('EditClientDialog', () => {
 
     expect(await screen.findByText('John Doe')).toBeInTheDocument();
     expect(screen.getByTestId('online-badge')).toBeInTheDocument();
+    const toggle = await screen.findByLabelText(/online access/i);
+    expect(toggle).toBeDisabled();
   });
 
   it('online access switch toggles onlineAccess state', async () => {
