@@ -125,15 +125,44 @@ export default function VolunteerDailyBookings() {
     }
   }
 
+  function shiftDate(days: number) {
+    setDate(current => current.add(days, 'day'));
+  }
+
   return (
     <Page title="Volunteer Daily Bookings" header={<VolunteerQuickLinks />}>
-      <LocalizationProvider dateAdapter={AdapterDayjs} dateLibInstance={dayjs}>
-        <DatePicker
-          value={date}
-          onChange={d => d && setDate(d as Dayjs)}
-          slotProps={{ textField: { fullWidth: true } }}
-        />
-      </LocalizationProvider>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={1}
+        alignItems={{ sm: 'center' }}
+      >
+        <Button
+          variant="outlined"
+          onClick={() => shiftDate(-1)}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
+        >
+          Previous Day
+        </Button>
+        <Box sx={{ flexGrow: 1, width: '100%' }}>
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            dateLibInstance={dayjs}
+          >
+            <DatePicker
+              value={date}
+              onChange={d => d && setDate(d as Dayjs)}
+              slotProps={{ textField: { fullWidth: true } }}
+            />
+          </LocalizationProvider>
+        </Box>
+        <Button
+          variant="outlined"
+          onClick={() => shiftDate(1)}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
+        >
+          Next Day
+        </Button>
+      </Stack>
 
       <Box mt={2}>
         {Array.from(grouped.entries()).map(([cat, roleMap]) => (
