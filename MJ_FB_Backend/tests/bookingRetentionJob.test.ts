@@ -11,6 +11,10 @@ const scheduleDailyJob = require('../src/utils/scheduleDailyJob').default;
 const job = require('../src/utils/bookingRetentionJob');
 const { cleanupOldRecords } = job;
 
+afterAll(() => {
+  jest.resetModules();
+});
+
 describe('bookingRetentionJob scheduling', () => {
   it('invokes scheduleDailyJob with nightly schedule', () => {
     expect(scheduleDailyJob).toHaveBeenCalledWith(
