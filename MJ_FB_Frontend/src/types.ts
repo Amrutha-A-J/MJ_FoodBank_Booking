@@ -1,4 +1,4 @@
-export type Role = 'staff' | 'shopper' | 'delivery' | 'volunteer';
+export type Role = 'admin' | 'staff' | 'shopper' | 'delivery' | 'volunteer';
 export type UserRole = 'shopper' | 'delivery';
 export type StaffRole = 'staff';
 export type StaffAccess =
