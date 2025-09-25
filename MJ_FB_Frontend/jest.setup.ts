@@ -28,7 +28,26 @@ import {
 (global as any).clearImmediate = nodeClearImmediate;
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { fetch, Headers, Request, Response, FormData, File } = require('undici');
+const {
+  fetch,
+  Headers,
+  Request,
+  Response,
+  FormData,
+  File,
+  setGlobalDispatcher,
+  getGlobalDispatcher,
+  Agent,
+} = require('undici');
+const previousDispatcher = typeof getGlobalDispatcher === 'function' ? getGlobalDispatcher() : undefined;
+const testDispatcher =
+  typeof setGlobalDispatcher === 'function' && typeof Agent === 'function'
+    ? new Agent({ keepAliveTimeout: 1, keepAliveTimeoutThreshold: 1 })
+    : undefined;
+if (testDispatcher && typeof setGlobalDispatcher === 'function') {
+  setGlobalDispatcher(testDispatcher);
+}
+let dispatcherClosed = false;
 (Element.prototype as any).scrollIntoView = jest.fn();
 if (!process.env.VITE_API_BASE) {
   process.env.VITE_API_BASE = 'http://localhost:4000/api/v1';
@@ -51,6 +70,15 @@ if (!window.matchMedia) {
 }
 afterAll(() => {
   window.matchMedia = originalMatchMedia;
+  if (testDispatcher && !dispatcherClosed) {
+    dispatcherClosed = true;
+    try {
+      testDispatcher.close().catch(() => {});
+    } catch {}
+    if (previousDispatcher && typeof setGlobalDispatcher === 'function') {
+      setGlobalDispatcher(previousDispatcher);
+    }
+  }
 });
 
 beforeAll(() => {
