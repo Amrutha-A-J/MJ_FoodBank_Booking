@@ -4,24 +4,8 @@ import pool from '../src/db';
 import jwt from 'jsonwebtoken';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import { notifyOps } from '../src/utils/opsAlert';
-
-jest.mock(
-  'csv-parse/sync',
-  () => ({
-    parse: jest.fn((str: string) => {
-      const [headerLine, ...lines] = str.trim().split('\n');
-      const headers = headerLine.split(',');
-      return lines.map(line => {
-        const values = line.split(',');
-        return headers.reduce<Record<string, string>>((acc, h, i) => {
-          acc[h] = values[i] ?? '';
-          return acc;
-        }, {});
-      });
-    }),
-  }),
-  { virtual: true },
-);
+import writeXlsxFile from 'write-excel-file/node';
+import type { Row } from 'write-excel-file';
 import monetaryDonorsRoutes from '../src/routes/monetaryDonors';
 
 jest.mock('jsonwebtoken');
@@ -564,15 +548,37 @@ describe('Import Zeffy donations', () => {
       // donation insert for new donor
       .mockResolvedValueOnce({});
 
-    const csv = [
-      'First Name,Last Name,Email,Payment Date,Payment Status,Total Amount',
-      'Alice,A,a@example.com,2024-01-15T06:00:00Z,Succeeded,$10.00',
-      'Bob,Builder,,2024-01-20T06:00:00Z,Succeeded,$20.00',
-    ].join('\n');
+    const excelData: Row[] = [
+      [
+        { value: 'First Name' },
+        { value: 'Last Name' },
+        { value: 'Email' },
+        { value: 'Payment Date' },
+        { value: 'Payment Status' },
+        { value: 'Total Amount' },
+      ],
+      [
+        { value: 'Alice' },
+        { value: 'A' },
+        { value: 'a@example.com' },
+        { value: '2024-01-15T06:00:00Z' },
+        { value: 'Succeeded' },
+        { value: '$10.00' },
+      ],
+      [
+        { value: 'Bob' },
+        { value: 'Builder' },
+        { value: '' },
+        { value: '2024-01-20T06:00:00Z' },
+        { value: 'Succeeded' },
+        { value: '$20.00' },
+      ],
+    ];
+    const excelBuffer = await writeXlsxFile(excelData, { buffer: true });
 
     const res = await request(app)
       .post('/monetary-donors/import')
-      .attach('file', Buffer.from(csv), 'donations.csv')
+      .attach('file', Buffer.from(excelBuffer), 'donations.xlsx')
       .set('Authorization', 'Bearer token');
 
     expect(res.status).toBe(200);

@@ -109,7 +109,7 @@ describe('monetary donor api', () => {
   });
 
   it('imports zeffy donations', async () => {
-    const file = new File(['csv'], 'donations.csv');
+    const file = new File(['excel'], 'donations.xlsx');
     await importZeffyDonations(file);
     expect(apiFetch).toHaveBeenCalledWith(
       '/api/v1/monetary-donors/import',

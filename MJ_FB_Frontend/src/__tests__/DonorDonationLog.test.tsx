@@ -194,7 +194,7 @@ describe('Donor Donation Log', () => {
 
     await screen.findByText('john@example.com');
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = { name: 'donations.csv' } as File;
+    const file = { name: 'donations.xlsx' } as File;
     await act(async () => {
       fireEvent.change(input, { target: { files: [file] } });
     });
