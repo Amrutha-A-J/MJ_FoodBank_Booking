@@ -8,7 +8,9 @@ type AsyncHandler = (
 
 const asyncHandler = (handler: AsyncHandler): RequestHandler => {
   return (req, res, next) => {
-    Promise.resolve(handler(req, res, next)).catch(next);
+    Promise.resolve(handler(req, res, next))
+      .then(() => next())
+      .catch(next);
   };
 };
 
