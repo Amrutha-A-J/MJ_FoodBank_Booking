@@ -26,4 +26,36 @@ describe('VolunteerScheduleTable', () => {
     const container = screen.getByRole('table').parentElement as HTMLElement;
     expect(container).toHaveStyle('overflow-x: auto');
   });
+  it('renders cards with fallback label on small screens', async () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = jest.fn().mockImplementation((query) => ({
+      matches: true,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    }));
+    try {
+      const onClick = jest.fn();
+      const { default: VolunteerScheduleTable } = await import('../components/VolunteerScheduleTable');
+      const rows = [
+        {
+          time: '9:00 - 10:00',
+          cells: [
+            { content: undefined, onClick },
+          ],
+        },
+      ];
+      render(<VolunteerScheduleTable maxSlots={2} rows={rows} />);
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+      const signupCell = screen.getByText('Sign up');
+      fireEvent.click(signupCell);
+      expect(onClick).toHaveBeenCalled();
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
 });
