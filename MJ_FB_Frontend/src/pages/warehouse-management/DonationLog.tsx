@@ -82,12 +82,17 @@ export default function DonationLog() {
   const [toDelete, setToDelete] = useState<Donation | null>(null);
   const { open, message, showSnackbar, closeSnackbar, severity } = useSnackbar();
 
+  const monthStartDate = useCallback(
+    (value: string) => (value ? `${value}-01` : formatDate()),
+    [],
+  );
+
   const [form, setForm] = useState<{
     date: string;
     donorId: number | null;
     weight: string;
   }>({
-    date: formatDate(),
+    date: monthStartDate(formatMonth()),
     donorId: null,
     weight: '',
   });
@@ -185,7 +190,7 @@ export default function DonationLog() {
       .then(() => {
         setRecordOpen(false);
         setEditing(null);
-        setForm({ date: formatDate(), donorId: null, weight: '' });
+        setForm({ date: monthStartDate(month), donorId: null, weight: '' });
         loadDonations();
         showSnackbar(editing ? 'Donation updated' : 'Donation recorded');
       })
@@ -245,7 +250,7 @@ export default function DonationLog() {
             variant="contained"
             onClick={e => {
               (e.currentTarget as HTMLButtonElement).blur();
-              setForm({ date: formatDate(), donorId: null, weight: '' });
+              setForm({ date: monthStartDate(month), donorId: null, weight: '' });
               setEditing(null);
               setRecordOpen(true);
             }}
