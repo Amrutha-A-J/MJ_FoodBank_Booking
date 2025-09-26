@@ -16,24 +16,26 @@ export default function PasswordResetDialog({
   onClose: () => void;
 }) {
   const [identifier, setIdentifier] = useState('');
-  const [identifierError, setIdentifierError] = useState('');
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formTitle = 'Reset password';
+  const currentTrimmedIdentifier = identifier.trim();
+  const identifierIsBlank = currentTrimmedIdentifier.length === 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setHasAttemptedSubmit(true);
+
     const trimmedIdentifier = identifier.trim();
 
     if (!trimmedIdentifier) {
-      setIdentifierError('Enter your email or client ID.');
       return;
     }
 
-    setIdentifierError('');
     setError('');
     setMessage('');
     setIsSubmitting(true);
@@ -47,6 +49,7 @@ export default function PasswordResetDialog({
       setSnackbarSeverity('success');
       setMessage('If an account exists, a reset link has been sent.');
       setIdentifier('');
+      setHasAttemptedSubmit(false);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -54,7 +57,11 @@ export default function PasswordResetDialog({
     }
   }
 
-  const isSubmitDisabled = isSubmitting || identifier.trim().length === 0;
+  const isSubmitDisabled = isSubmitting || identifierIsBlank;
+  const identifierError =
+    hasAttemptedSubmit && identifierIsBlank
+      ? 'Enter your email or client ID.'
+      : '';
 
   return (
     <>
@@ -94,9 +101,6 @@ export default function PasswordResetDialog({
               onChange={e => {
                 const value = e.target.value;
                 setIdentifier(value);
-                if (identifierError && value.trim().length > 0) {
-                  setIdentifierError('');
-                }
               }}
               error={Boolean(identifierError)}
               helperText={identifierError}
