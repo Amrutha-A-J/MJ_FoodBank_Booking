@@ -37,6 +37,10 @@ function formatMonth(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
+function getMonthStartDate(monthValue: string) {
+  return monthValue ? `${monthValue}-01` : formatDate();
+}
+
 type DonorForDisplay = {
   id?: number | null;
   name?: string | null;
@@ -71,10 +75,11 @@ function formatDonorDisplay(
 }
 
 export default function DonationLog() {
+  const initialMonth = formatMonth();
   const [donations, setDonations] = useState<Donation[]>([]);
   const [donorOptions, setDonorOptions] = useState<Donor[]>([]);
   const [donorSearch, setDonorSearch] = useState('');
-  const [month, setMonth] = useState(formatMonth());
+  const [month, setMonth] = useState(initialMonth);
   const [recordOpen, setRecordOpen] = useState(false);
   const [editing, setEditing] = useState<Donation | null>(null);
   const [newDonorOpen, setNewDonorOpen] = useState(false);
@@ -87,7 +92,7 @@ export default function DonationLog() {
     donorId: number | null;
     weight: string;
   }>({
-    date: formatDate(),
+    date: getMonthStartDate(initialMonth),
     donorId: null,
     weight: '',
   });
@@ -185,7 +190,7 @@ export default function DonationLog() {
       .then(() => {
         setRecordOpen(false);
         setEditing(null);
-        setForm({ date: formatDate(), donorId: null, weight: '' });
+        setForm({ date: getMonthStartDate(month), donorId: null, weight: '' });
         loadDonations();
         showSnackbar(editing ? 'Donation updated' : 'Donation recorded');
       })
@@ -245,7 +250,7 @@ export default function DonationLog() {
             variant="contained"
             onClick={e => {
               (e.currentTarget as HTMLButtonElement).blur();
-              setForm({ date: formatDate(), donorId: null, weight: '' });
+              setForm({ date: getMonthStartDate(month), donorId: null, weight: '' });
               setEditing(null);
               setRecordOpen(true);
             }}
