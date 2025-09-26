@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   getBookingHistory,
   cancelBooking,
@@ -304,6 +304,17 @@ export default function UserHistory({
         </Typography>
         <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
           <Box width="100%" maxWidth={1200} mt={4}>
+            {isClient && (
+              <Box display="flex" justifyContent="flex-end" mb={initialUser ? 2 : 0}>
+                <Button
+                  component={RouterLink}
+                  to="/book-appointment"
+                  variant="outlined"
+                >
+                  Back to booking
+                </Button>
+              </Box>
+            )}
             {!initialUser && (
               <EntitySearch
                 type="user"
