@@ -19,13 +19,63 @@ import {
 (global as any).performance.markResourceTiming =
   (global as any).performance.markResourceTiming || (() => {});
 
-// Use Node's timer implementations so undici's fast timers have refresh()
-(global as any).setTimeout = nodeSetTimeout;
-(global as any).clearTimeout = nodeClearTimeout;
-(global as any).setInterval = nodeSetInterval;
-(global as any).clearInterval = nodeClearInterval;
-(global as any).setImmediate = nodeSetImmediate;
-(global as any).clearImmediate = nodeClearImmediate;
+// Use Node's timer implementations so undici's fast timers have refresh(). Some
+// environments (for example, JSDOM's window timers) still return numeric IDs
+// which lack `ref`, `unref`, and `refresh`. Wrap those values in tiny objects
+// providing the no-op methods so consumers expecting Node handles do not throw.
+const wrapTimerHandle = <T>(handle: T): T => {
+  if (typeof handle === 'number') {
+    const wrapper: any = {
+      id: handle,
+      ref: () => wrapper,
+      unref: () => wrapper,
+      refresh: () => wrapper,
+      valueOf: () => handle,
+      [Symbol.toPrimitive]: () => handle,
+    };
+    return wrapper as T;
+  }
+  return handle;
+};
+
+const unwrapTimerHandle = (handle: unknown): unknown => {
+  if (
+    handle &&
+    typeof handle === 'object' &&
+    'id' in (handle as Record<string, unknown>) &&
+    typeof (handle as Record<string, unknown>).id === 'number'
+  ) {
+    return (handle as Record<string, unknown>).id;
+  }
+  return handle;
+};
+
+const createTimer = <Args extends unknown[]>(timer: (...args: Args) => unknown) =>
+  (...args: Args) => wrapTimerHandle(timer(...args));
+
+const createClearTimer = (clearTimer: (handle: unknown) => void) =>
+  (handle: unknown) => clearTimer(unwrapTimerHandle(handle));
+
+const timers = {
+  setTimeout: createTimer(nodeSetTimeout),
+  clearTimeout: createClearTimer(nodeClearTimeout),
+  setInterval: createTimer(nodeSetInterval),
+  clearInterval: createClearTimer(nodeClearInterval),
+  setImmediate: createTimer(nodeSetImmediate),
+  clearImmediate: createClearTimer(nodeClearImmediate),
+};
+
+const assignTimers = (target: Record<string, unknown>) => {
+  Object.entries(timers).forEach(([key, value]) => {
+    target[key] = value;
+  });
+};
+
+assignTimers(globalThis as unknown as Record<string, unknown>);
+assignTimers(global as unknown as Record<string, unknown>);
+if (typeof window !== 'undefined') {
+  assignTimers(window as unknown as Record<string, unknown>);
+}
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const {
