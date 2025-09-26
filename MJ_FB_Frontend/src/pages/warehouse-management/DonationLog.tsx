@@ -31,7 +31,7 @@ import {
 import type { Donor } from '../../api/donors';
 import type { Donation } from '../../api/donations';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
-import { formatLocaleDate, formatDate } from '../../utils/date';
+import { formatLocaleDate } from '../../utils/date';
 
 function formatMonth(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -82,10 +82,10 @@ export default function DonationLog() {
   const [toDelete, setToDelete] = useState<Donation | null>(null);
   const { open, message, showSnackbar, closeSnackbar, severity } = useSnackbar();
 
-  const monthStartDate = useCallback(
-    (value: string) => (value ? `${value}-01` : formatDate()),
-    [],
-  );
+  const monthStartDate = useCallback((value: string) => {
+    const activeMonth = value || formatMonth();
+    return `${activeMonth}-01`;
+  }, []);
 
   const [form, setForm] = useState<{
     date: string;
