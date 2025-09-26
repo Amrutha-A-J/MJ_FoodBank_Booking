@@ -16,16 +16,29 @@ export default function PasswordResetDialog({
   onClose: () => void;
 }) {
   const [identifier, setIdentifier] = useState('');
+  const [identifierError, setIdentifierError] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formTitle = 'Reset password';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const trimmedIdentifier = identifier.trim();
+
+    if (!trimmedIdentifier) {
+      setIdentifierError('Enter your email or client ID.');
+      return;
+    }
+
+    setIdentifierError('');
+    setError('');
+    setMessage('');
+    setIsSubmitting(true);
+
     try {
-      const trimmedIdentifier = identifier.trim();
       const body: PasswordResetBody =
         trimmedIdentifier.includes('@') || !/^\d+$/.test(trimmedIdentifier)
           ? { email: trimmedIdentifier }
@@ -36,8 +49,12 @@ export default function PasswordResetDialog({
       setIdentifier('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsSubmitting(false);
     }
   }
+
+  const isSubmitDisabled = isSubmitting || identifier.trim().length === 0;
 
   return (
     <>
@@ -51,7 +68,13 @@ export default function PasswordResetDialog({
             title={formTitle}
             onSubmit={handleSubmit}
             actions={
-              <Button type="submit" variant="contained" fullWidth sx={{ minHeight: 48 }}>
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                sx={{ minHeight: 48 }}
+                disabled={isSubmitDisabled}
+              >
                 Submit
               </Button>
             }
@@ -68,7 +91,15 @@ export default function PasswordResetDialog({
               autoComplete="email"
               fullWidth
               value={identifier}
-              onChange={e => setIdentifier(e.target.value)}
+              onChange={e => {
+                const value = e.target.value;
+                setIdentifier(value);
+                if (identifierError && value.trim().length > 0) {
+                  setIdentifierError('');
+                }
+              }}
+              error={Boolean(identifierError)}
+              helperText={identifierError}
             />
           </FormCard>
         </DialogContent>
