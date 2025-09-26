@@ -10,6 +10,80 @@ import {
   clearImmediate as nodeClearImmediate,
 } from 'timers';
 
+type TimerHandleObject = {
+  __timerId?: unknown;
+  ref?: () => unknown;
+  unref?: () => unknown;
+  refresh?: () => unknown;
+};
+
+const ensureTimerMethods = (handle: unknown) => {
+  if (handle && typeof handle === 'object') {
+    const timerObject = handle as TimerHandleObject;
+    if (typeof timerObject.ref !== 'function') {
+      timerObject.ref = function ref() {
+        return this;
+      };
+    }
+    if (typeof timerObject.unref !== 'function') {
+      timerObject.unref = function unref() {
+        return this;
+      };
+    }
+    if (typeof timerObject.refresh !== 'function') {
+      timerObject.refresh = function refresh() {
+        return this;
+      };
+    }
+    return timerObject;
+  }
+
+  const wrapper: TimerHandleObject = {
+    __timerId: handle,
+    ref() {
+      return this;
+    },
+    unref() {
+      return this;
+    },
+    refresh() {
+      return this;
+    },
+  } satisfies Record<string, unknown>;
+
+  return wrapper;
+};
+
+const unwrapTimerHandle = (handle: unknown) => {
+  if (handle && typeof handle === 'object' && '__timerId' in handle) {
+    return (handle as { __timerId: unknown }).__timerId;
+  }
+
+  return handle;
+};
+
+const assignNodeTimers = (target: unknown) => {
+  if (!target || typeof target !== 'object') {
+    return;
+  }
+
+  const host = target as Record<string, any>;
+
+  host.setTimeout = (...args: any[]) => ensureTimerMethods(nodeSetTimeout(...args));
+  host.setInterval = (...args: any[]) => ensureTimerMethods(nodeSetInterval(...args));
+  host.setImmediate = (...args: any[]) => ensureTimerMethods(nodeSetImmediate(...args));
+  host.clearTimeout = (handle?: unknown) => nodeClearTimeout(unwrapTimerHandle(handle));
+  host.clearInterval = (handle?: unknown) => nodeClearInterval(unwrapTimerHandle(handle));
+  host.clearImmediate = (handle?: unknown) => nodeClearImmediate(unwrapTimerHandle(handle));
+};
+
+assignNodeTimers(globalThis);
+assignNodeTimers(global);
+const maybeWindow = (globalThis as Record<string, unknown>).window;
+if (maybeWindow && typeof maybeWindow === 'object') {
+  assignNodeTimers(maybeWindow);
+}
+
 // Polyfill TextEncoder/Decoder for testing environment
 (global as any).TextEncoder = TextEncoder;
 (global as any).TextDecoder = TextDecoder as any;
@@ -18,14 +92,6 @@ import {
 (global as any).performance = (global as any).performance || ({} as any);
 (global as any).performance.markResourceTiming =
   (global as any).performance.markResourceTiming || (() => {});
-
-// Use Node's timer implementations so undici's fast timers have refresh()
-(global as any).setTimeout = nodeSetTimeout;
-(global as any).clearTimeout = nodeClearTimeout;
-(global as any).setInterval = nodeSetInterval;
-(global as any).clearInterval = nodeClearInterval;
-(global as any).setImmediate = nodeSetImmediate;
-(global as any).clearImmediate = nodeClearImmediate;
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const {
