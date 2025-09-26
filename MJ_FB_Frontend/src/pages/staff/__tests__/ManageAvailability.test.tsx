@@ -9,6 +9,7 @@ import {
   getBreaks,
   getHolidays,
 } from '../../../api/bookings';
+import { useAuth } from '../../../hooks/useAuth';
 
 jest.mock('../../../api/slots', () => ({
   getAllSlots: jest.fn().mockResolvedValue([]),
@@ -29,11 +30,20 @@ jest.mock('../../../api/bookings', () => ({
   removeBreak: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useAuth', () => ({
+  useAuth: jest.fn(),
+}));
+
+const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+
 beforeEach(() => {
   jest.clearAllMocks();
   (getHolidays as jest.Mock).mockResolvedValue([]);
   (getBreaks as jest.Mock).mockResolvedValue([]);
   (getBlockedSlots as jest.Mock).mockResolvedValue([]);
+  mockUseAuth.mockReturnValue({
+    access: ['pantry'],
+  } as unknown as ReturnType<typeof useAuth>);
 });
 
 describe('ManageAvailability', () => {
@@ -92,5 +102,15 @@ describe('ManageAvailability', () => {
     await waitFor(() => {
       expect(removeBreak).toHaveBeenCalledWith(0, 1);
     });
+  });
+
+  it('hides pantry quick links when staff lacks pantry access', () => {
+    mockUseAuth.mockReturnValue({
+      access: [],
+    } as unknown as ReturnType<typeof useAuth>);
+
+    render(<ManageAvailability />);
+
+    expect(screen.queryByRole('button', { name: /pantry schedule/i })).not.toBeInTheDocument();
   });
 });

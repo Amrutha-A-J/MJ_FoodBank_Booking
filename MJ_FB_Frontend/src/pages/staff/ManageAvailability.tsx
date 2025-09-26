@@ -34,6 +34,7 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import Page from '../../components/Page';
 import PantryQuickLinks from '../../components/PantryQuickLinks';
+import { useAuth } from '../../hooks/useAuth';
 import {
   getHolidays,
   addHoliday,
@@ -74,6 +75,9 @@ interface BreakItem {
 }
 
 export default function ManageAvailability() {
+  const { access } = useAuth();
+  const hasPantryAccess = access.includes('admin') || access.includes('pantry');
+
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [holidayDate, setHolidayDate] = useState<Date | null>(toDate());
   const [holidayReason, setHolidayReason] = useState('');
@@ -599,7 +603,10 @@ export default function ManageAvailability() {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Page title="Manage Availability" header={<PantryQuickLinks />}>
+      <Page
+        title="Manage Availability"
+        header={hasPantryAccess ? <PantryQuickLinks /> : undefined}
+      >
         <Box sx={{ maxWidth: 1000, mx: 'auto', pb: 6 }}>
           <StyledTabs tabs={tabs} />
           <FeedbackSnackbar
