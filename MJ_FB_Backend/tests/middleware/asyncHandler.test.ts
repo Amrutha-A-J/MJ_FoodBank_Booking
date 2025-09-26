@@ -4,7 +4,7 @@ import asyncHandler from '../../src/middleware/asyncHandler';
 describe('asyncHandler middleware', () => {
   const waitForMicrotask = () => new Promise((resolve) => setImmediate(resolve));
 
-  it('invokes the handler and calls next without arguments when it resolves', async () => {
+  it('invokes the handler without calling next when it resolves', async () => {
     const handler = jest.fn<Promise<void>, [Request, Response, NextFunction]>().mockResolvedValue();
     const wrapped = asyncHandler(handler);
     const req = {} as Request;
@@ -15,8 +15,7 @@ describe('asyncHandler middleware', () => {
     await waitForMicrotask();
 
     expect(handler).toHaveBeenCalledWith(req, res, next);
-    expect(next).toHaveBeenCalledTimes(1);
-    expect(next).toHaveBeenCalledWith();
+    expect(next).not.toHaveBeenCalled();
   });
 
   it('forwards errors from the handler to next', async () => {
