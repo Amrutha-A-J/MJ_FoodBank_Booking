@@ -65,11 +65,27 @@ export async function getVolunteerById(
   return handleResponse(res);
 }
 
+export interface VolunteerMostBookedRole {
+  roleId: number;
+  roleName: string;
+  shifts: number;
+  hours: number;
+}
+
+export interface VolunteerLastCompletedShift {
+  date: string;
+  roleId: number;
+  roleName: string;
+  hours: number;
+}
+
 export interface VolunteerStatsByIdResponse {
   volunteerId: number;
   lifetime: { hours: number; shifts: number };
   yearToDate: { hours: number; shifts: number };
   monthToDate: { hours: number; shifts: number };
+  mostBookedRoles: VolunteerMostBookedRole[];
+  lastCompletedShift: VolunteerLastCompletedShift | null;
 }
 
 export async function getVolunteerStatsById(

@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+  getVolunteerById,
   updateTrainedArea,
   getVolunteerProfile,
   createVolunteer,
@@ -28,6 +29,13 @@ router.get(
   authMiddleware,
   authorizeRoles('staff'),
   getVolunteerStatsById,
+);
+
+router.get(
+  '/:id',
+  authMiddleware,
+  authorizeRoles('staff'),
+  getVolunteerById,
 );
 
 router.post('/me/badges', authMiddleware, awardVolunteerBadge);
