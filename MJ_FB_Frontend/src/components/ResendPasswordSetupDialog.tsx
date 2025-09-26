@@ -23,7 +23,9 @@ export default function ResendPasswordSetupDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!trimmedIdentifier) {
+    const trimmed = identifier.trim();
+
+    if (!trimmed) {
       setIdentifierError('Enter your email or client ID.');
       return;
     }
@@ -33,9 +35,9 @@ export default function ResendPasswordSetupDialog({
     setError('');
 
     try {
-      const body = /^\d+$/.test(trimmedIdentifier)
-        ? { clientId: trimmedIdentifier }
-        : { email: trimmedIdentifier };
+      const body = /^\d+$/.test(trimmed)
+        ? { clientId: trimmed }
+        : { email: trimmed };
       await resendPasswordSetup(body);
       setMessage('Password setup link sent');
       setIdentifier('');
@@ -80,8 +82,9 @@ export default function ResendPasswordSetupDialog({
               fullWidth
               value={identifier}
               onChange={e => {
-                setIdentifier(e.target.value);
-                if (identifierError) {
+                const value = e.target.value;
+                setIdentifier(value);
+                if (identifierError && value.trim()) {
                   setIdentifierError('');
                 }
               }}

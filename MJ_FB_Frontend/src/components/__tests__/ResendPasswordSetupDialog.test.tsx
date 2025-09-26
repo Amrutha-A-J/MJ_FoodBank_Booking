@@ -23,6 +23,8 @@ describe('ResendPasswordSetupDialog', () => {
   });
 
   it('shows inline error when submitted with a blank identifier', async () => {
+    const user = userEvent.setup();
+
     renderWithProviders(
       <ResendPasswordSetupDialog open onClose={() => {}} />,
     );
@@ -35,10 +37,24 @@ describe('ResendPasswordSetupDialog', () => {
 
     fireEvent.submit(form!);
 
-    expect(
-      await screen.findByText('Enter your email or client ID.'),
-    ).toBeInTheDocument();
+    const inlineError = await screen.findByText(
+      'Enter your email or client ID.',
+    );
+    expect(inlineError).toBeInTheDocument();
     expect(resendPasswordSetupMock).not.toHaveBeenCalled();
+
+    const identifierField = screen.getByLabelText('Email or client ID');
+    await user.type(identifierField, '   ');
+    expect(submitButton).toBeDisabled();
+    expect(
+      screen.getByText('Enter your email or client ID.'),
+    ).toBeInTheDocument();
+
+    await user.type(identifierField, '{selectall}client@example.com');
+    expect(submitButton).toBeEnabled();
+    expect(
+      screen.queryByText('Enter your email or client ID.'),
+    ).not.toBeInTheDocument();
   });
 
   it('submits successfully and shows a confirmation message', async () => {
@@ -51,7 +67,7 @@ describe('ResendPasswordSetupDialog', () => {
 
     const identifierField = screen.getByLabelText('Email or client ID');
 
-    await user.type(identifierField, 'client@example.com');
+    await user.type(identifierField, '  client@example.com  ');
 
     const submitButton = screen.getByRole('button', { name: /submit/i });
     expect(submitButton).toBeEnabled();
