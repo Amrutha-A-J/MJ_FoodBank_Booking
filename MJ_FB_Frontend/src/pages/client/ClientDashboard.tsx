@@ -19,13 +19,14 @@ import History from '@mui/icons-material/History';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import ClientBottomNav from '../../components/ClientBottomNav';
-import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../../api/bookings';
+import { getBookingHistory, getSlots, cancelBooking } from '../../api/bookings';
 import { getEvents, type EventGroups } from '../../api/events';
-import type { Slot, Holiday, Booking } from '../../types';
+import type { Slot, Booking } from '../../types';
 import { formatTime, formatReginaDate, formatRegina } from '../../utils/time';
 import type { AlertColor } from '@mui/material';
 import SectionCard from '../../components/dashboard/SectionCard';
 import EventList from '../../components/EventList';
+import UpcomingHolidaysCard from '../../components/dashboard/UpcomingHolidaysCard';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
 import OnboardingModal from '../../components/OnboardingModal';
@@ -85,7 +86,6 @@ export default function ClientDashboard() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [nextSlots, setNextSlots] = useState<NextSlot[]>([]);
-  const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
   const [cancelId, setCancelId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
@@ -111,10 +111,6 @@ export default function ClientDashboard() {
     )
       .then(res => setNextSlots(res.filter(Boolean).slice(0, 3) as NextSlot[]))
       .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    getHolidays().then(setHolidays).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -314,32 +310,23 @@ export default function ClientDashboard() {
               </Stack>
             </SectionCard>
 
-              <SectionCard
-                title={
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <span>News and Events</span>
-                  </Stack>
-                }
-                icon={<Announcement color="primary" />}
-              >
-              <Stack spacing={2}>
-                <EventList events={[...events.today, ...events.upcoming]} limit={5} />
-                <List>
-                  {holidays.map(h => (
-                    <ListItem key={h.date}>
-                      <ListItemText
-                        primary={`${formatDate(h.date)} ${h.reason}`}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </Stack>
+            <SectionCard
+              title={
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <span>News and Events</span>
+                </Stack>
+              }
+              icon={<Announcement color="primary" />}
+            >
+              <EventList events={[...events.today, ...events.upcoming]} limit={5} />
             </SectionCard>
 
-              <SectionCard
-                title="Next available slots"
-                icon={<EventAvailable color="primary" />}
-              >
+            <UpcomingHolidaysCard limit={5} />
+
+            <SectionCard
+              title="Next available slots"
+              icon={<EventAvailable color="primary" />}
+            >
               <List sx={{ '& .MuiListItem-root:not(:last-child)': { mb: 1 } }}>
                 {nextSlots.length ? (
                   nextSlots.map(s => (

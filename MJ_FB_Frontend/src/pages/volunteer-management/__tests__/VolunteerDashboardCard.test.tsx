@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
@@ -36,6 +37,10 @@ jest.mock('../../../api/events', () => ({
   getEvents: jest.fn().mockResolvedValue({ today: [], upcoming: [], past: [] }),
 }));
 
+jest.mock('../../../api/bookings', () => ({
+  getHolidays: jest.fn().mockResolvedValue([]),
+}));
+
 jest.mock('../../../components/VolunteerBottomNav', () => () => null);
 jest.mock('../../../components/OnboardingModal', () => () => null);
 
@@ -62,19 +67,26 @@ describe('VolunteerDashboard card download affordance', () => {
   });
 
   it('renders a download link when cardUrl is provided', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
     render(
-      <LocalizationProvider dateAdapter={AdapterDayjs} dateLibInstance={dayjs}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <MemoryRouter>
-            <VolunteerDashboard />
-          </MemoryRouter>
-        </ThemeProvider>
-      </LocalizationProvider>,
+      <QueryClientProvider client={queryClient}>
+        <LocalizationProvider dateAdapter={AdapterDayjs} dateLibInstance={dayjs}>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <MemoryRouter>
+              <VolunteerDashboard />
+            </MemoryRouter>
+          </ThemeProvider>
+        </LocalizationProvider>
+      </QueryClientProvider>,
     );
 
     const link = await screen.findByRole('link', { name: /download volunteer card/i });
     expect(link).toHaveAttribute('href', '/card.pdf');
     expect(link).toHaveAttribute('download');
+
+    queryClient.clear();
   });
 });

@@ -1,4 +1,5 @@
 import { render, screen, waitFor, fireEvent, act, within } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import ClientDashboard from '../pages/client/ClientDashboard';
 import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../api/bookings';
@@ -13,21 +14,33 @@ jest.mock('../api/bookings', () => ({
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
 
+let queryClient: QueryClient;
+
 async function renderClientDashboard() {
+  queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   await act(async () => {
     render(
-      <MemoryRouter>
-        <ClientDashboard />
-      </MemoryRouter>,
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ClientDashboard />
+        </MemoryRouter>
+      </QueryClientProvider>,
     );
   });
   await screen.findByText(/next available slots/i);
 }
 
 describe('ClientDashboard', () => {
+
   beforeEach(() => {
     localStorage.setItem('clientOnboarding', 'true');
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    queryClient?.clear();
   });
   it('shows events in News and Events section', async () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([]);
@@ -53,6 +66,43 @@ describe('ClientDashboard', () => {
 
     expect(getEvents).toHaveBeenCalled();
     expect(await screen.findByText(/Client Event/)).toBeInTheDocument();
+  });
+
+  it('shows upcoming holidays within 30 days', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2024-05-01T12:00:00Z'));
+    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([
+      { date: '2024-05-10', reason: '' },
+      { date: '2024-05-31', reason: 'Inventory Count' },
+      { date: '2024-06-02', reason: 'Community BBQ' },
+    ]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+
+    await renderClientDashboard();
+
+    await waitFor(() => expect(getHolidays).toHaveBeenCalled());
+    const upcomingTitle = await screen.findByText('Upcoming Holidays');
+    expect(upcomingTitle).toBeInTheDocument();
+    const upcomingCard = upcomingTitle.closest('.MuiPaper-root') as HTMLElement | null;
+    expect(upcomingCard).not.toBeNull();
+    const card = upcomingCard as HTMLElement;
+    expect(await within(card).findByText('May 10 (Fri) – Holiday')).toBeInTheDocument();
+    expect(await within(card).findByText('May 31 (Fri) – Inventory Count')).toBeInTheDocument();
+    expect(screen.queryByText('Jun 2 (Sun) – Community BBQ')).not.toBeInTheDocument();
+    jest.useRealTimers();
+  });
+
+  it('hides upcoming holidays card when none are returned', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+
+    await renderClientDashboard();
+
+    await waitFor(() => expect(getHolidays).toHaveBeenCalled());
+    expect(screen.queryByText('Upcoming Holidays')).not.toBeInTheDocument();
   });
 
   it('handles undefined events response', async () => {

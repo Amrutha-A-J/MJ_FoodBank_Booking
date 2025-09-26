@@ -1,7 +1,8 @@
 import { render, screen, waitFor, act, within } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import Dashboard from '../components/dashboard/Dashboard';
-import { getBookings } from '../api/bookings';
+import { getBookings, getHolidays } from '../api/bookings';
 import { getEvents } from '../api/events';
 import { getPantryMonthly } from '../api/pantryAggregations';
 import { getVolunteerBookings, getVolunteerRoles } from '../api/volunteers';
@@ -34,6 +35,7 @@ jest.mock('../components/layout/MainLayout', () => ({
 
 jest.mock('../api/bookings', () => ({
   getBookings: jest.fn(),
+  getHolidays: jest.fn(),
 }));
 
 jest.mock('../api/events', () => ({
@@ -48,6 +50,21 @@ jest.mock('../api/volunteers', () => ({
   getVolunteerBookings: jest.fn(),
   getVolunteerRoles: jest.fn(),
 }));
+
+let queryClient: QueryClient;
+
+async function renderStaffDashboard(element = <Dashboard role="staff" />) {
+  queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  await act(async () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>{element}</MemoryRouter>
+      </QueryClientProvider>,
+    );
+  });
+}
 
 describe('StaffDashboard', () => {
   const fakeNow = new Date('2024-08-15T12:00:00Z');
@@ -69,6 +86,11 @@ describe('StaffDashboard', () => {
     mockVisitTrendChart.mockClear();
     mockVisitBreakdownChart.mockClear();
     (getPantryMonthly as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    queryClient?.clear();
   });
 
   it('does not display no-show rankings card', async () => {
@@ -84,13 +106,7 @@ describe('StaffDashboard', () => {
       .mockResolvedValueOnce([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
-    await act(async () => {
-      render(
-        <MemoryRouter>
-          <Dashboard role="staff" />
-        </MemoryRouter>,
-      );
-    });
+    await renderStaffDashboard();
 
     await waitFor(() => {
       expect(screen.getByText('Total Clients')).toBeInTheDocument();
@@ -121,17 +137,44 @@ describe('StaffDashboard', () => {
       past: [],
     });
 
-    await act(async () => {
-      render(
-        <MemoryRouter>
-          <Dashboard role="staff" />
-        </MemoryRouter>,
-      );
-    });
+    await renderStaffDashboard();
 
     await waitFor(() => {
       expect(screen.getByText(/Staff Meeting/)).toBeInTheDocument();
     });
+  });
+
+  it('shows upcoming holidays within 30 days', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2024-05-01T12:00:00Z'));
+    (getBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getHolidays as jest.Mock).mockResolvedValue([
+      { date: '2024-05-04', reason: 'Warehouse Cleanup' },
+      { date: '2024-06-05', reason: 'Too Far' },
+    ]);
+
+    await renderStaffDashboard();
+
+    await waitFor(() => expect(getHolidays).toHaveBeenCalled());
+    expect(await screen.findByText('Upcoming Holidays')).toBeInTheDocument();
+    expect(screen.getByText('May 4 (Sat) – Warehouse Cleanup')).toBeInTheDocument();
+    expect(screen.queryByText('Jun 5 (Wed) – Too Far')).not.toBeInTheDocument();
+    jest.useRealTimers();
+  });
+
+  it('hides upcoming holidays when none are returned', async () => {
+    (getBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+
+    await renderStaffDashboard();
+
+    await waitFor(() => expect(getHolidays).toHaveBeenCalled());
+    expect(screen.queryByText('Upcoming Holidays')).not.toBeInTheDocument();
   });
 
   it('shows staff leave events separately from other events', async () => {
@@ -165,13 +208,7 @@ describe('StaffDashboard', () => {
       past: [],
     });
 
-    await act(async () => {
-      render(
-        <MemoryRouter>
-          <Dashboard role="staff" />
-        </MemoryRouter>,
-      );
-    });
+    await renderStaffDashboard();
 
     const newsCardTitle = await screen.findByText('News & Events');
     const staffLeaveCardTitle = await screen.findByText('Staff Leave Notices');
@@ -192,13 +229,7 @@ describe('StaffDashboard', () => {
   });
 
   it('hides pantry quick links when disabled', async () => {
-    await act(async () => {
-      render(
-        <MemoryRouter>
-          <Dashboard role="staff" showPantryQuickLinks={false} />
-        </MemoryRouter>,
-      );
-    });
+    await renderStaffDashboard(<Dashboard role="staff" showPantryQuickLinks={false} />);
 
     await waitFor(() => {
       expect(mockUseBreadcrumbActions).toHaveBeenCalledWith(null);
@@ -234,13 +265,7 @@ describe('StaffDashboard', () => {
       past: [],
     });
 
-    await act(async () => {
-      render(
-        <MemoryRouter>
-          <Dashboard role="staff" />
-        </MemoryRouter>,
-      );
-    });
+    await renderStaffDashboard();
 
     await waitFor(() => {
       expect(
@@ -281,13 +306,7 @@ describe('StaffDashboard', () => {
       past: [],
     });
 
-    await act(async () => {
-      render(
-        <MemoryRouter>
-          <Dashboard role="staff" />
-        </MemoryRouter>,
-      );
-    });
+    await renderStaffDashboard();
 
     await waitFor(() => {
       expect(screen.getByText('Volunteer Shift Changes')).toBeInTheDocument();
@@ -313,13 +332,7 @@ describe('StaffDashboard', () => {
       ]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
-    await act(async () => {
-      render(
-        <MemoryRouter>
-          <Dashboard role="staff" />
-        </MemoryRouter>,
-      );
-    });
+    await renderStaffDashboard();
 
     await screen.findByTestId('staff-visit-trend-chart');
 

@@ -1,4 +1,5 @@
 import { render, screen, waitFor, fireEvent, within, act } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import VolunteerDashboard from '../pages/volunteer-management/VolunteerDashboard';
 import {
@@ -12,6 +13,7 @@ import {
   type VolunteerStats,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
+import { getHolidays } from '../api/bookings';
 import { toDayjs, formatReginaDate } from '../utils/date';
 
 jest.mock('../api/volunteers', () => ({
@@ -25,6 +27,8 @@ jest.mock('../api/volunteers', () => ({
 }));
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
+
+jest.mock('../api/bookings', () => ({ getHolidays: jest.fn() }));
 
 jest.mock('../hooks/useAuth', () => ({
   useAuth: () => ({ role: 'volunteer', userRole: '' }),
@@ -74,12 +78,19 @@ function makeStats(overrides: Partial<VolunteerStats> = {}): VolunteerStats {
   return { ...baseStats, ...overrides };
 }
 
+let queryClient: QueryClient;
+
 async function renderDashboard() {
+  queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   await act(async () => {
     render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <VolunteerDashboard />
+        </MemoryRouter>
+      </QueryClientProvider>,
     );
   });
 
@@ -95,6 +106,7 @@ describe('VolunteerDashboard', () => {
     jest.setSystemTime(now);
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
+    (getHolidays as jest.Mock).mockResolvedValue([]);
     localStorage.clear();
     localStorage.setItem('volunteerOnboarding', 'true');
   });
@@ -105,6 +117,7 @@ describe('VolunteerDashboard', () => {
     });
     jest.setSystemTime(undefined);
     jest.useRealTimers();
+    queryClient?.clear();
   });
 
   it('does not show update trained roles button', async () => {
@@ -140,6 +153,36 @@ describe('VolunteerDashboard', () => {
 
     await waitFor(() => expect(getEvents).toHaveBeenCalled());
     expect(await screen.findByText(/Volunteer Event/)).toBeInTheDocument();
+  });
+
+  it('shows upcoming holidays when available', async () => {
+    jest.setSystemTime(new Date('2024-05-01T12:00:00Z'));
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getHolidays as jest.Mock).mockResolvedValue([
+      { date: '2024-05-03', reason: 'Food Bank Closed' },
+      { date: '2024-06-10', reason: 'Outside Range' },
+    ]);
+
+    await renderDashboard();
+
+    await waitFor(() => expect(getHolidays).toHaveBeenCalled());
+    expect(await screen.findByText('Upcoming Holidays')).toBeInTheDocument();
+    expect(screen.getByText('May 3 (Fri) – Food Bank Closed')).toBeInTheDocument();
+    expect(screen.queryByText('Jun 10 (Mon) – Outside Range')).not.toBeInTheDocument();
+  });
+
+  it('hides upcoming holidays when none are returned', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+
+    await renderDashboard();
+
+    await waitFor(() => expect(getHolidays).toHaveBeenCalled());
+    expect(screen.queryByText('Upcoming Holidays')).not.toBeInTheDocument();
   });
 
   it('preserves line breaks in event details', async () => {
