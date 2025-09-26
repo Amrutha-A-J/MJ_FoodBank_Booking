@@ -77,11 +77,19 @@ const assignNodeTimers = (target: unknown) => {
   host.clearImmediate = (handle?: unknown) => nodeClearImmediate(unwrapTimerHandle(handle));
 };
 
-assignNodeTimers(globalThis);
-assignNodeTimers(global);
+const timerTargets = new Set<unknown>();
+timerTargets.add(globalThis);
+// Jest still exposes `global`, but guard the reference so the setup is resilient outside Node.
+if (typeof global !== 'undefined') {
+  timerTargets.add(global);
+}
 const maybeWindow = (globalThis as Record<string, unknown>).window;
 if (maybeWindow && typeof maybeWindow === 'object') {
-  assignNodeTimers(maybeWindow);
+  timerTargets.add(maybeWindow);
+}
+
+for (const target of timerTargets) {
+  assignNodeTimers(target);
 }
 
 // Polyfill TextEncoder/Decoder for testing environment
