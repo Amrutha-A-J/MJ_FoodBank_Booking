@@ -10,10 +10,11 @@ jest.mock(
 );
 jest.mock('../src/utils/scheduleDailyJob', () => {
   const actual = jest.requireActual('../src/utils/scheduleDailyJob');
+  const defaultMock = jest.fn((cb: any, schedule: string) => actual.default(cb, schedule));
   return {
     __esModule: true,
-    default: (cb: any, schedule: string, _runOnStart?: boolean, skipInTest?: boolean) =>
-      actual.default(cb, schedule, false, skipInTest),
+    default: defaultMock,
+    createDailyJob: actual.createDailyJob,
   };
 });
 jest.mock('../src/utils/opsAlert');
@@ -71,10 +72,8 @@ describe('cleanupEmailQueue', () => {
 describe('startEmailQueueCleanupJob/stopEmailQueueCleanupJob', () => {
   let scheduleMock: jest.Mock;
   let stopMock: jest.Mock;
-  const originalEnv = process.env.NODE_ENV;
   beforeEach(() => {
     jest.useFakeTimers();
-    process.env.NODE_ENV = 'development';
     scheduleMock = require('node-cron').default.schedule as jest.Mock;
     stopMock = jest.fn();
     scheduleMock.mockClear();
@@ -85,10 +84,10 @@ describe('startEmailQueueCleanupJob/stopEmailQueueCleanupJob', () => {
     stopEmailQueueCleanupJob();
     jest.useRealTimers();
     scheduleMock.mockReset();
-    process.env.NODE_ENV = originalEnv;
   });
 
   it('schedules and stops the cron job', () => {
+    expect(process.env.NODE_ENV).toBe('test');
     startEmailQueueCleanupJob();
     expect(scheduleMock).toHaveBeenCalledWith('0 3 * * *', expect.any(Function), {
       timezone: 'America/Regina',

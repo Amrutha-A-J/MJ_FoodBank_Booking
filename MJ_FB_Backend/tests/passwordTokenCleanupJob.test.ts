@@ -10,9 +10,11 @@ jest.mock(
 );
 jest.mock('../src/utils/scheduleDailyJob', () => {
   const actual = jest.requireActual('../src/utils/scheduleDailyJob');
+  const defaultMock = jest.fn((cb: any, schedule: string) => actual.default(cb, schedule));
   return {
     __esModule: true,
-    default: (cb: any, schedule: string) => actual.default(cb, schedule, false, false),
+    default: defaultMock,
+    createDailyJob: actual.createDailyJob,
   };
 });
 const job = require('../src/utils/passwordTokenCleanupJob');

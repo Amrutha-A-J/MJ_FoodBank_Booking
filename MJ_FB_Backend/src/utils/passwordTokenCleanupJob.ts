@@ -1,8 +1,16 @@
 import pool from '../db';
 import logger from './logger';
-import scheduleDailyJob from './scheduleDailyJob';
+import scheduleDailyJob, { createDailyJob as namedCreateDailyJob } from './scheduleDailyJob';
 
-const createDailyJob = scheduleDailyJob.createDailyJob ?? scheduleDailyJob;
+const createDailyJob =
+  typeof namedCreateDailyJob === 'function'
+    ? namedCreateDailyJob
+    : (
+        callback: () => void | Promise<void>,
+        schedule: string,
+        runOnStart: boolean,
+        skipInTest: boolean,
+      ) => scheduleDailyJob(callback, schedule, runOnStart, skipInTest);
 
 /**
  * Remove used or expired password setup tokens.
@@ -27,6 +35,11 @@ const passwordTokenCleanupJob = createDailyJob(
   false,
 );
 
-export const startPasswordTokenCleanupJob = passwordTokenCleanupJob.start;
-export const stopPasswordTokenCleanupJob = passwordTokenCleanupJob.stop;
+export const startPasswordTokenCleanupJob = (): void => {
+  passwordTokenCleanupJob.start();
+};
+
+export const stopPasswordTokenCleanupJob = (): void => {
+  passwordTokenCleanupJob.stop();
+};
 

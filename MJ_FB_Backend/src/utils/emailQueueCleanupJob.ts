@@ -1,10 +1,18 @@
 import pool from '../db';
 import config from '../config';
 import logger from './logger';
-import scheduleDailyJob from './scheduleDailyJob';
+import scheduleDailyJob, { createDailyJob as namedCreateDailyJob } from './scheduleDailyJob';
 import { alertOps, notifyOps } from './opsAlert';
 
-const createDailyJob = scheduleDailyJob.createDailyJob ?? scheduleDailyJob;
+const createDailyJob =
+  typeof namedCreateDailyJob === 'function'
+    ? namedCreateDailyJob
+    : (
+        callback: () => void | Promise<void>,
+        schedule: string,
+        runOnStart: boolean,
+        skipInTest: boolean,
+      ) => scheduleDailyJob(callback, schedule, runOnStart, skipInTest);
 
 export async function cleanupEmailQueue(): Promise<void> {
   try {
@@ -34,6 +42,11 @@ const emailQueueCleanupJob = createDailyJob(
   false,
 );
 
-export const startEmailQueueCleanupJob = emailQueueCleanupJob.start;
-export const stopEmailQueueCleanupJob = emailQueueCleanupJob.stop;
+export const startEmailQueueCleanupJob = (): void => {
+  emailQueueCleanupJob.start();
+};
+
+export const stopEmailQueueCleanupJob = (): void => {
+  emailQueueCleanupJob.stop();
+};
 
