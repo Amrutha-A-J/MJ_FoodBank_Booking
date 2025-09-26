@@ -31,7 +31,7 @@ import {
 import type { Donor } from '../../api/donors';
 import type { Donation } from '../../api/donations';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
-import { formatLocaleDate } from '../../utils/date';
+import { formatLocaleDate, formatDate } from '../../utils/date';
 
 function formatMonth(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -87,7 +87,7 @@ export default function DonationLog() {
     donorId: number | null;
     weight: string;
   }>({
-    date: `${month}-01`,
+    date: formatDate(),
     donorId: null,
     weight: '',
   });
@@ -185,7 +185,7 @@ export default function DonationLog() {
       .then(() => {
         setRecordOpen(false);
         setEditing(null);
-        setForm({ date: `${month}-01`, donorId: null, weight: '' });
+        setForm({ date: formatDate(), donorId: null, weight: '' });
         loadDonations();
         showSnackbar(editing ? 'Donation updated' : 'Donation recorded');
       })
@@ -245,7 +245,7 @@ export default function DonationLog() {
             variant="contained"
             onClick={e => {
               (e.currentTarget as HTMLButtonElement).blur();
-              setForm({ date: `${month}-01`, donorId: null, weight: '' });
+              setForm({ date: formatDate(), donorId: null, weight: '' });
               setEditing(null);
               setRecordOpen(true);
             }}
