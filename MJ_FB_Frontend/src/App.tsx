@@ -242,7 +242,7 @@ export default function App() {
                       }
                     />
                   )}
-                  {showStaff && (
+                  {isStaff && (
                     <Route path="/pantry/manage-availability" element={<ManageAvailability />} />
                   )}
                   {showStaff && (
