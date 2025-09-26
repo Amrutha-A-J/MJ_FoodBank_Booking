@@ -13,6 +13,40 @@ describe('PasswordResetDialog', () => {
     jest.resetAllMocks();
   });
 
+  it('disables submit button when identifier is blank', () => {
+    render(<PasswordResetDialog open onClose={() => {}} />);
+    const submitButton = screen.getByRole('button', { name: /submit/i });
+
+    expect(submitButton).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText(/email or client id/i), {
+      target: { value: '   ' },
+    });
+
+    expect(submitButton).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText(/email or client id/i), {
+      target: { value: 'user@example.com' },
+    });
+
+    expect(submitButton).toBeEnabled();
+  });
+
+  it('shows inline error when submitting an empty identifier', async () => {
+    render(<PasswordResetDialog open onClose={() => {}} />);
+
+    const form = screen.getByLabelText(/email or client id/i).closest('form');
+    expect(form).not.toBeNull();
+
+    fireEvent.submit(form!);
+
+    await waitFor(() =>
+      expect(screen.getByText('Enter your email or client ID.')).toBeInTheDocument(),
+    );
+
+    expect(requestPasswordReset).not.toHaveBeenCalled();
+  });
+
   it('submits email identifier', async () => {
     render(<PasswordResetDialog open onClose={() => {}} />);
     fireEvent.change(screen.getByLabelText(/email or client id/i), {
@@ -23,6 +57,27 @@ describe('PasswordResetDialog', () => {
       expect(requestPasswordReset).toHaveBeenCalledWith({
         email: 'user@example.com',
       }),
+    );
+  });
+
+  it('clears inline error when entering a valid identifier after an empty submission', async () => {
+    render(<PasswordResetDialog open onClose={() => {}} />);
+
+    const form = screen.getByLabelText(/email or client id/i).closest('form');
+    expect(form).not.toBeNull();
+
+    fireEvent.submit(form!);
+
+    await waitFor(() =>
+      expect(screen.getByText('Enter your email or client ID.')).toBeInTheDocument(),
+    );
+
+    fireEvent.change(screen.getByLabelText(/email or client id/i), {
+      target: { value: 'user@example.com' },
+    });
+
+    await waitFor(() =>
+      expect(screen.queryByText('Enter your email or client ID.')).not.toBeInTheDocument(),
     );
   });
 
