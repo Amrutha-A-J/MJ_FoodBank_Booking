@@ -44,8 +44,6 @@ import {
   Select,
   MenuItem,
   ListSubheader,
-  ListItemText,
-  Checkbox,
   FormControlLabel,
   Switch,
   DialogActions,
@@ -71,6 +69,7 @@ import dayjs from '../../utils/date';
 import Page from '../../components/Page';
 import VolunteerQuickLinks from '../../components/VolunteerQuickLinks';
 import EditVolunteerDialog from './EditVolunteerDialog';
+import RoleSelectionDialog from './RoleSelectionDialog';
 
 
 
@@ -133,7 +132,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [editVolunteer, setEditVolunteer] =
     useState<VolunteerResult | null>(null);
   const [trainedEdit, setTrainedEdit] = useState<string[]>([]);
-  const [newTrainedRole, setNewTrainedRole] = useState('');
   const [editMsg, setEditMsg] = useState('');
   const [editSeverity, setEditSeverity] = useState<'success' | 'error'>('success');
 
@@ -179,6 +177,8 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [sendPasswordLink, setSendPasswordLink] = useState(true);
   const [password, setPassword] = useState('');
   const [selectedCreateRoles, setSelectedCreateRoles] = useState<string[]>([]);
+  const [createRoleDialogOpen, setCreateRoleDialogOpen] = useState(false);
+  const [editRoleDialogOpen, setEditRoleDialogOpen] = useState(false);
   const [createMsg, setCreateMsg] = useState('');
   const [createSeverity, setCreateSeverity] = useState<'success' | 'error'>('success');
 
@@ -1107,53 +1107,44 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                     <Typography variant="h6" gutterBottom>
                       Roles
                     </Typography>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      mb={1}
-                      sx={{ width: 1, flexWrap: 'wrap', overflow: 'hidden' }}
-                    >
-                      {trainedEdit.map(r => (
-                        <Chip
-                          key={r}
-                          label={r}
-                          onDelete={() => toggleTrained(r, false)}
-                          title={r}
-                          sx={{
-                            maxWidth: 200,
-                            '& .MuiChip-label': {
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            },
-                          }}
-                        />
-                      ))}
-                    </Stack>
-                    <FormControl fullWidth sx={{ mb: 2 }}>
-                      <InputLabel id="add-role-label">Add role</InputLabel>
-                      <Select
-                        labelId="add-role-label"
-                        aria-labelledby="add-role-label"
-                        value={newTrainedRole}
-                        label="Add role"
-                        onChange={e => {
-                          const val = e.target.value as string;
-                          toggleTrained(val, true);
-                          setNewTrainedRole('');
-                        }}
+                    {trainedEdit.length === 0 ? (
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        No trained roles selected.
+                      </Typography>
+                    ) : (
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        mb={1}
+                        sx={{ width: 1, flexWrap: 'wrap', overflow: 'hidden' }}
                       >
-                        {groupedRoles.flatMap(g => [
-                          <ListSubheader key={`${g.category}-header`}>
-                            {g.category}
-                          </ListSubheader>,
-                          ...g.roles.map(r => (
-                            <MenuItem key={`${r.role_id}-${r.name}`} value={r.name}>
-                              {r.name}
-                            </MenuItem>
-                          )),
-                        ])}
-                      </Select>
-                    </FormControl>
+                        {trainedEdit.map(r => (
+                          <Chip
+                            key={r}
+                            label={r}
+                            onDelete={() => toggleTrained(r, false)}
+                            title={r}
+                            sx={{
+                              maxWidth: 200,
+                              '& .MuiChip-label': {
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              },
+                            }}
+                          />
+                        ))}
+                      </Stack>
+                    )}
+                    <Button
+                      variant="outlined"
+                      onClick={() => setEditRoleDialogOpen(true)}
+                      aria-haspopup="dialog"
+                      aria-controls="edit-role-selection-dialog"
+                      aria-expanded={editRoleDialogOpen}
+                      sx={{ alignSelf: 'flex-start', mb: 2, textTransform: 'none' }}
+                    >
+                      Manage roles
+                    </Button>
                     <Button
                       variant="contained"
                       onClick={saveTrainedAreas}
@@ -1239,41 +1230,53 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               emailTextFieldProps={{ fullWidth: true }}
               phoneTextFieldProps={{ fullWidth: true }}
             />
-            <FormControl fullWidth>
-              <InputLabel id="create-volunteer-roles-label">Roles</InputLabel>
-              <Select
-                labelId="create-volunteer-roles-label"
-                multiple
-                value={selectedCreateRoles}
-                label="Roles"
-                onChange={event => {
-                  const value = event.target.value;
-                  setSelectedCreateRoles(
-                    typeof value === 'string' ? value.split(',') : (value as string[])
-                  );
-                }}
-                renderValue={selected => {
-                  const names = selected as string[];
-                  return names.length ? names.join(', ') : 'Select roles';
-                }}
-              >
-                {groupedRoles.flatMap(g => [
-                  <ListSubheader key={`${g.category}-header`}>{g.category}</ListSubheader>,
-                  ...g.roles.map(r => (
-                    <MenuItem key={`${r.role_id}-${r.name}`} value={r.name}>
-                      <Checkbox checked={selectedCreateRoles.includes(r.name)} />
-                      <ListItemText primary={r.name} />
-                    </MenuItem>
-                  )),
-                ])}
-              </Select>
-            </FormControl>
+            <TextField
+              label="Roles"
+              value={selectedCreateRoles.join(', ')}
+              placeholder="Select roles"
+              fullWidth
+              inputProps={{
+                role: 'button',
+                'aria-haspopup': 'dialog',
+                'aria-controls': 'create-role-selection-dialog',
+                'aria-expanded': createRoleDialogOpen,
+              }}
+              InputProps={{ readOnly: true }}
+              onClick={() => setCreateRoleDialogOpen(true)}
+              onKeyDown={event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  setCreateRoleDialogOpen(true);
+                }
+              }}
+              sx={{ cursor: 'pointer' }}
+              helperText={
+                selectedCreateRoles.length
+                  ? `${selectedCreateRoles.length} role${
+                      selectedCreateRoles.length > 1 ? 's' : ''
+                    } selected`
+                  : 'Select one or more roles'
+              }
+            />
           </FormCard>
           <FeedbackSnackbar
             open={!!createMsg}
             onClose={() => setCreateMsg('')}
             message={createMsg}
             severity={createSeverity}
+          />
+          <RoleSelectionDialog
+            open={createRoleDialogOpen}
+            groupedRoles={groupedRoles}
+            selectedRoles={selectedCreateRoles}
+            onCancel={() => setCreateRoleDialogOpen(false)}
+            onConfirm={roles => {
+              setSelectedCreateRoles(roles);
+              setCreateRoleDialogOpen(false);
+            }}
+            dialogId="create-role-selection-dialog"
+            title="Select roles for new volunteer"
+            description="Choose every role this volunteer can help with."
           />
         </>
       )}
@@ -1486,6 +1489,19 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         </div>
       )}
 
+      <RoleSelectionDialog
+        open={editRoleDialogOpen}
+        groupedRoles={groupedRoles}
+        selectedRoles={trainedEdit}
+        onCancel={() => setEditRoleDialogOpen(false)}
+        onConfirm={roles => {
+          setTrainedEdit(roles);
+          setEditRoleDialogOpen(false);
+        }}
+        dialogId="edit-role-selection-dialog"
+        title="Edit trained roles"
+        description="Check every role this volunteer is trained for."
+      />
       <EditVolunteerDialog
         volunteer={dialogVolunteer}
         onClose={() => setEditVolunteer(null)}
