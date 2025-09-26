@@ -41,5 +41,7 @@ describe('Client booking history', () => {
     expect(screen.queryByRole('button', { name: /Edit Client/i })).toBeNull();
     expect(screen.queryByLabelText(/Filter/i)).toBeNull();
     expect(screen.queryByText(/History for/i)).toBeNull();
+    const bookingLink = screen.getByRole('link', { name: /Back to booking/i });
+    expect(bookingLink).toHaveAttribute('href', '/book-appointment');
   });
 });
