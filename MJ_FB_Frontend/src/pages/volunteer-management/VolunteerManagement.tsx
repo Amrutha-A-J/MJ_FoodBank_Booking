@@ -802,8 +802,17 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         </Suspense>
       )}
       {tab === 'schedule' && (
-        <div>
-          <FormControl sx={{ minWidth: 200, mr: 2 }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          sx={{ mb: 2 }}
+        >
+          <FormControl
+            size="medium"
+            fullWidth
+            sx={{ minWidth: { sm: 200 }, flexShrink: { sm: 0 } }}
+          >
             <InputLabel id="schedule-department-label">Department</InputLabel>
             <Select
               labelId="schedule-department-label"
@@ -818,7 +827,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               {departmentItems}
             </Select>
           </FormControl>
-          <FormControl sx={{ minWidth: 200 }}>
+          <FormControl
+            size="medium"
+            fullWidth
+            sx={{ minWidth: { sm: 200 }, flexShrink: { sm: 0 } }}
+          >
             <InputLabel id="schedule-role-label">Role</InputLabel>
             <Select
               labelId="schedule-role-label"
@@ -833,6 +846,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               {scheduleRoleItems}
             </Select>
           </FormControl>
+        </Stack>
           {selectedRole && roleInfos.length > 0 ? (
             <>
               <Stack
