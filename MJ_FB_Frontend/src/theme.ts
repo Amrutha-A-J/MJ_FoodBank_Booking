@@ -219,7 +219,7 @@ let theme = createTheme({
               height: theme.spacing(5),
             },
             '&.MuiInputBase-sizeMedium:not(.MuiInputBase-multiline)': {
-              height: theme.spacing(7),
+              height: theme.spacing(8),
             },
             '&:hover .MuiOutlinedInput-notchedOutline': {
               borderColor: alpha(BRAND_PRIMARY, 0.4),
@@ -231,7 +231,7 @@ let theme = createTheme({
           },
           '& .MuiOutlinedInput-notchedOutline': { borderRadius: theme.shape.borderRadius },
           '& .MuiFormHelperText-root': { marginLeft: 0 },
-          '& .MuiInputBase-input': { padding: '0.5rem', fontSize: '1rem' },
+          '& .MuiInputBase-input': { padding: '0.75rem 0.5rem', fontSize: '1rem' },
         }),
       },
     },
@@ -243,7 +243,7 @@ let theme = createTheme({
           '&.MuiInputBase-root.MuiOutlinedInput-root': {
             borderRadius: theme.shape.borderRadius,
             '&.MuiInputBase-sizeSmall': { height: theme.spacing(5) },
-            '&.MuiInputBase-sizeMedium': { height: theme.spacing(7) },
+            '&.MuiInputBase-sizeMedium': { height: theme.spacing(8) },
             '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: alpha(BRAND_PRIMARY, 0.4) },
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
               borderColor: BRAND_PRIMARY,
@@ -253,7 +253,7 @@ let theme = createTheme({
           '& .MuiOutlinedInput-notchedOutline': { borderRadius: theme.shape.borderRadius },
           '& .MuiFormHelperText-root': { marginLeft: 0 },
         }),
-        select: { padding: '0.5rem', fontSize: '1rem' },
+        select: { padding: '0.75rem 0.5rem', fontSize: '1rem' },
       },
     },
 
