@@ -79,6 +79,27 @@ const DEFAULT_MONTHS = 12;
 const MIN_MONTHS = 1;
 const MAX_MONTHS = 36;
 
+const HEADER_ALIASES: Record<string, string[]> = {
+  'Payment Date': ['Payment Date', 'Payment Date (America/Regina)'],
+};
+
+const headerAliasLookup = new Map<string, string>();
+
+for (const [canonical, aliases] of Object.entries(HEADER_ALIASES)) {
+  const values = new Set(aliases);
+  values.add(canonical);
+  for (const alias of values) {
+    headerAliasLookup.set(alias, canonical);
+  }
+}
+
+const resolveCanonicalHeader = (header: string) => headerAliasLookup.get(header) ?? header;
+
+const getHeaderAliases = (canonical: string) => {
+  const aliases = HEADER_ALIASES[canonical];
+  return aliases ? Array.from(new Set([...aliases, canonical])) : [canonical];
+};
+
 function formatMonth(date: Date) {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
 }
@@ -829,14 +850,18 @@ export async function importZeffyDonations(req: Request, res: Response, next: Ne
       'Payment Status',
       'Total Amount',
     ];
-    const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
+    const missingHeaders = requiredHeaders.filter(header => {
+      const aliases = getHeaderAliases(header);
+      return !aliases.some(alias => headers.includes(alias));
+    });
     if (missingHeaders.length > 0) {
       return res.status(400).json({ message: `Missing columns: ${missingHeaders.join(', ')}` });
     }
 
     const headerIndex = headers.reduce<Record<string, number>>((acc, header, index) => {
-      if (!(header in acc)) {
-        acc[header] = index;
+      const canonical = resolveCanonicalHeader(header);
+      if (!(canonical in acc)) {
+        acc[canonical] = index;
       }
       return acc;
     }, {});
@@ -856,7 +881,8 @@ export async function importZeffyDonations(req: Request, res: Response, next: Ne
       }
 
       const getCell = (column: string) => {
-        const index = headerIndex[column];
+        const canonical = resolveCanonicalHeader(column);
+        const index = headerIndex[canonical];
         if (index === undefined) return null;
         return row[index] ?? null;
       };

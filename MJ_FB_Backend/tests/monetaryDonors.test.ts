@@ -604,6 +604,60 @@ describe('Import Zeffy donations', () => {
     );
     expect(res.body).toEqual({ donorsAdded: 1, donationsImported: 2 });
   });
+
+  it('accepts Payment Date alias headers', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'staff',
+      type: 'staff',
+      access: ['donor_management'],
+    });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rows: [{ id: 3 }] })
+      .mockResolvedValueOnce({});
+
+    const excelData: Row[] = [
+      [
+        { value: 'First Name' },
+        { value: 'Last Name' },
+        { value: 'Email' },
+        { value: 'Payment Date (America/Regina)' },
+        { value: 'Payment Status' },
+        { value: 'Total Amount' },
+      ],
+      [
+        { value: 'Casey' },
+        { value: 'Contributor' },
+        { value: 'casey@example.com' },
+        { value: '2024-02-15T06:00:00Z' },
+        { value: 'Succeeded' },
+        { value: '$15.00' },
+      ],
+    ];
+    const excelBuffer = await writeXlsxFile(excelData, { buffer: true });
+
+    const res = await request(app)
+      .post('/monetary-donors/import')
+      .attach('file', Buffer.from(excelBuffer), 'donations.xlsx')
+      .set('Authorization', 'Bearer token');
+
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenCalledWith(
+      'SELECT id FROM monetary_donors WHERE email = $1',
+      ['casey@example.com'],
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO monetary_donors'),
+      ['Casey', 'Contributor', 'casey@example.com'],
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO monetary_donations'),
+      [3, expect.any(String), 1500],
+    );
+    expect(res.body).toEqual({ donorsAdded: 1, donationsImported: 1 });
+  });
 });
 
 describe('Mailing list generation', () => {
