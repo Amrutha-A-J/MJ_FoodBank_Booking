@@ -32,8 +32,9 @@ describe('Navbar component', () => {
           role="staff"
           profileLinks={[
             { label: 'News & Events', to: '/events' },
+            { label: 'Manage Availability', to: '/pantry/manage-availability' },
             { label: 'Timesheets', to: '/timesheet' },
-            { label: 'Leave Management', to: '/leave-requests' },
+            { label: 'Leave Requests', to: '/leave-requests' },
           ]}
         />
       </MemoryRouter>,
@@ -43,7 +44,8 @@ describe('Navbar component', () => {
     fireEvent.click(screen.getByText(/Hello, Tester/i));
     const profileMenu = document.getElementById('profile-menu') as HTMLElement;
     expect(within(profileMenu).getByText(/Timesheets/i)).toBeInTheDocument();
-    expect(within(profileMenu).getByText(/Leave Management/i)).toBeInTheDocument();
+    expect(within(profileMenu).getByText(/Manage Availability/i)).toBeInTheDocument();
+    expect(within(profileMenu).getByText(/Leave Requests/i)).toBeInTheDocument();
   });
 
   it('renders without greeting when name is absent', () => {
