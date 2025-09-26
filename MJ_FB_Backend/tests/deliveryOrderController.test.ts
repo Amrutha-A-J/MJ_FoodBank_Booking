@@ -861,6 +861,7 @@ describe('deliveryOrderController', () => {
       };
 
       (mockDb.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ status: 'approved' }], rowCount: 1 })
         .mockResolvedValueOnce({ rows: [baseOrderRow], rowCount: 1 })
         .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
@@ -879,11 +880,16 @@ describe('deliveryOrderController', () => {
 
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining("SET status = 'completed'"),
+        expect.stringContaining('SELECT status'),
         [101],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
         2,
+        expect.stringContaining("SET status = 'completed'"),
+        [101],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        3,
         expect.stringContaining('INSERT INTO client_visits'),
         [expect.any(String), 123, 37.5, 1, 0],
       );
@@ -924,7 +930,47 @@ describe('deliveryOrderController', () => {
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ message: 'Delivery order not found' });
       expect(mockDb.query).toHaveBeenCalledTimes(1);
+      expect(mockDb.query).toHaveBeenCalledWith(expect.stringContaining('SELECT status'), [999]);
       expect(refreshClientVisitCount).not.toHaveBeenCalled();
+    });
+
+    it('returns 400 when attempting to complete an order that is already cancelled', async () => {
+      (mockDb.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ status: 'cancelled' }], rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+      const req = {
+        user: { role: 'staff', id: '7', type: 'staff' },
+        params: { id: '101' },
+        body: { weight: 20 },
+      } as any;
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      await completeDeliveryOrder(req, res, jest.fn());
+      await flushPromises();
+
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        1,
+        expect.stringContaining('SELECT status'),
+        [101],
+      );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining("SET status = 'completed'"),
+        [101],
+      );
+      expect(mockDb.query).toHaveBeenCalledTimes(2);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Delivery order cannot be completed from its current status.',
+      });
+      expect(refreshClientVisitCount).not.toHaveBeenCalled();
+      expect(refreshPantryWeekly).not.toHaveBeenCalled();
+      expect(refreshPantryMonthly).not.toHaveBeenCalled();
+      expect(refreshPantryYearly).not.toHaveBeenCalled();
     });
   });
 });

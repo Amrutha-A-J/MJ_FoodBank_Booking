@@ -285,6 +285,11 @@ describe('delivery orders routes', () => {
     mockUser = { id: '99', role: 'staff', type: 'staff' };
 
     (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [{ status: 'pending' }],
+      rowCount: 1,
+    });
+
+    (pool.query as jest.Mock).mockResolvedValueOnce({
       rows: [
         {
           id: 55,
@@ -300,6 +305,8 @@ describe('delivery orders routes', () => {
       ],
       rowCount: 1,
     });
+
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(app)
       .post('/delivery/orders/55/complete')
@@ -317,6 +324,16 @@ describe('delivery orders routes', () => {
       notes: 'Leave at front desk',
       createdAt: '2024-07-10T17:30:00.000Z',
     });
+    expect(pool.query).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining('SELECT status'),
+      [55],
+    );
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining("SET status = 'completed'"),
+      [55],
+    );
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining("SET status = 'completed'"),
       [55],
