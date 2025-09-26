@@ -1,82 +1,64 @@
-import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import EditVolunteer from '../volunteer-management/EditVolunteer';
-import {
-  getVolunteerRoles,
-  getVolunteerById,
-  updateVolunteer,
-  getVolunteerBookingHistory,
-} from '../../../api/volunteers';
+import type { VolunteerSearchResult } from '../../../api/volunteers';
 
-jest.mock('../../../api/volunteers', () => ({
-  getVolunteerRoles: jest.fn(),
-  updateVolunteerTrainedAreas: jest.fn(),
-  getVolunteerById: jest.fn(),
-  updateVolunteer: jest.fn(),
-  getVolunteerBookingHistory: jest.fn(),
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
 }));
 
-jest.mock('../../../api/users', () => ({
-  requestPasswordReset: jest.fn(),
-}));
-
-const mockVolunteer: any = {
+const mockVolunteer: VolunteerSearchResult = {
   id: 1,
-  name: 'John Doe',
-  firstName: 'John',
-  lastName: 'Doe',
-  email: undefined,
-  phone: undefined,
+  name: 'Jordan Volunteer',
+  firstName: 'Jordan',
+  lastName: 'Volunteer',
+  email: 'jordan@example.com',
+  phone: '555-0100',
   trainedAreas: [],
   hasShopper: false,
   hasPassword: false,
   clientId: null,
 };
 
-jest.mock('../../../components/EntitySearch', () => (props: any) => (
-  <button onClick={() => props.onSelect(mockVolunteer)}>Select Volunteer</button>
-));
+jest.mock('../../../components/EntitySearch', () =>
+  function MockEntitySearch(props: { onSelect: (volunteer: VolunteerSearchResult) => void }) {
+    return (
+      <button onClick={() => props.onSelect(mockVolunteer)} data-testid="entity-search-mock">
+        Select Volunteer
+      </button>
+    );
+  },
+);
 
-describe('EditVolunteer save button', () => {
+describe('EditVolunteer landing view', () => {
   beforeEach(() => {
-    (getVolunteerRoles as jest.Mock).mockReset();
-    (getVolunteerById as jest.Mock).mockResolvedValue(mockVolunteer);
-    (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([]);
+    mockNavigate.mockReset();
   });
 
-  it('is disabled until roles change', async () => {
-    (getVolunteerRoles as jest.Mock).mockResolvedValue([
-      {
-        id: 1,
-        category_id: 1,
-        name: 'Role A',
-        max_volunteers: 1,
-        category_name: 'Master 1',
-        shifts: [],
-      },
-    ]);
-
+  it('renders search helper text and no inline save button', () => {
     render(
       <MemoryRouter>
         <EditVolunteer />
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+    expect(
+      screen.getByText('Search for a volunteer to view their profile and make updates.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('save-button')).not.toBeInTheDocument();
+  });
 
-    fireEvent.click(screen.getByText('Select Volunteer'));
-    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
-    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
-    const saveBtn = await screen.findByTestId('save-button');
-    expect(saveBtn).toBeDisabled();
-
-    fireEvent.mouseDown(
-      screen.getByTestId('roles-select').querySelector('[role="combobox"]')!,
+  it('navigates to the profile view when selecting a volunteer', () => {
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
     );
-    const listbox = await screen.findByRole('listbox');
-    fireEvent.click(within(listbox).getByText('Role A'));
-    fireEvent.keyDown(listbox, { key: 'Escape' });
 
-    expect(saveBtn).not.toBeDisabled();
+    screen.getByTestId('entity-search-mock').click();
+    expect(mockNavigate).toHaveBeenCalledWith('/volunteer-management/volunteers/1');
   });
 });
