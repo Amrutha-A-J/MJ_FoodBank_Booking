@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import ClientDashboard from '../pages/client/ClientDashboard';
 import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../api/bookings';
@@ -161,5 +161,41 @@ describe('ClientDashboard', () => {
       const buttons = screen.getAllByRole('button', { name: /reschedule/i });
       expect(buttons.some(btn => !btn.hasAttribute('disabled'))).toBe(true);
     });
+  });
+
+  it('closes cancel dialog when Keep booking is clicked', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'approved',
+        date: '2099-01-01',
+        start_time: '09:00:00',
+        reschedule_token: 'tok123',
+      },
+    ]);
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (cancelBooking as jest.Mock).mockResolvedValue(undefined);
+
+    await renderClientDashboard();
+
+    const upcomingTitle = await screen.findByText(/my upcoming appointment/i);
+    const upcomingCard = upcomingTitle.closest('.MuiPaper-root');
+    expect(upcomingCard).not.toBeNull();
+
+    const cancelButton = within(upcomingCard as HTMLElement).getByRole('button', {
+      name: /^cancel$/i,
+    });
+    fireEvent.click(cancelButton);
+
+    const keepBookingButton = await screen.findByRole('button', { name: /keep booking/i });
+    fireEvent.click(keepBookingButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /keep booking/i })).not.toBeInTheDocument();
+    });
+
+    expect(cancelBooking).not.toHaveBeenCalled();
   });
 });
