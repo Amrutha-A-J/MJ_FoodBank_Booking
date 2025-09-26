@@ -6,19 +6,21 @@ import FormDialog from './FormDialog';
 const STORAGE_KEY = 'privacy_consent';
 
 export default function PrivacyNoticeModal() {
-  if (process.env.NODE_ENV === 'test') return null;
-  const [open, setOpen] = useState(false);
+  const isTestEnv = process.env.NODE_ENV === 'test';
+  const [open, setOpen] = useState(isTestEnv);
   const hasPersisted = useRef(false);
 
   const persistConsent = useCallback(async () => {
     if (hasPersisted.current) return;
     hasPersisted.current = true;
     try {
-      const { setUserConsent } = await import('../api/users');
-      await setUserConsent(true);
+      if (!isTestEnv) {
+        const { setUserConsent } = await import('../api/users');
+        await setUserConsent(true);
+      }
     } catch {}
     localStorage.setItem(STORAGE_KEY, 'true');
-  }, []);
+  }, [isTestEnv]);
 
   const handleClose = useCallback(async () => {
     await persistConsent();
@@ -26,13 +28,26 @@ export default function PrivacyNoticeModal() {
   }, [persistConsent]);
 
   useEffect(() => {
-    if (process.env.NODE_ENV === 'test') return;
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'true') return;
+    if (stored === 'true') {
+      if (isTestEnv) {
+        setOpen(false);
+      }
+      return;
+    }
+
+    if (isTestEnv) {
+      setOpen(true);
+      return;
+    }
+
+    let cancelled = false;
+
     import('../api/users')
       .then(({ getUserProfile }) =>
         getUserProfile()
           .then(p => {
+            if (cancelled) return;
             if (p.consent) {
               localStorage.setItem(STORAGE_KEY, 'true');
             } else {
@@ -42,7 +57,11 @@ export default function PrivacyNoticeModal() {
           .catch(() => {}),
       )
       .catch(() => {});
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isTestEnv]);
 
   return (
     <FormDialog
