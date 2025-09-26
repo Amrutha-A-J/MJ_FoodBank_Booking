@@ -618,17 +618,31 @@ export const completeDeliveryOrder = asyncHandler(async (req: Request, res: Resp
     return res.status(400).json({ message: 'Invalid order id' });
   }
 
+  const existingOrderResult = await pool.query<{ status: DeliveryOrderStatus }>(
+    `SELECT status
+       FROM delivery_orders
+      WHERE id = $1`,
+    [orderId],
+  );
+
+  if (!existingOrderResult.rows[0]) {
+    return res.status(404).json({ message: 'Delivery order not found' });
+  }
+
   const updatedResult = await pool.query<DeliveryOrderRow>(
     `UPDATE delivery_orders
         SET status = 'completed'
       WHERE id = $1
+        AND status IN ('pending', 'approved', 'scheduled')
       RETURNING id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"`,
     [orderId],
   );
 
   const order = updatedResult.rows[0];
   if (!order) {
-    return res.status(404).json({ message: 'Delivery order not found' });
+    return res
+      .status(400)
+      .json({ message: 'Delivery order cannot be completed from its current status.' });
   }
 
   if (order.clientId != null) {
