@@ -50,7 +50,11 @@ export default function PasswordResetDialog({
           <FormCard
             title={formTitle}
             onSubmit={handleSubmit}
-            actions={<Button type="submit" variant="contained">Submit</Button>}
+            actions={
+              <Button type="submit" variant="contained" fullWidth sx={{ minHeight: 48 }}>
+                Submit
+              </Button>
+            }
             boxProps={{ minHeight: 'auto', p: 0 }}
           >
             <Typography variant="body2">
@@ -58,7 +62,6 @@ export default function PasswordResetDialog({
             </Typography>
             <TextField
               autoFocus
-              margin="dense"
               label="Email or client ID"
               type="text"
               name="identifier"

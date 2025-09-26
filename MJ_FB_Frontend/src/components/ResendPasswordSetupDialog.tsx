@@ -43,7 +43,11 @@ export default function ResendPasswordSetupDialog({
           <FormCard
             title="Resend password setup link"
             onSubmit={handleSubmit}
-            actions={<Button type="submit" variant="contained">Submit</Button>}
+            actions={
+              <Button type="submit" variant="contained" fullWidth sx={{ minHeight: 48 }}>
+                Submit
+              </Button>
+            }
             boxProps={{ minHeight: 'auto', p: 0 }}
           >
             <Typography variant="body2">
@@ -51,7 +55,6 @@ export default function ResendPasswordSetupDialog({
             </Typography>
             <TextField
               autoFocus
-              margin="dense"
               label="Email or client ID"
               name="email"
               autoComplete="email"
