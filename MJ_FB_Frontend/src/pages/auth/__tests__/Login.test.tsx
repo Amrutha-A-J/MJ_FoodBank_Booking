@@ -50,6 +50,34 @@ describe('Login error handling', () => {
     });
   });
 
+  it('trims whitespace from the identifier before logging in', async () => {
+    mockedLogin.mockResolvedValue({ role: 'shopper', name: 'Test User' });
+    const onLogin = jest.fn().mockResolvedValue('/');
+    render(
+      <MemoryRouter>
+        <Login onLogin={onLogin} />
+      </MemoryRouter>,
+    );
+
+    const idField = (await screen.findByLabelText(
+      /client id or email/i,
+    )) as HTMLInputElement;
+    const passwordField = (await screen.findByLabelText(/password/i, {
+      selector: 'input',
+    })) as HTMLInputElement;
+
+    fireEvent.change(idField, { target: { value: '  user@example.com  ' } });
+    fireEvent.change(passwordField, { target: { value: 'secret' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /login/i }));
+
+    await waitFor(() =>
+      expect(mockedLogin).toHaveBeenCalledWith('user@example.com', 'secret'),
+    );
+
+    expect(idField.value).toBe('user@example.com');
+  });
+
   it('disables button while submitting and refocuses identifier on error', async () => {
     mockedLogin.mockRejectedValue({ status: 401, message: 'Incorrect' });
     const onLogin = jest.fn().mockResolvedValue('/');

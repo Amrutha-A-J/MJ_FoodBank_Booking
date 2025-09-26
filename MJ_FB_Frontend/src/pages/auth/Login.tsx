@@ -33,19 +33,23 @@ export default function Login({
   const navigate = useNavigate();
   const identifierRef = useRef<HTMLInputElement>(null);
 
-  const identifierError = submitted && identifier === '';
+  const identifierError = submitted && identifier.trim() === '';
   const passwordError = submitted && password === '';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
-    if (identifier === '' || password === '') {
+    const normalizedIdentifier = identifier.trim();
+    if (identifier !== normalizedIdentifier) {
+      setIdentifier(normalizedIdentifier);
+    }
+    if (normalizedIdentifier === '' || password === '') {
       identifierRef.current?.focus();
       return;
     }
     setLoading(true);
     try {
-      const user = await login(identifier, password);
+      const user = await login(normalizedIdentifier, password);
       const redirect = await onLogin(user);
       navigate(redirect);
     } catch (err: unknown) {
