@@ -10,17 +10,20 @@ export default function PrivacyNoticeModal() {
   const [open, setOpen] = useState(isTestEnv);
   const hasPersisted = useRef(false);
 
-  const persistConsent = useCallback(async () => {
-    if (hasPersisted.current) return;
-    hasPersisted.current = true;
-    if (!isTestEnv) {
-      try {
-        const { setUserConsent } = await import('../api/users');
-        await setUserConsent(true);
-      } catch {}
-    }
-    localStorage.setItem(STORAGE_KEY, 'true');
-  }, [isTestEnv]);
+  const persistConsent = useCallback(
+    async ({ skipRemote = false }: { skipRemote?: boolean } = {}) => {
+      if (hasPersisted.current) return;
+      hasPersisted.current = true;
+      if (!skipRemote && !isTestEnv) {
+        try {
+          const { setUserConsent } = await import('../api/users');
+          await setUserConsent(true);
+        } catch {}
+      }
+      localStorage.setItem(STORAGE_KEY, 'true');
+    },
+    [isTestEnv],
+  );
 
   const handleClose = useCallback(async () => {
     await persistConsent();
@@ -30,6 +33,7 @@ export default function PrivacyNoticeModal() {
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'true') {
+      void persistConsent({ skipRemote: true });
       setOpen(false);
       return;
     }
@@ -37,12 +41,17 @@ export default function PrivacyNoticeModal() {
       setOpen(true);
       return;
     }
+
+    let cancelled = false;
+
     import('../api/users')
       .then(({ getUserProfile }) =>
         getUserProfile()
-          .then(p => {
-            if (p.consent) {
-              localStorage.setItem(STORAGE_KEY, 'true');
+          .then(profile => {
+            if (cancelled) return;
+            if (profile.consent) {
+              void persistConsent({ skipRemote: true });
+              setOpen(false);
             } else {
               setOpen(true);
             }
@@ -50,7 +59,11 @@ export default function PrivacyNoticeModal() {
           .catch(() => {}),
       )
       .catch(() => {});
-  }, [isTestEnv]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isTestEnv, persistConsent]);
 
   return (
     <FormDialog
