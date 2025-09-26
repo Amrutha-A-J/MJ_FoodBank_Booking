@@ -156,6 +156,19 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     no_show: 'rgb(255, 200, 200)',
     completed: 'rgb(111,146,113)',
   };
+  const roleMenuProps = useMemo(
+    () => ({
+      slotProps: {
+        paper: {
+          sx: {
+            maxHeight: 'min(360px, calc(100vh - 96px))',
+            overflowY: 'auto',
+          },
+        },
+      },
+    }),
+    []
+  );
 
   useEffect(() => {
     if (tab !== 'search') {
@@ -1141,6 +1154,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                           toggleTrained(val, true);
                           setNewTrainedRole('');
                         }}
+                        MenuProps={roleMenuProps}
                       >
                         {groupedRoles.flatMap(g => [
                           <ListSubheader key={`${g.category}-header`}>
@@ -1256,6 +1270,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                   const names = selected as string[];
                   return names.length ? names.join(', ') : 'Select roles';
                 }}
+                MenuProps={roleMenuProps}
               >
                 {groupedRoles.flatMap(g => [
                   <ListSubheader key={`${g.category}-header`}>{g.category}</ListSubheader>,
