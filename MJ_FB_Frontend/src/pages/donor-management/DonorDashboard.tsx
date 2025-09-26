@@ -246,7 +246,7 @@ export default function DonorDashboard() {
               </SectionCard>
             </Grid>
 
-            <Grid size={{ xs: 12, lg: 8 }}>
+            <Grid size={{ xs: 12 }}>
               <SectionCard title="Giving trends" icon={<ShowChart color="primary" />}>
                 {trendData.length ? (
                   <Box sx={{ height: 320 }}>
@@ -260,7 +260,7 @@ export default function DonorDashboard() {
               </SectionCard>
             </Grid>
 
-            <Grid size={{ xs: 12, lg: 4 }}>
+            <Grid size={{ xs: 12 }}>
               <SectionCard title="Giving tiers" icon={<Leaderboard color="primary" />}>
                 {hasTierData ? (
                   <Box sx={{ height: 320 }}>
