@@ -7,12 +7,20 @@ import {
   formatTimeToAmPm,
 } from './dateUtils';
 import logger from './logger';
-import scheduleDailyJob from './scheduleDailyJob';
+import scheduleDailyJob, { createDailyJob as namedCreateDailyJob } from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
 import config from '../config';
 import { alertOps, notifyOps } from './opsAlert';
 
-const createDailyJob = scheduleDailyJob.createDailyJob ?? scheduleDailyJob;
+const createDailyJob =
+  typeof namedCreateDailyJob === 'function'
+    ? namedCreateDailyJob
+    : (
+        callback: () => void | Promise<void>,
+        schedule: string,
+        runOnStart: boolean,
+        skipInTest: boolean,
+      ) => scheduleDailyJob(callback, schedule, runOnStart, skipInTest);
 
 /**
  * Send reminder emails for bookings scheduled for the next day.
@@ -98,6 +106,11 @@ const bookingReminderJob = createDailyJob(
   false,
 );
 
-export const startBookingReminderJob = bookingReminderJob.start;
-export const stopBookingReminderJob = bookingReminderJob.stop;
+export const startBookingReminderJob = (): void => {
+  bookingReminderJob.start();
+};
+
+export const stopBookingReminderJob = (): void => {
+  bookingReminderJob.stop();
+};
 
