@@ -39,8 +39,8 @@ describe('MonetaryDonationTrendChart', () => {
     fireEvent.mouseOver(dots[0]);
 
     expect(screen.getByText('Amount: $1,000.00')).toBeInTheDocument();
-    expect(screen.getByText('Donations: 12')).toBeInTheDocument();
     expect(screen.getByText('Donors: 10')).toBeInTheDocument();
     expect(screen.getByText('Avg. Gift: $83.33')).toBeInTheDocument();
+    expect(screen.queryByText('Donations: 12')).not.toBeInTheDocument();
   });
 });

@@ -97,7 +97,6 @@ function TrendTooltip({ active, payload, label }: Partial<TooltipContentProps<nu
     >
       <strong>{label}</strong>
       <div>Amount: {currencyFormatter.format(datum.amount)}</div>
-      <div>Donations: {datum.donationCount}</div>
       <div>Donors: {datum.donorCount}</div>
       <div>Avg. Gift: {currencyFormatter.format(datum.averageGift)}</div>
     </div>
@@ -146,16 +145,6 @@ export default function MonetaryDonationTrendChart<T extends MonetaryDonationTre
                 dot={{ r: 4, stroke: theme.palette.primary.main, fill: theme.palette.primary.main }}
                 activeDot={{ r: 6, stroke: theme.palette.primary.main, fill: theme.palette.primary.main }}
               />
-              <Line
-                isAnimationActive={false}
-                type="monotone"
-                dataKey="averageGift"
-                name="Average Gift"
-                stroke={theme.palette.info.main}
-                strokeWidth={2}
-                dot={{ r: 4, stroke: theme.palette.info.main, fill: theme.palette.info.main }}
-                activeDot={{ r: 6, stroke: theme.palette.info.main, fill: theme.palette.info.main }}
-              />
             </LineChart>
           </ResponsiveContainer>
         </Box>
@@ -169,24 +158,21 @@ export default function MonetaryDonationTrendChart<T extends MonetaryDonationTre
             <LineChart data={chartData} onClick={handleClick}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="monthLabel" />
-              <YAxis orientation="right" allowDecimals={false} width={60} />
+              <YAxis yAxisId="donorCount" allowDecimals={false} width={60} />
+              <YAxis
+                yAxisId="averageGift"
+                orientation="right"
+                hide
+                tickFormatter={value => currencyFormatter.format(value as number)}
+              />
               <Tooltip content={<TrendTooltip />} />
               <Legend />
               <Line
                 isAnimationActive={false}
                 type="monotone"
-                dataKey="donationCount"
-                name="Donations"
-                stroke={theme.palette.success.main}
-                strokeWidth={2}
-                dot={{ r: 4, stroke: theme.palette.success.main, fill: theme.palette.success.main }}
-                activeDot={{ r: 6, stroke: theme.palette.success.main, fill: theme.palette.success.main }}
-              />
-              <Line
-                isAnimationActive={false}
-                type="monotone"
                 dataKey="donorCount"
                 name="Donors"
+                yAxisId="donorCount"
                 stroke={theme.palette.warning.dark}
                 strokeWidth={2}
                 dot={{
@@ -199,6 +185,17 @@ export default function MonetaryDonationTrendChart<T extends MonetaryDonationTre
                   stroke: theme.palette.warning.dark,
                   fill: theme.palette.warning.dark,
                 }}
+              />
+              <Line
+                isAnimationActive={false}
+                type="monotone"
+                dataKey="averageGift"
+                name="Average Gift"
+                yAxisId="averageGift"
+                stroke={theme.palette.info.main}
+                strokeWidth={2}
+                dot={{ r: 4, stroke: theme.palette.info.main, fill: theme.palette.info.main }}
+                activeDot={{ r: 6, stroke: theme.palette.info.main, fill: theme.palette.info.main }}
               />
             </LineChart>
           </ResponsiveContainer>
