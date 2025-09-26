@@ -46,6 +46,7 @@ import Page from '../../components/Page';
 import type { AlertColor } from '@mui/material';
 import SectionCard from '../../components/dashboard/SectionCard';
 import EventList from '../../components/EventList';
+import UpcomingHolidaysCard from '../../components/dashboard/UpcomingHolidaysCard';
 import { toDate } from '../../utils/date';
 import { getNextEncouragement } from '../../utils/appreciationMessages';
 import VolunteerGroupStatsCard from '../../components/dashboard/VolunteerGroupStatsCard';
@@ -501,6 +502,8 @@ export default function VolunteerDashboard() {
             <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
               <EventList events={[...events.today, ...events.upcoming]} limit={5} />
             </SectionCard>
+
+            <UpcomingHolidaysCard limit={5} />
 
             <SectionCard title="Quick Actions">
               <Stack direction="row" spacing={1} flexWrap="wrap">

@@ -31,6 +31,7 @@ import { getEvents, type EventGroups } from '../../api/events';
 import EventList from '../EventList';
 import SectionCard from './SectionCard';
 import VolunteerCoverageCard from './VolunteerCoverageCard';
+import UpcomingHolidaysCard from './UpcomingHolidaysCard';
 import ClientVisitTrendChart from './ClientVisitTrendChart';
 import ClientVisitBreakdownChart from './ClientVisitBreakdownChart';
 import PantryQuickLinks from '../PantryQuickLinks';
@@ -282,6 +283,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
             <Typography variant="body2">No staff leave notices</Typography>
           )}
         </SectionCard>
+        <UpcomingHolidaysCard sx={{ width: '100%' }} limit={5} />
         <SectionCard
           title="News & Events"
           icon={<Announcement color="primary" />}
@@ -386,7 +388,6 @@ function UserDashboard() {
             {slotOptions.map((s, i) => (
               <Button
                 key={i}
-                
                 variant="contained"
                 sx={{ textTransform: 'none', m: 0.5 }}
               >
@@ -395,6 +396,9 @@ function UserDashboard() {
             ))}
           </Stack>
         </SectionCard>
+      </Grid>
+      <Grid size={{ xs: 12, md: 6 }}>
+        <UpcomingHolidaysCard sx={{ height: '100%' }} limit={5} />
       </Grid>
       <Grid size={12}>
         <SectionCard title="Quick Actions">
