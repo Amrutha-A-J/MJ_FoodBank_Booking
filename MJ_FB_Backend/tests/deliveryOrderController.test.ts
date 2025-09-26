@@ -58,6 +58,7 @@ const MOCK_MONTHLY_LIMIT = 3;
 describe('deliveryOrderController', () => {
   beforeEach(() => {
     (mockDb.query as jest.Mock).mockReset();
+    (mockDb.connect as jest.Mock).mockReset();
     (sendTemplatedEmail as jest.Mock).mockReset();
     mockGetDeliverySettings.mockReset();
     config.deliveryRequestTemplateId = 99;
@@ -72,21 +73,29 @@ describe('deliveryOrderController', () => {
   });
 
   describe('createDeliveryOrder', () => {
+    let mockClient: { query: jest.Mock; release: jest.Mock };
+
+    beforeEach(() => {
+      mockClient = {
+        query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+        release: jest.fn(),
+      };
+      (mockDb.connect as jest.Mock).mockResolvedValue(mockClient);
+    });
+
     it('rejects selections exceeding category limits', async () => {
-      (mockDb.query as jest.Mock)
-        .mockResolvedValueOnce({ rows: [{ count: '0' }], rowCount: 1 })
-        .mockResolvedValueOnce({
-          rows: [
-            {
-              itemId: 11,
-              categoryId: 5,
-              itemName: 'Canned Soup',
-              categoryName: 'Pantry',
-              maxItems: 1,
-            },
-          ],
-          rowCount: 1,
-        });
+      (mockDb.query as jest.Mock).mockResolvedValueOnce({
+        rows: [
+          {
+            itemId: 11,
+            categoryId: 5,
+            itemName: 'Canned Soup',
+            categoryName: 'Pantry',
+            maxItems: 1,
+          },
+        ],
+        rowCount: 1,
+      });
 
       const req = {
         user: { role: 'delivery', id: '123', type: 'user' },
@@ -110,25 +119,10 @@ describe('deliveryOrderController', () => {
       expect(res.json).toHaveBeenCalledWith({
         message: 'Too many items selected for Pantry. Limit is 1.',
       });
-      expect(mockDb.query).toHaveBeenCalledTimes(2);
-      expect(mockDb.query).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining('created_at >= $2'),
-        [123, expect.any(Date), expect.any(Date)],
-      );
-      const [, firstParams] = (mockDb.query as jest.Mock).mock.calls[0];
-      expect(firstParams[1]).toBeInstanceOf(Date);
-      expect(firstParams[2]).toBeInstanceOf(Date);
-      expect((firstParams[1] as Date).getTime()).toBeLessThan(
-        (firstParams[2] as Date).getTime(),
-      );
-      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
-      expect(firstQuery).toContain('FROM delivery_orders');
-      expect(firstQuery).toContain("status <> 'cancelled'");
-      expect(firstQuery).toContain('created_at >= $2');
-      expect(firstQuery).toContain('created_at < $3');
-      expect(mockDb.query).toHaveBeenNthCalledWith(
-        2,
+      expect(mockDb.connect).not.toHaveBeenCalled();
+      expect(mockClient.query).not.toHaveBeenCalled();
+      expect(mockDb.query).toHaveBeenCalledTimes(1);
+      expect(mockDb.query).toHaveBeenCalledWith(
         expect.stringContaining('FROM delivery_items'),
         [[11]],
       );
@@ -136,20 +130,18 @@ describe('deliveryOrderController', () => {
     });
 
     it('rejects selections exceeding category limits after normalizing duplicates', async () => {
-      (mockDb.query as jest.Mock)
-        .mockResolvedValueOnce({ rows: [{ count: '0' }], rowCount: 1 })
-        .mockResolvedValueOnce({
-          rows: [
-            {
-              itemId: 11,
-              categoryId: 5,
-              itemName: 'Canned Soup',
-              categoryName: 'Pantry',
-              maxItems: 3,
-            },
-          ],
-          rowCount: 1,
-        });
+      (mockDb.query as jest.Mock).mockResolvedValueOnce({
+        rows: [
+          {
+            itemId: 11,
+            categoryId: 5,
+            itemName: 'Canned Soup',
+            categoryName: 'Pantry',
+            maxItems: 3,
+          },
+        ],
+        rowCount: 1,
+      });
 
       const req = {
         user: { role: 'delivery', id: '123', type: 'user' },
@@ -176,25 +168,10 @@ describe('deliveryOrderController', () => {
       expect(res.json).toHaveBeenCalledWith({
         message: 'Too many items selected for Pantry. Limit is 3.',
       });
-      expect(mockDb.query).toHaveBeenCalledTimes(2);
-      expect(mockDb.query).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining('created_at >= $2'),
-        [123, expect.any(Date), expect.any(Date)],
-      );
-      const [, firstParams] = (mockDb.query as jest.Mock).mock.calls[0];
-      expect(firstParams[1]).toBeInstanceOf(Date);
-      expect(firstParams[2]).toBeInstanceOf(Date);
-      expect((firstParams[1] as Date).getTime()).toBeLessThan(
-        (firstParams[2] as Date).getTime(),
-      );
-      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
-      expect(firstQuery).toContain('FROM delivery_orders');
-      expect(firstQuery).toContain("status <> 'cancelled'");
-      expect(firstQuery).toContain('created_at >= $2');
-      expect(firstQuery).toContain('created_at < $3');
-      expect(mockDb.query).toHaveBeenNthCalledWith(
-        2,
+      expect(mockDb.connect).not.toHaveBeenCalled();
+      expect(mockClient.query).not.toHaveBeenCalled();
+      expect(mockDb.query).toHaveBeenCalledTimes(1);
+      expect(mockDb.query).toHaveBeenCalledWith(
         expect.stringContaining('FROM delivery_items'),
         [[11]],
       );
@@ -204,7 +181,6 @@ describe('deliveryOrderController', () => {
     it('creates an order and notifies staff via email', async () => {
       const submittedAt = new Date('2024-06-01T15:30:00Z');
       (mockDb.query as jest.Mock)
-        .mockResolvedValueOnce({ rows: [{ count: '1' }], rowCount: 1 })
         .mockResolvedValueOnce({
           rows: [
             {
@@ -226,24 +202,43 @@ describe('deliveryOrderController', () => {
           ],
           rowCount: 1,
         })
-        .mockResolvedValueOnce({
-          rows: [
-            {
-              id: 77,
-              clientId: 456,
-              address: '456 Elm St',
-              phone: '555-2222',
-              email: 'shopper@example.com',
-              status: 'pending',
-              scheduledFor: null,
-              notes: null,
-              createdAt: submittedAt,
-            },
-          ],
-          rowCount: 1,
-        })
-        .mockResolvedValueOnce({ rows: [], rowCount: 0 })
         .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+      mockClient.query.mockImplementation(async (query: string, params?: unknown[]) => {
+        if (query === 'BEGIN' || query === 'COMMIT') {
+          return { rows: [], rowCount: 0 };
+        }
+        if (query.includes('FOR UPDATE')) {
+          expect(params).toEqual([456]);
+          return { rows: [{ ok: 1 }], rowCount: 1 };
+        }
+        if (query.includes('COUNT(*)')) {
+          return { rows: [{ count: '1' }], rowCount: 1 };
+        }
+        if (query.includes('INSERT INTO delivery_orders')) {
+          return {
+            rows: [
+              {
+                id: 77,
+                clientId: 456,
+                address: '456 Elm St',
+                phone: '555-2222',
+                email: 'shopper@example.com',
+                status: 'pending',
+                scheduledFor: null,
+                notes: null,
+                createdAt: submittedAt,
+              },
+            ],
+            rowCount: 1,
+          };
+        }
+        if (query.includes('INSERT INTO delivery_order_items')) {
+          expect(params).toEqual([77, 21, 2]);
+          return { rows: [], rowCount: 0 };
+        }
+        return { rows: [], rowCount: 0 };
+      });
 
       const req = {
         user: { role: 'staff', id: '99', type: 'staff' },
@@ -267,45 +262,35 @@ describe('deliveryOrderController', () => {
 
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('created_at >= $2'),
-        [456, expect.any(Date), expect.any(Date)],
-      );
-      const [, firstParams] = (mockDb.query as jest.Mock).mock.calls[0];
-      expect(firstParams[1]).toBeInstanceOf(Date);
-      expect(firstParams[2]).toBeInstanceOf(Date);
-      expect((firstParams[1] as Date).getTime()).toBeLessThan(
-        (firstParams[2] as Date).getTime(),
-      );
-      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
-      expect(firstQuery).toContain('FROM delivery_orders');
-      expect(firstQuery).toContain("status <> 'cancelled'");
-      expect(firstQuery).toContain('created_at >= $2');
-      expect(firstQuery).toContain('created_at < $3');
-      expect(mockDb.query).toHaveBeenNthCalledWith(
-        2,
         expect.stringContaining('FROM clients'),
         [456],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        3,
+        2,
         expect.stringContaining('FROM delivery_items'),
         [[21]],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        4,
-        expect.stringContaining('INSERT INTO delivery_orders'),
-        [456, '456 Elm St', '555-2222', 'shopper@example.com', 'pending', null, null],
-      );
-      expect(mockDb.query).toHaveBeenNthCalledWith(
-        5,
+        3,
         'UPDATE clients SET address = $1 WHERE client_id = $2',
         ['456 Elm St', 456],
       );
-      expect(mockDb.query).toHaveBeenNthCalledWith(
-        6,
-        expect.stringContaining('INSERT INTO delivery_order_items'),
-        [77, 21, 2],
+
+      expect(mockDb.connect).toHaveBeenCalledTimes(1);
+      expect(mockClient.release).toHaveBeenCalledTimes(1);
+      const lockCall = mockClient.query.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql.includes('FOR UPDATE'),
       );
+      expect(lockCall).toBeDefined();
+      expect(lockCall![1]).toEqual([456]);
+      const countCall = mockClient.query.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql.includes('COUNT(*)'),
+      );
+      expect(countCall).toBeDefined();
+      const [, countParams] = countCall! as [string, unknown[]];
+      expect(countParams[0]).toBe(456);
+      expect(countParams[1]).toBeInstanceOf(Date);
+      expect(countParams[2]).toBeInstanceOf(Date);
 
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
@@ -348,12 +333,6 @@ describe('deliveryOrderController', () => {
     it('does not count cancelled orders toward the monthly limit', async () => {
       const submittedAt = new Date('2024-07-10T18:15:00Z');
       (mockDb.query as jest.Mock)
-        .mockImplementationOnce(async (query: string) => {
-          if (!query.includes("status <> 'cancelled'")) {
-            return { rows: [{ count: '2' }], rowCount: 1 };
-          }
-          return { rows: [{ count: '1' }], rowCount: 1 };
-        })
         .mockResolvedValueOnce({
           rows: [
             {
@@ -366,24 +345,47 @@ describe('deliveryOrderController', () => {
           ],
           rowCount: 1,
         })
-        .mockResolvedValueOnce({ rowCount: 1, rows: [] })
-        .mockResolvedValueOnce({
-          rows: [
-            {
-              id: 88,
-              clientId: 555,
-              address: '789 Pine Ave',
-              phone: '555-3333',
-              email: 'client@example.com',
-              status: 'pending',
-              scheduledFor: null,
-              notes: null,
-              createdAt: submittedAt,
-            },
-          ],
-          rowCount: 1,
-        })
         .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+      mockClient.query.mockImplementation(async (query: string, params?: unknown[]) => {
+        if (query === 'BEGIN' || query === 'COMMIT') {
+          return { rows: [], rowCount: 0 };
+        }
+        if (query.includes('FOR UPDATE')) {
+          expect(params).toEqual([555]);
+          return { rows: [{ ok: 1 }], rowCount: 1 };
+        }
+        if (query.includes('COUNT(*)')) {
+          expect(query).toContain("status <> 'cancelled'");
+          return { rows: [{ count: '1' }], rowCount: 1 };
+        }
+        if (query.startsWith('UPDATE clients')) {
+          expect(params).toEqual(['789 Pine Ave', '555-3333', 'client@example.com', 555]);
+          return { rows: [], rowCount: 1 };
+        }
+        if (query.includes('INSERT INTO delivery_orders')) {
+          return {
+            rows: [
+              {
+                id: 88,
+                clientId: 555,
+                address: '789 Pine Ave',
+                phone: '555-3333',
+                email: 'client@example.com',
+                status: 'pending',
+                scheduledFor: null,
+                notes: null,
+                createdAt: submittedAt,
+              },
+            ],
+            rowCount: 1,
+          };
+        }
+        if (query.includes('INSERT INTO delivery_order_items')) {
+          return { rows: [], rowCount: 0 };
+        }
+        return { rows: [], rowCount: 0 };
+      });
 
       const req = {
         user: { role: 'delivery', id: '555', type: 'user', name: 'Taylor Client' },
@@ -407,45 +409,30 @@ describe('deliveryOrderController', () => {
 
       expect(mockDb.query).toHaveBeenNthCalledWith(
         1,
-        expect.stringContaining('created_at >= $2'),
-        [555, expect.any(Date), expect.any(Date)],
-      );
-      const [, firstParams] = (mockDb.query as jest.Mock).mock.calls[0];
-      expect(firstParams[1]).toBeInstanceOf(Date);
-      expect(firstParams[2]).toBeInstanceOf(Date);
-      expect((firstParams[1] as Date).getTime()).toBeLessThan(
-        (firstParams[2] as Date).getTime(),
-      );
-      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
-      expect(firstQuery).toContain('FROM delivery_orders');
-      expect(firstQuery).toContain("status <> 'cancelled'");
-      expect(firstQuery).toContain('created_at >= $2');
-      expect(firstQuery).toContain('created_at < $3');
-      expect(mockDb.query).toHaveBeenNthCalledWith(
-        2,
         expect.stringContaining('FROM delivery_items'),
         [[52]],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining('UPDATE clients'),
-        ['789 Pine Ave', '555-3333', 'client@example.com', 555],
-      );
-      expect(mockDb.query).toHaveBeenNthCalledWith(
-        4,
-        expect.stringContaining('INSERT INTO delivery_orders'),
-        [555, '789 Pine Ave', '555-3333', 'client@example.com', 'pending', null, null],
-      );
-      expect(mockDb.query).toHaveBeenNthCalledWith(
-        5,
+        2,
         'UPDATE clients SET address = $1 WHERE client_id = $2',
         ['789 Pine Ave', 555],
       );
-      expect(mockDb.query).toHaveBeenNthCalledWith(
-        6,
-        expect.stringContaining('INSERT INTO delivery_order_items'),
-        [88, 52, 1],
+
+      expect(mockDb.connect).toHaveBeenCalledTimes(1);
+      expect(mockClient.release).toHaveBeenCalledTimes(1);
+      const lockCall = mockClient.query.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql.includes('FOR UPDATE'),
       );
+      expect(lockCall).toBeDefined();
+      expect(lockCall![1]).toEqual([555]);
+      const countCall = mockClient.query.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql.includes('COUNT(*)'),
+      );
+      expect(countCall).toBeDefined();
+      const [, countParams] = countCall! as [string, unknown[]];
+      expect(countParams[0]).toBe(555);
+      expect(countParams[1]).toBeInstanceOf(Date);
+      expect(countParams[2]).toBeInstanceOf(Date);
 
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
@@ -488,7 +475,6 @@ describe('deliveryOrderController', () => {
     it('updates the client profile when contact details change', async () => {
       const submittedAt = new Date('2024-07-20T18:15:00Z');
       (mockDb.query as jest.Mock)
-        .mockResolvedValueOnce({ rows: [{ count: '0' }], rowCount: 1 })
         .mockResolvedValueOnce({
           rows: [
             {
@@ -501,24 +487,46 @@ describe('deliveryOrderController', () => {
           ],
           rowCount: 1,
         })
-        .mockResolvedValueOnce({ rowCount: 1, rows: [] })
-        .mockResolvedValueOnce({
-          rows: [
-            {
-              id: 88,
-              clientId: 555,
-              address: '789 Pine Ave',
-              phone: '555-3333',
-              email: 'client@example.com',
-              status: 'pending',
-              scheduledFor: null,
-              notes: null,
-              createdAt: submittedAt,
-            },
-          ],
-          rowCount: 1,
-        })
         .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+      mockClient.query.mockImplementation(async (query: string, params?: unknown[]) => {
+        if (query === 'BEGIN' || query === 'COMMIT') {
+          return { rows: [], rowCount: 0 };
+        }
+        if (query.includes('FOR UPDATE')) {
+          expect(params).toEqual([555]);
+          return { rows: [{ ok: 1 }], rowCount: 1 };
+        }
+        if (query.includes('COUNT(*)')) {
+          return { rows: [{ count: '0' }], rowCount: 1 };
+        }
+        if (query.startsWith('UPDATE clients')) {
+          expect(params).toEqual(['789 Pine Ave', '555-3333', 'client@example.com', 555]);
+          return { rows: [], rowCount: 1 };
+        }
+        if (query.includes('INSERT INTO delivery_orders')) {
+          return {
+            rows: [
+              {
+                id: 88,
+                clientId: 555,
+                address: '789 Pine Ave',
+                phone: '555-3333',
+                email: 'client@example.com',
+                status: 'pending',
+                scheduledFor: null,
+                notes: null,
+                createdAt: submittedAt,
+              },
+            ],
+            rowCount: 1,
+          };
+        }
+        if (query.includes('INSERT INTO delivery_order_items')) {
+          return { rows: [], rowCount: 0 };
+        }
+        return { rows: [], rowCount: 0 };
+      });
 
       const req = {
         user: {
@@ -547,10 +555,31 @@ describe('deliveryOrderController', () => {
       await flushPromises();
 
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining('UPDATE clients'),
-        ['789 Pine Ave', '555-3333', 'client@example.com', 555],
+        1,
+        expect.stringContaining('FROM delivery_items'),
+        [[52]],
       );
+      expect(mockDb.query).toHaveBeenNthCalledWith(
+        2,
+        'UPDATE clients SET address = $1 WHERE client_id = $2',
+        ['789 Pine Ave', 555],
+      );
+
+      expect(mockDb.connect).toHaveBeenCalledTimes(1);
+      expect(mockClient.release).toHaveBeenCalledTimes(1);
+      const lockCall = mockClient.query.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql.includes('FOR UPDATE'),
+      );
+      expect(lockCall).toBeDefined();
+      expect(lockCall![1]).toEqual([555]);
+      const countCall = mockClient.query.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql.includes('COUNT(*)'),
+      );
+      expect(countCall).toBeDefined();
+      const [, countParams] = countCall! as [string, unknown[]];
+      expect(countParams[0]).toBe(555);
+      expect(countParams[1]).toBeInstanceOf(Date);
+      expect(countParams[2]).toBeInstanceOf(Date);
       expect(req.user).toMatchObject({
         address: '789 Pine Ave',
         phone: '555-3333',
@@ -563,7 +592,6 @@ describe('deliveryOrderController', () => {
     it('accepts orders without an email address', async () => {
       const submittedAt = new Date('2024-07-21T18:15:00Z');
       (mockDb.query as jest.Mock)
-        .mockResolvedValueOnce({ rows: [{ count: '0' }], rowCount: 1 })
         .mockResolvedValueOnce({
           rows: [
             {
@@ -576,23 +604,46 @@ describe('deliveryOrderController', () => {
           ],
           rowCount: 1,
         })
-        .mockResolvedValueOnce({ rowCount: 1, rows: [] })
-        .mockResolvedValueOnce({
-          rows: [
-            {
-              id: 91,
-              clientId: 555,
-              address: '789 Pine Ave',
-              phone: '555-3333',
-              email: null,
-              status: 'pending',
-              scheduledFor: null,
-              notes: null,
-              createdAt: submittedAt,
-            },
-          ],
-          rowCount: 1,
-        });
+        .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+      mockClient.query.mockImplementation(async (query: string, params?: unknown[]) => {
+        if (query === 'BEGIN' || query === 'COMMIT') {
+          return { rows: [], rowCount: 0 };
+        }
+        if (query.includes('FOR UPDATE')) {
+          expect(params).toEqual([555]);
+          return { rows: [{ ok: 1 }], rowCount: 1 };
+        }
+        if (query.includes('COUNT(*)')) {
+          return { rows: [{ count: '0' }], rowCount: 1 };
+        }
+        if (query.startsWith('UPDATE clients')) {
+          expect(params).toEqual(['789 Pine Ave', '555-3333', null, 555]);
+          return { rows: [], rowCount: 1 };
+        }
+        if (query.includes('INSERT INTO delivery_orders')) {
+          return {
+            rows: [
+              {
+                id: 91,
+                clientId: 555,
+                address: '789 Pine Ave',
+                phone: '555-3333',
+                email: null,
+                status: 'pending',
+                scheduledFor: null,
+                notes: null,
+                createdAt: submittedAt,
+              },
+            ],
+            rowCount: 1,
+          };
+        }
+        if (query.includes('INSERT INTO delivery_order_items')) {
+          return { rows: [], rowCount: 0 };
+        }
+        return { rows: [], rowCount: 0 };
+      });
 
       const req = {
         user: {
@@ -620,15 +671,31 @@ describe('deliveryOrderController', () => {
       await flushPromises();
 
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining('UPDATE clients'),
-        ['789 Pine Ave', '555-3333', null, 555],
+        1,
+        expect.stringContaining('FROM delivery_items'),
+        [[52]],
       );
       expect(mockDb.query).toHaveBeenNthCalledWith(
-        4,
-        expect.stringContaining('INSERT INTO delivery_orders'),
-        [555, '789 Pine Ave', '555-3333', null, 'pending', null, null],
+        2,
+        'UPDATE clients SET address = $1 WHERE client_id = $2',
+        ['789 Pine Ave', 555],
       );
+
+      expect(mockDb.connect).toHaveBeenCalledTimes(1);
+      expect(mockClient.release).toHaveBeenCalledTimes(1);
+      const lockCall = mockClient.query.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql.includes('FOR UPDATE'),
+      );
+      expect(lockCall).toBeDefined();
+      expect(lockCall![1]).toEqual([555]);
+      const countCall = mockClient.query.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql.includes('COUNT(*)'),
+      );
+      expect(countCall).toBeDefined();
+      const [, countParams] = countCall! as [string, unknown[]];
+      expect(countParams[0]).toBe(555);
+      expect(countParams[1]).toBeInstanceOf(Date);
+      expect(countParams[2]).toBeInstanceOf(Date);
 
       expect(req.user).toMatchObject({
         address: '789 Pine Ave',
@@ -676,8 +743,33 @@ describe('deliveryOrderController', () => {
 
     it('rejects a third order in the same month', async () => {
       (mockDb.query as jest.Mock).mockResolvedValueOnce({
-        rows: [{ count: String(MOCK_MONTHLY_LIMIT) }],
+        rows: [
+          {
+            itemId: 42,
+            categoryId: 7,
+            itemName: 'Pantry Item',
+            categoryName: 'Pantry',
+            maxItems: 2,
+          },
+        ],
         rowCount: 1,
+      });
+
+      mockClient.query.mockImplementation(async (query: string, params?: unknown[]) => {
+        if (query === 'BEGIN') {
+          return { rows: [], rowCount: 0 };
+        }
+        if (query.includes('FOR UPDATE')) {
+          expect(params).toEqual([321]);
+          return { rows: [{ ok: 1 }], rowCount: 1 };
+        }
+        if (query.includes('COUNT(*)')) {
+          return { rows: [{ count: String(MOCK_MONTHLY_LIMIT) }], rowCount: 1 };
+        }
+        if (query === 'ROLLBACK') {
+          return { rows: [], rowCount: 0 };
+        }
+        return { rows: [], rowCount: 0 };
       });
 
       const req = {
@@ -707,21 +799,149 @@ describe('deliveryOrderController', () => {
       });
       expect(mockDb.query).toHaveBeenCalledTimes(1);
       expect(mockDb.query).toHaveBeenCalledWith(
-        expect.stringContaining('created_at >= $2'),
-        [321, expect.any(Date), expect.any(Date)],
+        expect.stringContaining('FROM delivery_items'),
+        [[42]],
       );
-      const [, firstParams] = (mockDb.query as jest.Mock).mock.calls[0];
-      expect(firstParams[1]).toBeInstanceOf(Date);
-      expect(firstParams[2]).toBeInstanceOf(Date);
-      expect((firstParams[1] as Date).getTime()).toBeLessThan(
-        (firstParams[2] as Date).getTime(),
+      expect(mockDb.connect).toHaveBeenCalledTimes(1);
+      expect(mockClient.release).toHaveBeenCalledTimes(1);
+      const rollbackCall = mockClient.query.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql === 'ROLLBACK',
       );
-      const firstQuery = (mockDb.query as jest.Mock).mock.calls[0][0];
-      expect(firstQuery).toContain('FROM delivery_orders');
-      expect(firstQuery).toContain("status <> 'cancelled'");
-      expect(firstQuery).toContain('created_at >= $2');
-      expect(firstQuery).toContain('created_at < $3');
+      expect(rollbackCall).toBeDefined();
+      const insertCall = mockClient.query.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql.includes('INSERT INTO delivery_orders'),
+      );
+      expect(insertCall).toBeUndefined();
       expect(sendTemplatedEmail).not.toHaveBeenCalled();
+    });
+
+    it('prevents concurrent orders from exceeding the monthly limit', async () => {
+      const itemRow = {
+        itemId: 52,
+        categoryId: 9,
+        itemName: 'Fresh Produce Box',
+        categoryName: 'Produce',
+        maxItems: 2,
+      };
+
+      (mockDb.query as jest.Mock).mockImplementation(async (query: string) => {
+        if (typeof query === 'string' && query.includes('FROM delivery_items')) {
+          return { rows: [itemRow], rowCount: 1 };
+        }
+        if (typeof query === 'string' && query.startsWith('UPDATE clients SET address')) {
+          return { rows: [], rowCount: 0 };
+        }
+        return { rows: [], rowCount: 0 };
+      });
+
+      const firstSubmitted = new Date('2024-08-01T18:00:00Z');
+      let inserted = 0;
+
+      const firstClient = {
+        query: jest.fn(async (query: string, params?: unknown[]) => {
+          if (query === 'BEGIN' || query === 'COMMIT') {
+            return { rows: [], rowCount: 0 };
+          }
+          if (query.includes('FOR UPDATE')) {
+            expect(params).toEqual([600]);
+            return { rows: [{ ok: 1 }], rowCount: 1 };
+          }
+          if (query.includes('COUNT(*)')) {
+            return { rows: [{ count: String(inserted) }], rowCount: 1 };
+          }
+          if (query.includes('INSERT INTO delivery_orders')) {
+            inserted += 1;
+            return {
+              rows: [
+                {
+                  id: 201,
+                  clientId: 600,
+                  address: '100 Main St',
+                  phone: '555-6000',
+                  email: 'client@example.com',
+                  status: 'pending',
+                  scheduledFor: null,
+                  notes: null,
+                  createdAt: firstSubmitted,
+                },
+              ],
+              rowCount: 1,
+            };
+          }
+          if (query.includes('INSERT INTO delivery_order_items')) {
+            return { rows: [], rowCount: 0 };
+          }
+          return { rows: [], rowCount: 0 };
+        }),
+        release: jest.fn(),
+      };
+
+      const secondClient = {
+        query: jest.fn(async (query: string, params?: unknown[]) => {
+          if (query === 'BEGIN') {
+            return { rows: [], rowCount: 0 };
+          }
+          if (query.includes('FOR UPDATE')) {
+            expect(params).toEqual([600]);
+            return { rows: [{ ok: 1 }], rowCount: 1 };
+          }
+          if (query.includes('COUNT(*)')) {
+            return { rows: [{ count: String(MOCK_MONTHLY_LIMIT) }], rowCount: 1 };
+          }
+          if (query === 'ROLLBACK') {
+            return { rows: [], rowCount: 0 };
+          }
+          return { rows: [], rowCount: 0 };
+        }),
+        release: jest.fn(),
+      };
+
+      (mockDb.connect as jest.Mock)
+        .mockResolvedValueOnce(firstClient as any)
+        .mockResolvedValueOnce(secondClient as any);
+
+      const makeReq = () =>
+        ({
+          user: {
+            role: 'delivery',
+            id: '600',
+            type: 'user',
+            address: '100 Main St',
+            phone: '555-6000',
+            email: 'client@example.com',
+          },
+          body: {
+            clientId: 600,
+            address: '100 Main St',
+            phone: '555-6000',
+            email: 'client@example.com',
+            selections: [{ itemId: 52, quantity: 1 }],
+          },
+        } as any);
+
+      const resFactory = () =>
+        ({
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+        } as any);
+
+      const res1 = resFactory();
+      const res2 = resFactory();
+
+      await Promise.all([
+        createDeliveryOrder(makeReq(), res1, jest.fn()),
+        createDeliveryOrder(makeReq(), res2, jest.fn()),
+      ]);
+      await flushPromises();
+
+      expect(res1.status).toHaveBeenCalledWith(201);
+      expect(res2.status).toHaveBeenCalledWith(400);
+      expect(res2.json).toHaveBeenCalledWith({
+        message: `You have already used the food bank ${MOCK_MONTHLY_LIMIT} times this month, which is the limit of ${MOCK_MONTHLY_LIMIT}. Please request again next month`,
+      });
+      expect(sendTemplatedEmail).toHaveBeenCalledTimes(1);
+      expect(firstClient.release).toHaveBeenCalled();
+      expect(secondClient.release).toHaveBeenCalled();
     });
   });
 

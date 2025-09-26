@@ -226,26 +226,6 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     clientName = currentName.length > 0 ? currentName : null;
   }
 
-  // created_at is stored in UTC, so convert to Regina time before truncating to the month
-  const { startOfMonthUtc, startOfNextMonthUtc } = getReginaMonthBounds();
-
-  const monthlyOrderCountResult = await pool.query<CountRow>(
-    `SELECT COUNT(*)::int AS count
-       FROM delivery_orders
-      WHERE client_id = $1
-        AND status <> 'cancelled'
-        AND created_at >= $2
-        AND created_at < $3`,
-    [clientId, startOfMonthUtc, startOfNextMonthUtc],
-  );
-
-  const monthlyOrderCount = Number(monthlyOrderCountResult.rows[0]?.count ?? 0);
-  if (monthlyOrderCount >= deliverySettings.monthlyOrderLimit) {
-    return res.status(400).json({
-      message: `You have already used the food bank ${monthlyOrderCount} times this month, which is the limit of ${deliverySettings.monthlyOrderLimit}. Please request again next month`,
-    });
-  }
-
   if (isStaff) {
     const clientNameResult = await pool.query<ClientNameRow>(
       `SELECT first_name AS "firstName", last_name AS "lastName" FROM clients WHERE client_id = $1`,
@@ -317,34 +297,94 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     );
   }
 
-  if (isClient && shouldUpdateClientProfile) {
-    await pool.query(
-      `UPDATE clients
-          SET address = $1,
-              phone = $2,
-              email = $3
-        WHERE client_id = $4`,
-      [address, phone, email, clientId],
-    );
-
-    req.user.address = address;
-    req.user.phone = phone;
-    req.user.email = email ?? null;
-  }
-
   const requestedStatus = parsed.data.status;
   const status = requestedStatus && isStaff ? requestedStatus : 'pending';
   const scheduledFor = parsed.data.scheduledFor ?? null;
   const notes = parsed.data.notes?.trim() ? parsed.data.notes.trim() : null;
 
-  const orderResult = await pool.query<DeliveryOrderRow>(
-    `INSERT INTO delivery_orders (client_id, address, phone, email, status, scheduled_for, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"`,
-    [clientId, address, phone, email, status, scheduledFor, notes],
-  );
+  const client = await pool.connect();
+  let order: DeliveryOrderRow | null = null;
+  let monthlyOrderCount = 0;
+  let updatedClientProfile = false;
 
-  const order = orderResult.rows[0];
+  try {
+    await client.query('BEGIN');
+
+    await client.query(`SELECT 1 FROM clients WHERE client_id = $1 FOR UPDATE`, [clientId]);
+
+    const { startOfMonthUtc, startOfNextMonthUtc } = getReginaMonthBounds();
+    const monthlyOrderCountResult = await client.query<CountRow>(
+      `SELECT COUNT(*)::int AS count
+         FROM delivery_orders
+        WHERE client_id = $1
+          AND status <> 'cancelled'
+          AND created_at >= $2
+          AND created_at < $3`,
+      [clientId, startOfMonthUtc, startOfNextMonthUtc],
+    );
+
+    monthlyOrderCount = Number(monthlyOrderCountResult.rows[0]?.count ?? 0);
+    if (monthlyOrderCount >= deliverySettings.monthlyOrderLimit) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({
+        message: `You have already used the food bank ${monthlyOrderCount} times this month, which is the limit of ${deliverySettings.monthlyOrderLimit}. Please request again next month`,
+      });
+    }
+
+    if (isClient && shouldUpdateClientProfile) {
+      await client.query(
+        `UPDATE clients
+            SET address = $1,
+                phone = $2,
+                email = $3
+          WHERE client_id = $4`,
+        [address, phone, email, clientId],
+      );
+      updatedClientProfile = true;
+    }
+
+    const orderResult = await client.query<DeliveryOrderRow>(
+      `INSERT INTO delivery_orders (client_id, address, phone, email, status, scheduled_for, notes)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING id, client_id AS "clientId", address, phone, email, status, scheduled_for AS "scheduledFor", notes, created_at AS "createdAt"`,
+      [clientId, address, phone, email, status, scheduledFor, notes],
+    );
+
+    order = orderResult.rows[0];
+
+    if (normalizedSelections.length > 0) {
+      const values = normalizedSelections
+        .map((_selection, index) => `($1, $${index * 2 + 2}, $${index * 2 + 3})`)
+        .join(', ');
+      const params: number[] = [order.id];
+      for (const selection of normalizedSelections) {
+        params.push(selection.itemId, selection.quantity);
+      }
+      await client.query(
+        `INSERT INTO delivery_order_items (order_id, item_id, qty) VALUES ${values}`,
+        params,
+      );
+    }
+
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {
+      // ignore rollback errors
+    });
+    throw error;
+  } finally {
+    client.release();
+  }
+
+  if (!order) {
+    throw new Error('Failed to create delivery order');
+  }
+
+  if (updatedClientProfile) {
+    req.user.address = address;
+    req.user.phone = phone;
+    req.user.email = email ?? null;
+  }
 
   try {
     await pool.query('UPDATE clients SET address = $1 WHERE client_id = $2', [
@@ -353,20 +393,6 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     ]);
   } catch (error) {
     logger.error('Failed to update client address from delivery order', error);
-  }
-
-  if (normalizedSelections.length > 0) {
-    const values = normalizedSelections
-      .map((_selection, index) => `($1, $${index * 2 + 2}, $${index * 2 + 3})`)
-      .join(', ');
-    const params: number[] = [order.id];
-    for (const selection of normalizedSelections) {
-      params.push(selection.itemId, selection.quantity);
-    }
-    await pool.query(
-      `INSERT INTO delivery_order_items (order_id, item_id, qty) VALUES ${values}`,
-      params,
-    );
   }
 
   const createdAt = toIsoString(order.createdAt);
