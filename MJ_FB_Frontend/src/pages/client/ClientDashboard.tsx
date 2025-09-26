@@ -389,6 +389,14 @@ export default function ClientDashboard() {
           <DialogActions>
             <Button
 
+              variant="outlined"
+              sx={{ textTransform: 'none' }}
+              onClick={() => setCancelId(null)}
+            >
+              Keep booking
+            </Button>
+            <Button
+
               color="error"
               variant="contained"
               sx={{ textTransform: 'none' }}
