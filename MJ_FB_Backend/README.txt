@@ -143,6 +143,22 @@ Response JSON:
 - `firstTimeDonors` – donors whose first recorded gift falls in the most recent month, with donation date and amount.
 - `pantryImpact` – pantry families, adults, children, and pounds served for the selected month.
 
+## Zeffy Donation Import
+
+The Zeffy donation importer accepts spreadsheets exported from Zeffy. Upload files at
+`POST /monetary-donors/import` or through Donor Management → Donors → Import Zeffy Donations.
+Each worksheet must include the following columns:
+
+- `First Name`
+- `Last Name`
+- `Email`
+- `Payment Date` *(or the timezone-specific header `Payment Date (America/Regina)`)*
+- `Payment Status`
+- `Total Amount`
+
+Additional columns are ignored. The importer only records donations whose **Payment Status** is
+`Succeeded` and converts the **Payment Date** to Regina time when timestamps are provided.
+
 ## Warehouse Overall Available Years Endpoint
 
 `GET /warehouse-overall/years`
