@@ -31,7 +31,7 @@ import { getEvents, type EventGroups } from '../../api/events';
 import EventList from '../EventList';
 import SectionCard from './SectionCard';
 import VolunteerCoverageCard from './VolunteerCoverageCard';
-import UpcomingHolidaysCard from './UpcomingHolidaysCard';
+import UpcomingHolidaysCard, { useUpcomingHolidays } from './UpcomingHolidaysCard';
 import ClientVisitTrendChart from './ClientVisitTrendChart';
 import ClientVisitBreakdownChart from './ClientVisitBreakdownChart';
 import PantryQuickLinks from '../PantryQuickLinks';
@@ -304,6 +304,8 @@ function UserDashboard() {
     upcoming: [],
     past: [],
   });
+  const upcomingHolidays = useUpcomingHolidays(5);
+  const hasUpcomingHolidays = upcomingHolidays.length > 0;
 
   useEffect(() => {
     getBookings()
@@ -397,9 +399,11 @@ function UserDashboard() {
           </Stack>
         </SectionCard>
       </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <UpcomingHolidaysCard sx={{ height: '100%' }} limit={5} />
-      </Grid>
+      {hasUpcomingHolidays && (
+        <Grid size={{ xs: 12, md: 6 }}>
+          <UpcomingHolidaysCard sx={{ height: '100%' }} limit={5} />
+        </Grid>
+      )}
       <Grid size={12}>
         <SectionCard title="Quick Actions">
           <Stack direction="row" spacing={1}>

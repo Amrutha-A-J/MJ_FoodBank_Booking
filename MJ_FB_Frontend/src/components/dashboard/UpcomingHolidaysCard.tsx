@@ -10,10 +10,15 @@ interface UpcomingHolidaysCardProps {
   sx?: SxProps<Theme>;
 }
 
-export default function UpcomingHolidaysCard({ limit, sx }: UpcomingHolidaysCardProps) {
+export interface UpcomingHolidayItem {
+  key: string;
+  label: string;
+}
+
+export function useUpcomingHolidays(limit?: number): UpcomingHolidayItem[] {
   const { holidays } = useHolidays();
 
-  const upcomingHolidays = useMemo(() => {
+  return useMemo(() => {
     const start = reginaStartOfDay();
     const end = reginaStartOfDay().add(30, 'day').endOf('day');
 
@@ -29,6 +34,10 @@ export default function UpcomingHolidaysCard({ limit, sx }: UpcomingHolidaysCard
       label: `${date.format('MMM D (ddd)')} – ${reason?.trim() || 'Holiday'}`,
     }));
   }, [holidays, limit]);
+}
+
+export default function UpcomingHolidaysCard({ limit, sx }: UpcomingHolidaysCardProps) {
+  const upcomingHolidays = useUpcomingHolidays(limit);
 
   if (!upcomingHolidays.length) {
     return null;
