@@ -182,6 +182,20 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [createMsg, setCreateMsg] = useState('');
   const [createSeverity, setCreateSeverity] = useState<'success' | 'error'>('success');
 
+  const selectMenuProps = useMemo(
+    () => ({
+      slotProps: {
+        paper: {
+          sx: {
+            maxHeight: 'min(360px, calc(100vh - 96px))',
+            overflowY: 'auto',
+          },
+        },
+      },
+    }),
+    [],
+  );
+
   const statsRequestIdRef = useRef(0);
 
   function resetVolunteerStats() {
@@ -802,51 +816,54 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         </Suspense>
       )}
       {tab === 'schedule' && (
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={2}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          sx={{ mb: 2 }}
-        >
-          <FormControl
-            size="medium"
-            fullWidth
-            sx={{ minWidth: { sm: 200 }, flexShrink: { sm: 0 } }}
+        <>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            alignItems={{ xs: 'stretch', sm: 'center' }}
+            sx={{ mb: 2 }}
           >
-            <InputLabel id="schedule-department-label">Department</InputLabel>
-            <Select
-              labelId="schedule-department-label"
-              value={selectedDepartment}
-              label="Department"
-              onChange={e => {
-                setSelectedDepartment(e.target.value as string);
-                setSelectedRole('');
-              }}
+            <FormControl
+              size="medium"
+              fullWidth
+              sx={{ minWidth: { sm: 200 }, flexShrink: { sm: 0 } }}
             >
-              <MenuItem value="">Select department</MenuItem>
-              {departmentItems}
-            </Select>
-          </FormControl>
-          <FormControl
-            size="medium"
-            fullWidth
-            sx={{ minWidth: { sm: 200 }, flexShrink: { sm: 0 } }}
-          >
-            <InputLabel id="schedule-role-label">Role</InputLabel>
-            <Select
-              labelId="schedule-role-label"
-              value={selectedRole}
-              label="Role"
-              onChange={e => {
-                setSelectedRole(e.target.value as string);
-                setSelectedDepartment('');
-              }}
+              <InputLabel id="schedule-department-label">Department</InputLabel>
+              <Select
+                labelId="schedule-department-label"
+                value={selectedDepartment}
+                label="Department"
+                onChange={e => {
+                  setSelectedDepartment(e.target.value as string);
+                  setSelectedRole('');
+                }}
+                MenuProps={selectMenuProps}
+              >
+                <MenuItem value="">Select department</MenuItem>
+                {departmentItems}
+              </Select>
+            </FormControl>
+            <FormControl
+              size="medium"
+              fullWidth
+              sx={{ minWidth: { sm: 200 }, flexShrink: { sm: 0 } }}
             >
-              <MenuItem value="">Select role</MenuItem>
-              {scheduleRoleItems}
-            </Select>
-          </FormControl>
-        </Stack>
+              <InputLabel id="schedule-role-label">Role</InputLabel>
+              <Select
+                labelId="schedule-role-label"
+                value={selectedRole}
+                label="Role"
+                onChange={e => {
+                  setSelectedRole(e.target.value as string);
+                  setSelectedDepartment('');
+                }}
+                MenuProps={selectMenuProps}
+              >
+                <MenuItem value="">Select role</MenuItem>
+                {scheduleRoleItems}
+              </Select>
+            </FormControl>
+          </Stack>
           {selectedRole && roleInfos.length > 0 ? (
             <>
               <Stack
@@ -1027,7 +1044,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               Select a role or department to view schedule.
             </p>
           )}
-        </div>
+        </>
       )}
 
       {tab === 'search' && (
