@@ -11,6 +11,7 @@ import {
   ButtonBase,
 } from '@mui/material';
 import type { ReactNode } from 'react';
+import ScheduleCards from './ScheduleCards';
 
 interface Cell {
   content: ReactNode;
@@ -33,6 +34,22 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
   const safeMaxSlots = Math.max(1, maxSlots);
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'), { noSsr: true });
+  if (isSmall) {
+    const cardRows = rows.map((row) => ({
+      ...row,
+      cells: row.cells.map((cell) => {
+        if (!cell.onClick) {
+          return cell;
+        }
+        const isEmptyContent =
+          cell.content === undefined ||
+          cell.content === null ||
+          (typeof cell.content === 'string' && cell.content.trim().length === 0);
+        return isEmptyContent ? { ...cell, content: 'Sign up' } : cell;
+      }),
+    }));
+    return <ScheduleCards maxSlots={safeMaxSlots} rows={cardRows} />;
+  }
   const cellPadding = isSmall ? 0.5 : 1;
   const fontSize = isSmall ? '0.75rem' : 'inherit';
   const timeColumnWidth = isSmall ? 80 : 160;
