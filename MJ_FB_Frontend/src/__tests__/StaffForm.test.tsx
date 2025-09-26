@@ -3,6 +3,30 @@ import '@testing-library/jest-dom';
 import StaffForm from '../components/StaffForm';
 
 describe('StaffForm', () => {
+  it('shows validation messages on submit when required fields are empty', async () => {
+    const onSubmit = jest.fn().mockResolvedValue(undefined);
+    render(<StaffForm submitLabel="Add" onSubmit={onSubmit} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Add/i }));
+
+    expect(await screen.findByText(/First name is required/i)).toBeInTheDocument();
+    expect(screen.getByText(/Last name is required/i)).toBeInTheDocument();
+    expect(screen.getByText(/Email is required/i)).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('clears field-level errors after fixing the input', () => {
+    const onSubmit = jest.fn().mockResolvedValue(undefined);
+    render(<StaffForm submitLabel="Add" onSubmit={onSubmit} />);
+
+    const firstNameInput = screen.getByLabelText(/first name/i);
+    fireEvent.blur(firstNameInput);
+    expect(screen.getByText(/First name is required/i)).toBeInTheDocument();
+
+    fireEvent.change(firstNameInput, { target: { value: 'Alice' } });
+    expect(screen.queryByText(/First name is required/i)).not.toBeInTheDocument();
+  });
+
   it('submits without password and shows invitation message', async () => {
     const onSubmit = jest.fn().mockResolvedValue(undefined);
     render(<StaffForm submitLabel="Add" onSubmit={onSubmit} />);

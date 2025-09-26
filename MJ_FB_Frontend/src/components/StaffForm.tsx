@@ -27,6 +27,31 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
   const [access, setAccess] = useState<StaffAccess[]>(initial?.access || []);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+  });
+
+  function validateField(field: 'firstName' | 'lastName' | 'email', value: string) {
+    const trimmed = value.trim();
+    const message = `${field === 'email' ? 'Email' : field === 'lastName' ? 'Last name' : 'First name'} is required`;
+    return trimmed ? '' : message;
+  }
+
+  function updateFieldError(field: 'firstName' | 'lastName' | 'email', value: string) {
+    setFieldErrors(prev => ({
+      ...prev,
+      [field]: validateField(field, value),
+    }));
+  }
+
+  function clearFieldError(field: 'firstName' | 'lastName' | 'email') {
+    setFieldErrors(prev => ({
+      ...prev,
+      [field]: '',
+    }));
+  }
 
   useEffect(() => {
     if (initial) {
@@ -34,13 +59,19 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
       setLastName(initial.lastName);
       setEmail(initial.email);
       setAccess(initial.access);
+      setFieldErrors({ firstName: '', lastName: '', email: '' });
     }
   }, [initial]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!firstName || !lastName || !email) {
-      setError('All fields required');
+    const newErrors = {
+      firstName: validateField('firstName', firstName),
+      lastName: validateField('lastName', lastName),
+      email: validateField('email', email),
+    };
+    setFieldErrors(newErrors);
+    if (Object.values(newErrors).some(Boolean)) {
       return;
     }
     try {
@@ -52,6 +83,7 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
         setEmail('');
         setAccess([]);
       }
+      setFieldErrors({ firstName: '', lastName: '', email: '' });
     } catch (err: any) {
       setError(err.message || String(err));
     }
@@ -68,6 +100,7 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
       <FormCard
         title={submitLabel}
         onSubmit={handleSubmit}
+        noValidate
         actions={
           <Button type="submit" variant="contained" color="primary" fullWidth>
             {submitLabel}
@@ -79,14 +112,40 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
           name="firstName"
           autoComplete="given-name"
           value={firstName}
-          onChange={e => setFirstName(e.target.value)}
+          onChange={e => {
+            const value = e.target.value;
+            setFirstName(value);
+            if (fieldErrors.firstName) {
+              const validation = validateField('firstName', value);
+              if (!validation) {
+                clearFieldError('firstName');
+              }
+            }
+          }}
+          onBlur={e => updateFieldError('firstName', e.target.value)}
+          required
+          error={!!fieldErrors.firstName}
+          helperText={fieldErrors.firstName || undefined}
         />
         <TextField
           label="Last Name"
           name="lastName"
           autoComplete="family-name"
           value={lastName}
-          onChange={e => setLastName(e.target.value)}
+          onChange={e => {
+            const value = e.target.value;
+            setLastName(value);
+            if (fieldErrors.lastName) {
+              const validation = validateField('lastName', value);
+              if (!validation) {
+                clearFieldError('lastName');
+              }
+            }
+          }}
+          onBlur={e => updateFieldError('lastName', e.target.value)}
+          required
+          error={!!fieldErrors.lastName}
+          helperText={fieldErrors.lastName || undefined}
         />
         <TextField
           label="Email"
@@ -94,7 +153,20 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
           name="email"
           autoComplete="email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={e => {
+            const value = e.target.value;
+            setEmail(value);
+            if (fieldErrors.email) {
+              const validation = validateField('email', value);
+              if (!validation) {
+                clearFieldError('email');
+              }
+            }
+          }}
+          onBlur={e => updateFieldError('email', e.target.value)}
+          required
+          error={!!fieldErrors.email}
+          helperText={fieldErrors.email || undefined}
         />
         <Typography variant="body2" color="text.secondary">
           An email invitation will be sent.
