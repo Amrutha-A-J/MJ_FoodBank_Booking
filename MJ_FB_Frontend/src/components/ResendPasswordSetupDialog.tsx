@@ -16,17 +16,30 @@ export default function ResendPasswordSetupDialog({
   const [identifier, setIdentifier] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [identifierError, setIdentifierError] = useState('');
+
+  const trimmedIdentifier = identifier.trim();
+  const isSubmitDisabled = trimmedIdentifier.length === 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!trimmedIdentifier) {
+      setIdentifierError('Enter your email or client ID.');
+      return;
+    }
+
+    setIdentifierError('');
+    setMessage('');
+    setError('');
+
     try {
-      const value = identifier.trim();
-      const body = /^\d+$/.test(value)
-        ? { clientId: value }
-        : { email: value };
+      const body = /^\d+$/.test(trimmedIdentifier)
+        ? { clientId: trimmedIdentifier }
+        : { email: trimmedIdentifier };
       await resendPasswordSetup(body);
       setMessage('Password setup link sent');
       setIdentifier('');
+      setIdentifierError('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -44,7 +57,13 @@ export default function ResendPasswordSetupDialog({
             title="Resend password setup link"
             onSubmit={handleSubmit}
             actions={
-              <Button type="submit" variant="contained" fullWidth sx={{ minHeight: 48 }}>
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                sx={{ minHeight: 48 }}
+                disabled={isSubmitDisabled}
+              >
                 Submit
               </Button>
             }
@@ -60,7 +79,14 @@ export default function ResendPasswordSetupDialog({
               autoComplete="email"
               fullWidth
               value={identifier}
-              onChange={e => setIdentifier(e.target.value)}
+              onChange={e => {
+                setIdentifier(e.target.value);
+                if (identifierError) {
+                  setIdentifierError('');
+                }
+              }}
+              error={Boolean(identifierError)}
+              helperText={identifierError}
             />
           </FormCard>
         </DialogContent>
