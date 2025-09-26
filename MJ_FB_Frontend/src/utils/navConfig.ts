@@ -15,6 +15,7 @@ interface BuildNavOptions {
 
 const STAFF_PROFILE_LINKS: NavLink[] = [
   { label: 'News & Events', to: '/events' },
+  { label: 'Manage Availability', to: '/pantry/manage-availability' },
   { label: 'Timesheets', to: '/timesheet' },
   { label: 'Leave Requests', to: '/leave-requests' },
 ];
@@ -42,7 +43,6 @@ export function buildNavData({
   if (isStaff) {
     const staffLinks: NavLink[] = [
       { label: 'Dashboard', to: '/pantry' },
-      { label: 'Manage Availability', to: '/pantry/manage-availability' },
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
       { label: 'Client Management', to: '/pantry/client-management' },
