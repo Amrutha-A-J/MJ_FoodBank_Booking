@@ -9,6 +9,65 @@ import { reginaStartOfDayISO } from '../../utils/dateUtils';
 import type { PoolClient } from 'pg';
 import { normalizeEmail } from '../../utils/normalizeEmail';
 
+export async function getVolunteerById(req: Request, res: Response, next: NextFunction) {
+  const { id } = req.params;
+  const volunteerId = Number(id);
+  if (!Number.isInteger(volunteerId) || volunteerId <= 0) {
+    return res.status(400).json({ message: 'Invalid volunteer ID' });
+  }
+
+  try {
+    const result = await pool.query<{
+      id: number;
+      first_name: string;
+      last_name: string;
+      email: string | null;
+      phone: string | null;
+      password: string | null;
+      user_id: number | null;
+      trained_role_ids: (number | null)[] | null;
+    }>(
+      `SELECT v.id,
+              v.first_name,
+              v.last_name,
+              v.email,
+              v.phone,
+              v.password,
+              v.user_id,
+              ARRAY_REMOVE(ARRAY_AGG(DISTINCT vtr.role_id), NULL) AS trained_role_ids
+         FROM volunteers v
+         LEFT JOIN volunteer_trained_roles vtr ON v.id = vtr.volunteer_id
+        WHERE v.id = $1
+        GROUP BY v.id`,
+      [volunteerId],
+    );
+
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Volunteer not found' });
+    }
+
+    const row = result.rows[0];
+    const trainedAreas = Array.isArray(row.trained_role_ids)
+      ? row.trained_role_ids.filter((roleId): roleId is number => typeof roleId === 'number')
+      : [];
+
+    res.json({
+      id: row.id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      email: row.email,
+      phone: row.phone,
+      hasPassword: Boolean(row.password),
+      hasShopper: row.user_id != null,
+      clientId: row.user_id ?? null,
+      trainedAreas,
+    });
+  } catch (error) {
+    logger.error('Error fetching volunteer details:', error);
+    next(error);
+  }
+}
+
 export async function updateTrainedArea(
   req: Request,
   res: Response,
@@ -103,6 +162,20 @@ export async function getVolunteerStatsById(
       ytd_shifts: string;
       mtd_hours: string;
       mtd_shifts: string;
+      most_roles: Array<{
+        roleId: number | string;
+        roleName: string;
+        shifts: number | string;
+        hours: number | string;
+      }> | null;
+      last_shift:
+        | {
+            date: string;
+            roleId: number | string;
+            roleName: string;
+            hours: number | string;
+          }
+        | null;
     }>(
       `WITH bounds AS (
          SELECT timezone('Canada/Saskatchewan', now())::date AS today,
@@ -110,33 +183,80 @@ export async function getVolunteerStatsById(
                 (date_trunc('month', timezone('Canada/Saskatchewan', now()))::date + INTERVAL '1 month')::date AS month_end,
                 date_trunc('year', timezone('Canada/Saskatchewan', now()))::date AS year_start,
                 (date_trunc('year', timezone('Canada/Saskatchewan', now()))::date + INTERVAL '1 year')::date AS year_end
+       ), completed_bookings AS (
+         SELECT vb.volunteer_id,
+                vb.date,
+                vs.start_time,
+                vs.end_time,
+                vs.role_id,
+                vr.name AS role_name,
+                EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600 AS hours
+           FROM volunteer_bookings vb
+           JOIN volunteer_slots vs ON vs.slot_id = vb.slot_id
+           JOIN volunteer_roles vr ON vr.id = vs.role_id
+          WHERE vb.volunteer_id = $1
+            AND vb.status = 'completed'
+            AND vb.date <= (SELECT today FROM bounds)
+       ), aggregates AS (
+         SELECT v.archived_hours + COALESCE(SUM(cb.hours), 0) AS lifetime_hours,
+                v.archived_shifts + COALESCE(COUNT(cb.slot_id), 0) AS lifetime_shifts,
+                COALESCE(SUM(cb.hours)
+                  FILTER (WHERE cb.date >= bounds.year_start AND cb.date < bounds.year_end), 0) AS ytd_hours,
+                COALESCE(COUNT(cb.slot_id)
+                  FILTER (WHERE cb.date >= bounds.year_start AND cb.date < bounds.year_end), 0) AS ytd_shifts,
+                COALESCE(SUM(cb.hours)
+                  FILTER (WHERE cb.date >= bounds.month_start AND cb.date < bounds.month_end), 0) AS mtd_hours,
+                COALESCE(COUNT(cb.slot_id)
+                  FILTER (WHERE cb.date >= bounds.month_start AND cb.date < bounds.month_end), 0) AS mtd_shifts
+           FROM volunteers v
+           CROSS JOIN bounds
+           LEFT JOIN completed_bookings cb ON cb.volunteer_id = v.id
+          WHERE v.id = $1
+          GROUP BY v.archived_hours, v.archived_shifts
+       ), role_summary AS (
+         SELECT role_id,
+                role_name,
+                COUNT(*) AS shifts,
+                COALESCE(SUM(hours), 0) AS hours
+           FROM completed_bookings
+          GROUP BY role_id, role_name
+       ), ranked_roles AS (
+         SELECT role_id,
+                role_name,
+                shifts,
+                hours,
+                ROW_NUMBER() OVER (ORDER BY shifts DESC, hours DESC, role_name ASC) AS rn
+           FROM role_summary
        )
-       SELECT
-         v.archived_hours + COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600), 0) AS lifetime_hours,
-         v.archived_shifts + COALESCE(COUNT(*) FILTER (WHERE vb.status = 'completed'), 0) AS lifetime_shifts,
-         COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600)
-           FILTER (WHERE vb.date >= bounds.year_start AND vb.date < bounds.year_end), 0) AS ytd_hours,
-         COALESCE(COUNT(*) FILTER (
-           WHERE vb.status = 'completed'
-             AND vb.date >= bounds.year_start
-             AND vb.date < bounds.year_end
-         ), 0) AS ytd_shifts,
-         COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600)
-           FILTER (WHERE vb.date >= bounds.month_start AND vb.date < bounds.month_end), 0) AS mtd_hours,
-         COALESCE(COUNT(*) FILTER (
-           WHERE vb.status = 'completed'
-             AND vb.date >= bounds.month_start
-             AND vb.date < bounds.month_end
-         ), 0) AS mtd_shifts
-       FROM volunteers v
-       CROSS JOIN bounds
-       LEFT JOIN volunteer_bookings vb
-         ON vb.volunteer_id = v.id
-        AND vb.status = 'completed'
-        AND vb.date <= bounds.today
-       LEFT JOIN volunteer_slots vs ON vs.slot_id = vb.slot_id
-       WHERE v.id = $1
-       GROUP BY v.archived_hours, v.archived_shifts`,
+       SELECT aggregates.lifetime_hours,
+              aggregates.lifetime_shifts,
+              aggregates.ytd_hours,
+              aggregates.ytd_shifts,
+              aggregates.mtd_hours,
+              aggregates.mtd_shifts,
+              COALESCE((
+                SELECT JSON_AGG(JSON_BUILD_OBJECT(
+                  'roleId', role_id,
+                  'roleName', role_name,
+                  'shifts', shifts,
+                  'hours', hours
+                ) ORDER BY shifts DESC, hours DESC, role_name ASC)
+                  FROM ranked_roles
+                 WHERE rn <= 3
+              ), '[]'::json) AS most_roles,
+              (
+                SELECT row_to_json(ls)
+                  FROM (
+                    SELECT date,
+                           role_id AS "roleId",
+                           role_name AS "roleName",
+                           hours
+                      FROM completed_bookings
+                     ORDER BY date DESC, start_time DESC
+                     LIMIT 1
+                  ) ls
+              ) AS last_shift
+         FROM aggregates`,
       [volunteerId],
     );
 
@@ -145,6 +265,22 @@ export async function getVolunteerStatsById(
     }
 
     const row = statsRes.rows[0];
+    const mostRoles = Array.isArray(row?.most_roles)
+      ? row.most_roles.map(role => ({
+          roleId: Number(role.roleId),
+          roleName: role.roleName,
+          shifts: Number(role.shifts),
+          hours: Number(role.hours),
+        }))
+      : [];
+    const lastShift = row?.last_shift
+      ? {
+          date: row.last_shift.date,
+          roleId: Number(row.last_shift.roleId),
+          roleName: row.last_shift.roleName,
+          hours: Number(row.last_shift.hours),
+        }
+      : null;
     const response = {
       volunteerId,
       lifetime: {
@@ -159,6 +295,8 @@ export async function getVolunteerStatsById(
         hours: Number(row?.mtd_hours ?? 0),
         shifts: Number(row?.mtd_shifts ?? 0),
       },
+      mostBookedRoles: mostRoles,
+      lastCompletedShift: lastShift,
     };
 
     res.json(response);

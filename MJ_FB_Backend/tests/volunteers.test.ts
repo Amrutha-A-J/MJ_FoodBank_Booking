@@ -191,6 +191,62 @@ describe('Volunteer routes role ID validation', () => {
   });
 });
 
+describe('getVolunteerById route', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns volunteer details with trained areas and flags', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [
+        {
+          id: 4,
+          first_name: 'Alex',
+          last_name: 'Morgan',
+          email: 'alex@example.com',
+          phone: '555-1234',
+          password: 'hashed',
+          user_id: 22,
+          trained_role_ids: [1, 3],
+        },
+      ],
+    });
+
+    const res = await request(app).get('/volunteers/4');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      id: 4,
+      firstName: 'Alex',
+      lastName: 'Morgan',
+      email: 'alex@example.com',
+      phone: '555-1234',
+      hasPassword: true,
+      hasShopper: true,
+      clientId: 22,
+      trainedAreas: [1, 3],
+    });
+  });
+
+  it('returns 404 when volunteer is missing', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
+
+    const res = await request(app).get('/volunteers/55');
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ message: 'Volunteer not found' });
+  });
+
+  it('rejects invalid volunteer id', async () => {
+    const res = await request(app).get('/volunteers/not-a-number');
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: 'Invalid volunteer ID' });
+    expect(pool.query).not.toHaveBeenCalled();
+  });
+});
+
 describe('getVolunteerStatsById route', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -207,6 +263,16 @@ describe('getVolunteerStatsById route', () => {
           ytd_shifts: '6',
           mtd_hours: '2.5',
           mtd_shifts: '3',
+          most_roles: [
+            { roleId: 7, roleName: 'Pantry Support', shifts: '4', hours: '6.5' },
+            { roleId: 3, roleName: 'Warehouse', shifts: '2', hours: '4' },
+          ],
+          last_shift: {
+            date: '2024-05-11',
+            roleId: 3,
+            roleName: 'Warehouse',
+            hours: '2.5',
+          },
         },
       ],
     });
@@ -219,8 +285,48 @@ describe('getVolunteerStatsById route', () => {
       lifetime: { hours: 12.5, shifts: 15 },
       yearToDate: { hours: 5, shifts: 6 },
       monthToDate: { hours: 2.5, shifts: 3 },
+      mostBookedRoles: [
+        { roleId: 7, roleName: 'Pantry Support', shifts: 4, hours: 6.5 },
+        { roleId: 3, roleName: 'Warehouse', shifts: 2, hours: 4 },
+      ],
+      lastCompletedShift: {
+        date: '2024-05-11',
+        roleId: 3,
+        roleName: 'Warehouse',
+        hours: 2.5,
+      },
     });
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/archived_hours/i);
+  });
+
+  it('returns empty role stats when there are no bookings', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [
+        {
+          lifetime_hours: '0',
+          lifetime_shifts: '0',
+          ytd_hours: '0',
+          ytd_shifts: '0',
+          mtd_hours: '0',
+          mtd_shifts: '0',
+          most_roles: [],
+          last_shift: null,
+        },
+      ],
+    });
+
+    const res = await request(app).get('/volunteers/8/stats');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      volunteerId: 8,
+      lifetime: { hours: 0, shifts: 0 },
+      yearToDate: { hours: 0, shifts: 0 },
+      monthToDate: { hours: 0, shifts: 0 },
+      mostBookedRoles: [],
+      lastCompletedShift: null,
+    });
   });
 
   it('returns 404 when the volunteer does not exist', async () => {
