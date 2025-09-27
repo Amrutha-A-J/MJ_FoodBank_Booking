@@ -96,6 +96,61 @@ describe("VolunteerSchedule", () => {
     expect(await screen.findByText('Cleaner')).toBeInTheDocument();
   });
 
+  it('shows add icon only on the first available volunteer slot in cards layout', async () => {
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        role_id: 1,
+        name: 'Greeter',
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+        max_volunteers: 2,
+        booked: 0,
+        available: 2,
+        status: 'available',
+        date: '2024-01-29',
+        category_id: 1,
+        category_name: 'Front',
+        is_wednesday_slot: false,
+      },
+    ]);
+    const originalSystemTime = new Date('2024-01-29T19:00:00Z');
+    jest.setSystemTime(new Date('2024-01-29T12:00:00Z'));
+
+    useMediaQueryMock.mockImplementation((query: string) => {
+      if (query.includes('max-width')) {
+        return true;
+      }
+      return actualUseMediaQuery(query);
+    });
+
+    try {
+      renderWithProviders(<VolunteerSchedule />);
+
+      fireEvent.mouseDown(screen.getByLabelText('Department'));
+      fireEvent.click(await screen.findByText('Front'));
+
+      const slotHeader = await screen.findByRole('heading', { name: /9:00 AM/ });
+      const cardContent = slotHeader.closest('.MuiCardContent-root') as HTMLElement;
+      const grid = cardContent.querySelector('[class*="MuiBox-root"]') as HTMLElement;
+      const cells = Array.from(grid.children) as HTMLElement[];
+
+      const iconCells = cells.filter((cell) =>
+        cell.querySelector('svg[data-testid="AddCircleOutlineIcon"]'),
+      );
+      expect(iconCells).toHaveLength(1);
+      expect(iconCells[0]).toBe(cells[0]);
+      expect(
+        cells[1].querySelector('svg[data-testid="AddCircleOutlineIcon"]'),
+      ).toBeNull();
+    } finally {
+      useMediaQueryMock.mockImplementation(actualUseMediaQuery);
+      jest.setSystemTime(originalSystemTime);
+    }
+  });
+
   it("disables past days and hides past slots", async () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);

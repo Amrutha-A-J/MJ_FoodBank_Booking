@@ -342,9 +342,60 @@ describe('PantrySchedule small screen cards', () => {
       const clickableCell = (grid as HTMLElement).firstElementChild as HTMLElement | null;
       expect(clickableCell).not.toBeNull();
 
+      const icon = clickableCell?.querySelector(
+        'svg[data-testid="AddCircleOutlineIcon"]',
+      );
+      expect(icon).not.toBeNull();
+
       fireEvent.click(clickableCell as HTMLElement);
 
       expect(await screen.findByRole('dialog', { name: 'Assign User' })).toBeInTheDocument();
+    } finally {
+      matchMediaSpy.mockRestore();
+    }
+  });
+
+  it('only shows add icon on the first available slot', async () => {
+    (bookingApi.getSlots as jest.Mock).mockResolvedValue([
+      {
+        id: '1',
+        startTime: '09:00:00',
+        endTime: '09:30:00',
+        available: 2,
+        maxCapacity: 2,
+      },
+    ]);
+    const matchMediaSpy = jest
+      .spyOn(window, 'matchMedia')
+      .mockImplementation((query: string) => ({
+        matches: true,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      }));
+
+    try {
+      render(
+        <MemoryRouter>
+          <PantrySchedule />
+        </MemoryRouter>,
+      );
+
+      const slotHeader = await screen.findByText('9:00 AM - 9:30 AM');
+      const cardContent = slotHeader.closest('.MuiCardContent-root') as HTMLElement;
+      const grid = cardContent.querySelector('[class*="MuiBox-root"]') as HTMLElement;
+      const cells = Array.from(grid.children) as HTMLElement[];
+
+      expect(
+        cells[0].querySelector('svg[data-testid="AddCircleOutlineIcon"]'),
+      ).not.toBeNull();
+      expect(
+        cells[1].querySelector('svg[data-testid="AddCircleOutlineIcon"]'),
+      ).toBeNull();
     } finally {
       matchMediaSpy.mockRestore();
     }

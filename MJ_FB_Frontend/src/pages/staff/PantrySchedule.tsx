@@ -51,6 +51,7 @@ import {
 } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "../../utils/date";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 const reginaTimeZone = "America/Regina";
 
@@ -312,6 +313,7 @@ export default function PantrySchedule({
       };
     }
     const slotBookings = bookingsBySlot[slot.id] ?? [];
+    let hasAvailableIcon = false;
     return {
       time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
       cells: Array.from({ length: maxSlots }).map((_, i) => {
@@ -337,7 +339,16 @@ export default function PantrySchedule({
             onClick = () => setManageBooking(booking);
           }
         } else if (withinCapacity && !isClosed) {
-          content = "";
+          const showAddIcon = !hasAvailableIcon;
+          if (showAddIcon) {
+            hasAvailableIcon = true;
+          }
+          content = showAddIcon ? (
+            <AddCircleOutlineIcon
+              color="primary"
+              sx={{ fontSize: { xs: 32, sm: 36 } }}
+            />
+          ) : "";
           onClick = () => {
             setAssignSlot(slot);
           };
