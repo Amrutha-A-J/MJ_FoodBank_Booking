@@ -26,6 +26,9 @@ const UserHistory = React.lazy(() =>
 const ClientManagement = React.lazy(() =>
   import('./pages/staff/ClientManagement')
 );
+const ClientProfile = React.lazy(() =>
+  import('./pages/staff/client-management/ClientProfile')
+);
 const BookingUI = React.lazy(() => import('./pages/BookingUI'));
 const PantrySchedule = React.lazy(() =>
   import('./pages/staff/PantrySchedule')
@@ -357,6 +360,12 @@ export default function App() {
                     <Route
                       path="/pantry/client-management"
                       element={<ClientManagement />}
+                    />
+                  )}
+                  {showStaff && (
+                    <Route
+                      path="/pantry/client-management/clients/:clientId"
+                      element={<ClientProfile />}
                     />
                   )}
                   {isStaff && <Route path="/events" element={<Events />} />}

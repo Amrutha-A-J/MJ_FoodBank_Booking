@@ -38,7 +38,7 @@ export default function PantryQuickLinks() {
         variant="outlined"
         sx={buttonSx}
         component={RouterLink}
-        to="/pantry/client-management?tab=history"
+        to="/pantry/client-management"
         fullWidth
       >
         Search Client

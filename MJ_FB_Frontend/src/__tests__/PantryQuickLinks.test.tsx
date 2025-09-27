@@ -19,7 +19,7 @@ describe('PantryQuickLinks', () => {
     );
     expect(screen.getByRole('link', { name: /Search Client/i })).toHaveAttribute(
       'href',
-      '/pantry/client-management?tab=history',
+      '/pantry/client-management',
     );
     expect(
       screen.queryByRole('link', { name: /Aggregations/i }),

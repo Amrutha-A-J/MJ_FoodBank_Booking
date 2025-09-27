@@ -7,22 +7,20 @@ import { renderWithProviders } from '../../../../testUtils/renderWithProviders';
 it('navigates to search tab via quick link', async () => {
   window.history.pushState({}, '', '/pantry/client-management?tab=add');
 
+  localStorage.setItem('role', 'staff');
+  localStorage.setItem('name', 'Test Staff');
+  localStorage.setItem('access', '[]');
+
   renderWithProviders(
     <BrowserRouter>
-      <MainLayout groups={[]}> 
+      <MainLayout groups={[]}>
         <ClientManagement />
       </MainLayout>
     </BrowserRouter>,
   );
 
-  fireEvent.click(screen.getByRole('link', { name: /search client/i }));
+  const quickLink = await screen.findByText(/search client/i, { selector: 'a' });
+  fireEvent.click(quickLink);
 
-  await waitFor(() => {
-    expect(screen.getByRole('tab', { name: /search client/i })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    );
-  });
-
-  expect(window.location.search).toBe('?tab=history');
+  expect(window.location.search).toBe('');
 });

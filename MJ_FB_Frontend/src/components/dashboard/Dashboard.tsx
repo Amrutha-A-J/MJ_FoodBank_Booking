@@ -223,11 +223,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
             placeholder="Search"
             onSelect={res => {
               if (searchType === 'user') {
-                navigate(
-                  `/pantry/client-management?tab=history&id=${res.id}&name=${encodeURIComponent(
-                    res.name,
-                  )}&clientId=${res.client_id}`,
-                );
+                navigate(`/pantry/client-management/clients/${res.client_id}`);
               } else {
                 navigate(
                   `/volunteer-management/volunteers?id=${res.id}&name=${encodeURIComponent(

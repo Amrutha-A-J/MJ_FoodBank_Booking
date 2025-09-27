@@ -161,20 +161,26 @@ export default function UserHistory({
   const [roleLoading, setRoleLoading] = useState(false);
   const [roleError, setRoleError] = useState<string | null>(null);
   const { role } = useAuth();
-  const showNotes = role === 'staff';
+  const isStaff = role === 'staff';
+  const showNotes = isStaff;
   const isClient = role === 'shopper' || role === 'delivery';
   const isVolunteer = role === 'volunteer';
   const hasBottomNav = isClient || isVolunteer;
 
   useEffect(() => {
     if (initialUser) return;
-    const name = searchParams.get('name');
     const clientId = searchParams.get('clientId');
-    if (name && clientId) {
+    if (!clientId) return;
+    if (isStaff) {
+      navigate(`/pantry/client-management/clients/${clientId}`);
+      return;
+    }
+    const name = searchParams.get('name');
+    if (name) {
       setSelected({ name, client_id: Number(clientId) });
       setSelectedRole(null);
     }
-  }, [searchParams, initialUser]);
+  }, [searchParams, initialUser, isStaff, navigate]);
 
   useEffect(() => {
     if (!selected) {
@@ -202,7 +208,7 @@ export default function UserHistory({
       return;
     }
 
-    if (role !== 'staff') {
+    if (!isStaff) {
       setRoleError(null);
       setRoleLoading(false);
       return;
@@ -288,13 +294,17 @@ export default function UserHistory({
 
   const handleSelect = (u: User) => {
     const user = { ...u };
+    if (isStaff) {
+      navigate(`/pantry/client-management/clients/${user.client_id}`);
+      return;
+    }
     setSelected(user);
     setSelectedRole(user.role ?? null);
     setRoleError(null);
   };
 
   const shouldShowRoleSpinner =
-    role === 'staff' && roleLoading && !selectedRole && !!selected;
+    !isStaff && roleLoading && !selectedRole && !!selected;
 
   return (
     <>
@@ -326,7 +336,7 @@ export default function UserHistory({
                 }}
               />
             )}
-            {selected && (
+            {!isStaff && selected && (
               <Grid
                 container
                 spacing={3}
@@ -357,7 +367,7 @@ export default function UserHistory({
                         showUserHeading={!initialUser}
                         retentionNotice="Bookings, cancellations, and visits older than one year are removed from history."
                         renderEditDialog={
-                          role === 'staff'
+                          isStaff
                             ? ({ open, onClose, onUpdated }) => (
                                 <EditClientDialog
                                   open={open}
@@ -372,7 +382,7 @@ export default function UserHistory({
                             : undefined
                         }
                         renderDeleteVisitButton={(b, isSmall, open) =>
-                          role === 'staff' && b.status === 'visited' && !b.slot_id ? (
+                          isStaff && b.status === 'visited' && !b.slot_id ? (
                             <Button
                               key="deleteVisit"
                               onClick={open}
@@ -385,7 +395,7 @@ export default function UserHistory({
                           ) : null
                         }
                       />
-                      {role === 'staff' && selectedRole === 'delivery' && (
+                      {isStaff && selectedRole === 'delivery' && (
                         <Box mt={3}>
                           <Card>
                             <CardHeader
