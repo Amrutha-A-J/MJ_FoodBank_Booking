@@ -2,12 +2,19 @@ import {
   fireEvent,
   renderWithProviders,
   screen,
-  waitFor,
 } from '../../../../../testUtils/renderWithProviders';
-import { MemoryRouter } from 'react-router-dom';
+import * as Router from 'react-router-dom';
 import UserHistory from '../UserHistory';
-import { getDeliveryOrdersForClient } from '../../../../api/deliveryOrders';
-import { getUserByClientId } from '../../../../api/users';
+
+const navigateMock = jest.fn();
+
+jest.mock('react-router-dom', () => {
+  const actual = jest.requireActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => navigateMock,
+  };
+});
 
 jest.mock('../../../../components/ClientBottomNav', () => ({
   __esModule: true,
@@ -19,43 +26,34 @@ jest.mock('../../../../components/VolunteerBottomNav', () => ({
   default: () => <div data-testid="volunteer-nav" />,
 }));
 
-type MockedGetOrders = jest.MockedFunction<typeof getDeliveryOrdersForClient>;
-type MockedGetUserByClientId = jest.MockedFunction<typeof getUserByClientId>;
-
 jest.mock('../../../../components/EntitySearch', () => ({
   __esModule: true,
-  default: ({ onSelect }: { onSelect: (value: unknown) => void }) => (
-    <button onClick={() => onSelect({ name: 'Search Result', client_id: 456 })}>
-      Select client
-    </button>
+  default: ({
+    onSelect,
+    onNotFound,
+  }: {
+    onSelect: (value: unknown) => void;
+    onNotFound?: (clientId: string) => void;
+  }) => (
+    <>
+      <button onClick={() => onSelect({ name: 'Search Result', client_id: 456 })}>
+        Select client
+      </button>
+      <button onClick={() => onNotFound?.('789')}>Not found</button>
+    </>
   ),
 }));
-
-jest.mock('../../../../components/BookingManagementBase', () => ({
-  __esModule: true,
-  default: ({ user }: { user: { client_id: number } }) => (
-    <div data-testid="booking-management-base">History for {user.client_id}</div>
-  ),
-}));
-
-jest.mock('../../../../api/deliveryOrders', () => ({
-  __esModule: true,
-  getDeliveryOrdersForClient: jest.fn(),
-}));
-
-jest.mock('../../../../api/users', () => ({
-  __esModule: true,
-  getUserByClientId: jest.fn(),
-}));
-
-const mockGetDeliveryOrdersForClient = getDeliveryOrdersForClient as MockedGetOrders;
-const mockGetUserByClientId = getUserByClientId as MockedGetUserByClientId;
 
 const originalFetch = globalThis.fetch;
 
 beforeAll(() => {
   (globalThis as any).fetch = jest.fn(async (input: RequestInfo | URL) => {
-    const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+    const url =
+      typeof input === 'string'
+        ? input
+        : input instanceof URL
+        ? input.toString()
+        : input.url;
     if (url.includes('/auth/csrf-token')) {
       return new Response(JSON.stringify({ csrfToken: 'test-token' }), {
         status: 200,
@@ -78,217 +76,45 @@ afterAll(() => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  navigateMock.mockReset();
   localStorage.clear();
-  localStorage.setItem('role', 'staff');
-  localStorage.setItem('name', 'Test Staff');
-  localStorage.setItem('access', '[]');
 });
 
-describe('UserHistory delivery orders', () => {
-  it('skips delivery history when the selected client is not a delivery user', async () => {
-    mockGetUserByClientId.mockResolvedValueOnce({
-      clientId: 456,
-      firstName: 'Search',
-      lastName: 'Result',
-      email: null,
-      phone: null,
-      onlineAccess: true,
-      hasPassword: true,
-      role: 'shopper',
-      bookingsThisMonth: 0,
-    });
+describe('UserHistory staff navigation', () => {
+  beforeEach(() => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    localStorage.setItem('access', '[]');
+  });
 
+  it('navigates to the client profile when a result is selected', () => {
     renderWithProviders(
-      <MemoryRouter>
+      <Router.MemoryRouter>
         <UserHistory />
-      </MemoryRouter>,
+      </Router.MemoryRouter>,
     );
 
     fireEvent.click(screen.getByRole('button', { name: /select client/i }));
 
-    await waitFor(() =>
-      expect(mockGetUserByClientId).toHaveBeenCalledWith('456'),
+    expect(navigateMock).toHaveBeenCalledWith(
+      '/pantry/client-management/clients/456',
     );
-
-    await waitFor(() =>
-      expect(screen.getByTestId('booking-management-base')).toHaveTextContent(
-        'History for 456',
-      ),
-    );
-    expect(mockGetDeliveryOrdersForClient).not.toHaveBeenCalled();
-    expect(screen.queryByText(/Delivery history/i)).not.toBeInTheDocument();
   });
 
-  it('renders delivery history inline when the selected client has the delivery role', async () => {
-    mockGetUserByClientId.mockResolvedValueOnce({
-      clientId: 456,
-      firstName: 'Search',
-      lastName: 'Result',
-      email: null,
-      phone: null,
-      onlineAccess: true,
-      hasPassword: true,
-      role: 'delivery',
-      bookingsThisMonth: 0,
-    });
-    mockGetDeliveryOrdersForClient.mockResolvedValueOnce([
-      {
-        id: 10,
-        clientId: 456,
-        status: 'scheduled',
-        createdAt: '2024-05-01T17:00:00.000Z',
-        scheduledFor: '2024-05-14T15:30:00.000Z',
-        address: '123 Main St',
-        phone: '306-555-1234',
-        email: 'client@example.com',
-        notes: 'Leave at the back door',
-        items: [
-          {
-            itemId: 1,
-            quantity: 2,
-            categoryId: 7,
-            itemName: 'Milk',
-            categoryName: 'Dairy',
-          },
-          {
-            itemId: 2,
-            quantity: 1,
-            categoryId: 9,
-            itemName: 'Bread',
-            categoryName: 'Bakery',
-          },
-        ],
-      },
-    ]);
-
+  it('opens the add client confirmation when a client ID is not found', () => {
     renderWithProviders(
-      <MemoryRouter>
+      <Router.MemoryRouter>
         <UserHistory />
-      </MemoryRouter>,
+      </Router.MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /select client/i }));
+    fireEvent.click(screen.getByRole('button', { name: /not found/i }));
 
-    await waitFor(() =>
-      expect(mockGetDeliveryOrdersForClient).toHaveBeenCalledWith(456),
-    );
+    expect(screen.getByText('Add client 789?')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
 
-    expect(screen.getByText('Delivery history')).toBeInTheDocument();
-    expect(screen.getByText('Active deliveries')).toBeInTheDocument();
-    expect(screen.getByText('Order #10')).toBeInTheDocument();
-    expect(screen.getByText('Scheduled: Tue, May 14, 2024')).toBeInTheDocument();
-    expect(screen.getByText('Address: 123 Main St')).toBeInTheDocument();
-    expect(screen.getByText('Phone: 306-555-1234')).toBeInTheDocument();
-    expect(screen.getByText('Email: client@example.com')).toBeInTheDocument();
-    expect(screen.getByText('Notes: Leave at the back door')).toBeInTheDocument();
-    expect(screen.getByText('Milk × 2')).toBeInTheDocument();
-    expect(screen.getByText('Bread × 1')).toBeInTheDocument();
-    expect(screen.getByText('Dairy')).toBeInTheDocument();
-    expect(screen.getByText('Bakery')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /show completed deliveries/i }),
-    ).toBeInTheDocument();
-    await waitFor(() =>
-      expect(screen.getByTestId('booking-management-base')).toHaveTextContent(
-        'History for 456',
-      ),
-    );
-  });
-
-  it('only shows active delivery orders by default and reveals completed orders when expanded', async () => {
-    mockGetUserByClientId.mockResolvedValueOnce({
-      clientId: 456,
-      firstName: 'Search',
-      lastName: 'Result',
-      email: null,
-      phone: null,
-      onlineAccess: true,
-      hasPassword: true,
-      role: 'delivery',
-      bookingsThisMonth: 0,
-    });
-    mockGetDeliveryOrdersForClient.mockResolvedValueOnce([
-      {
-        id: 11,
-        clientId: 456,
-        status: 'approved',
-        createdAt: '2024-05-01T17:00:00.000Z',
-        scheduledFor: '2024-05-20T15:30:00.000Z',
-        address: '123 Main St',
-        phone: '306-555-1234',
-        email: 'client@example.com',
-        notes: null,
-        items: [],
-      },
-      {
-        id: 12,
-        clientId: 456,
-        status: 'completed',
-        createdAt: '2024-04-01T17:00:00.000Z',
-        scheduledFor: '2024-04-05T15:30:00.000Z',
-        address: '123 Main St',
-        phone: '306-555-1234',
-        email: 'client@example.com',
-        notes: 'Delivered successfully',
-        items: [],
-      },
-    ]);
-
-    renderWithProviders(
-      <MemoryRouter>
-        <UserHistory />
-      </MemoryRouter>,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: /select client/i }));
-
-    await waitFor(() =>
-      expect(mockGetDeliveryOrdersForClient).toHaveBeenCalledWith(456),
-    );
-
-    expect(screen.getByText('Order #11')).toBeInTheDocument();
-    const completedOrderHeading = screen.getByText('Order #12');
-    expect(completedOrderHeading).not.toBeVisible();
-
-    fireEvent.click(
-      screen.getByRole('button', { name: /show completed deliveries/i }),
-    );
-
-    expect(completedOrderHeading).toBeVisible();
-  });
-
-  it('shows an empty state when no delivery orders are found', async () => {
-    mockGetDeliveryOrdersForClient.mockResolvedValueOnce([]);
-
-    renderWithProviders(
-      <MemoryRouter>
-        <UserHistory
-          initialUser={{
-            name: 'Client Example',
-            client_id: 123,
-            role: 'delivery',
-          }}
-        />
-      </MemoryRouter>,
-    );
-
-    await waitFor(() =>
-      expect(mockGetDeliveryOrdersForClient).toHaveBeenCalledWith(123),
-    );
-
-    expect(screen.getByText('Delivery history')).toBeInTheDocument();
-    expect(
-      screen.getByText('No active delivery requests right now.'),
-    ).toBeInTheDocument();
-    fireEvent.click(
-      screen.getByRole('button', { name: /show completed deliveries/i }),
-    );
-    expect(screen.getByText('No completed deliveries yet.')).toBeInTheDocument();
-    expect(mockGetUserByClientId).not.toHaveBeenCalled();
-    await waitFor(() =>
-      expect(screen.getByTestId('booking-management-base')).toHaveTextContent(
-        'History for 123',
-      ),
+    expect(navigateMock).toHaveBeenCalledWith(
+      '/pantry/client-management?tab=add&clientId=789',
     );
   });
 });
@@ -300,11 +126,11 @@ describe('UserHistory navigation', () => {
     localStorage.setItem('userRole', 'shopper');
 
     renderWithProviders(
-      <MemoryRouter>
+      <Router.MemoryRouter>
         <UserHistory
           initialUser={{ name: 'Client Example', client_id: 123, role: 'shopper' }}
         />
-      </MemoryRouter>,
+      </Router.MemoryRouter>,
     );
 
     await screen.findByTestId('client-nav');
@@ -317,11 +143,11 @@ describe('UserHistory navigation', () => {
     localStorage.setItem('userRole', 'delivery');
 
     renderWithProviders(
-      <MemoryRouter>
+      <Router.MemoryRouter>
         <UserHistory
           initialUser={{ name: 'Delivery Client', client_id: 456, role: 'delivery' }}
         />
-      </MemoryRouter>,
+      </Router.MemoryRouter>,
     );
 
     await screen.findByTestId('client-nav');
@@ -334,11 +160,11 @@ describe('UserHistory navigation', () => {
     localStorage.setItem('userRole', 'shopper');
 
     renderWithProviders(
-      <MemoryRouter>
+      <Router.MemoryRouter>
         <UserHistory
           initialUser={{ name: 'Client Example', client_id: 789, role: 'shopper' }}
         />
-      </MemoryRouter>,
+      </Router.MemoryRouter>,
     );
 
     await screen.findByTestId('volunteer-nav');
@@ -352,16 +178,15 @@ describe('UserHistory navigation', () => {
     localStorage.removeItem('userRole');
 
     renderWithProviders(
-      <MemoryRouter>
+      <Router.MemoryRouter>
         <UserHistory
           initialUser={{ name: 'Client Example', client_id: 321, role: 'shopper' }}
         />
-      </MemoryRouter>,
+      </Router.MemoryRouter>,
     );
 
-    await waitFor(() => {
-      expect(screen.queryByTestId('client-nav')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('volunteer-nav')).not.toBeInTheDocument();
-    });
+    await screen.findByText(/Client history/i);
+    expect(screen.queryByTestId('client-nav')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('volunteer-nav')).not.toBeInTheDocument();
   });
 });

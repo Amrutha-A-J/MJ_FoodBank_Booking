@@ -161,7 +161,8 @@ export default function UserHistory({
   const [roleLoading, setRoleLoading] = useState(false);
   const [roleError, setRoleError] = useState<string | null>(null);
   const { role } = useAuth();
-  const showNotes = role === 'staff';
+  const isStaff = role === 'staff';
+  const showNotes = isStaff;
   const isClient = role === 'shopper' || role === 'delivery';
   const isVolunteer = role === 'volunteer';
   const hasBottomNav = isClient || isVolunteer;
@@ -170,13 +171,24 @@ export default function UserHistory({
     if (initialUser) return;
     const name = searchParams.get('name');
     const clientId = searchParams.get('clientId');
-    if (name && clientId) {
-      setSelected({ name, client_id: Number(clientId) });
-      setSelectedRole(null);
+    if (clientId) {
+      if (isStaff) {
+        navigate(`/pantry/client-management/clients/${clientId}`);
+        return;
+      }
+      if (name) {
+        setSelected({ name, client_id: Number(clientId) });
+        setSelectedRole(null);
+      }
     }
-  }, [searchParams, initialUser]);
+  }, [searchParams, initialUser, isStaff, navigate]);
 
   useEffect(() => {
+    if (isStaff) {
+      setRoleLoading(false);
+      setRoleError(null);
+      return;
+    }
     if (!selected) {
       setSelectedRole(null);
       setRoleError(null);
@@ -202,7 +214,7 @@ export default function UserHistory({
       return;
     }
 
-    if (role !== 'staff') {
+    if (!isStaff) {
       setRoleError(null);
       setRoleLoading(false);
       return;
@@ -232,10 +244,10 @@ export default function UserHistory({
     return () => {
       active = false;
     };
-  }, [selected, role, initialUser]);
+  }, [selected, role, initialUser, isStaff]);
 
   useEffect(() => {
-    if (!selected || role !== 'staff' || selectedRole !== 'delivery') {
+    if (!selected || !isStaff || selectedRole !== 'delivery') {
       setActiveDeliveryOrders([]);
       setCompletedDeliveryOrders([]);
       setDeliveryLoading(false);
@@ -287,14 +299,48 @@ export default function UserHistory({
   }, [selected?.client_id, role, selectedRole]);
 
   const handleSelect = (u: User) => {
+    if (isStaff) {
+      navigate(`/pantry/client-management/clients/${u.client_id}`);
+      return;
+    }
     const user = { ...u };
     setSelected(user);
     setSelectedRole(user.role ?? null);
     setRoleError(null);
   };
 
-  const shouldShowRoleSpinner =
-    role === 'staff' && roleLoading && !selectedRole && !!selected;
+  const shouldShowRoleSpinner = isStaff && roleLoading && !selectedRole && !!selected;
+
+  if (isStaff) {
+    return (
+      <>
+        <Box>
+          <Typography variant="h5" gutterBottom>
+            Client history
+          </Typography>
+          <EntitySearch
+            type="user"
+            placeholder="Search by name or client ID"
+            onSelect={u => handleSelect(u as User)}
+            onNotFound={id => {
+              (document.activeElement as HTMLElement | null)?.blur();
+              setPendingId(id);
+            }}
+          />
+        </Box>
+        {pendingId && (
+          <ConfirmDialog
+            message={`Add client ${pendingId}?`}
+            onConfirm={() => {
+              navigate(`/pantry/client-management?tab=add&clientId=${pendingId}`);
+              setPendingId(null);
+            }}
+            onCancel={() => setPendingId(null)}
+          />
+        )}
+      </>
+    );
+  }
 
   return (
     <>
@@ -357,7 +403,7 @@ export default function UserHistory({
                         showUserHeading={!initialUser}
                         retentionNotice="Bookings, cancellations, and visits older than one year are removed from history."
                         renderEditDialog={
-                          role === 'staff'
+                          isStaff
                             ? ({ open, onClose, onUpdated }) => (
                                 <EditClientDialog
                                   open={open}
@@ -372,7 +418,7 @@ export default function UserHistory({
                             : undefined
                         }
                         renderDeleteVisitButton={(b, isSmall, open) =>
-                          role === 'staff' && b.status === 'visited' && !b.slot_id ? (
+                          isStaff && b.status === 'visited' && !b.slot_id ? (
                             <Button
                               key="deleteVisit"
                               onClick={open}
@@ -385,7 +431,7 @@ export default function UserHistory({
                           ) : null
                         }
                       />
-                      {role === 'staff' && selectedRole === 'delivery' && (
+                      {isStaff && selectedRole === 'delivery' && (
                         <Box mt={3}>
                           <Card>
                             <CardHeader
@@ -468,16 +514,6 @@ export default function UserHistory({
             )}
           </Box>
         </Box>
-        {pendingId && (
-          <ConfirmDialog
-            message={`Add client ${pendingId}?`}
-            onConfirm={() => {
-              navigate(`/pantry/client-management?tab=add&clientId=${pendingId}`);
-              setPendingId(null);
-            }}
-            onCancel={() => setPendingId(null)}
-          />
-        )}
       </Box>
       {isClient && <ClientBottomNav />}
       {isVolunteer && <VolunteerBottomNav />}

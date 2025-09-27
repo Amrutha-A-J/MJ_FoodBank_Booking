@@ -23,14 +23,18 @@ export function useUpcomingHolidays(limit?: number): UpcomingHolidayItem[] {
     const end = reginaStartOfDay().add(30, 'day').endOf('day');
 
     const filtered = holidays
-      .map(holiday => ({ ...holiday, date: toDayjs(holiday.date) }))
+      .map(holiday => ({
+        ...holiday,
+        date: toDayjs(holiday.date),
+        originalDate: holiday.date,
+      }))
       .filter(({ date }) => date.isValid() && !date.isBefore(start) && !date.isAfter(end))
       .sort((a, b) => a.date.valueOf() - b.date.valueOf());
 
     const limited = typeof limit === 'number' ? filtered.slice(0, limit) : filtered;
 
-    return limited.map(({ date, reason, ...holiday }, index) => ({
-      key: `${holiday.date}-${index}`,
+    return limited.map(({ date, reason, originalDate }, index) => ({
+      key: `${originalDate ?? date.format('YYYY-MM-DD')}-${index}`,
       label: `${date.format('MMM D (ddd)')} – ${reason?.trim() || 'Holiday'}`,
     }));
   }, [holidays, limit]);
