@@ -34,6 +34,7 @@ describe('EditClientDialog', () => {
       onlineAccess: true,
       hasPassword: true,
       role: 'shopper',
+      bookingsThisMonth: 0,
     });
 
     renderWithProviders(
@@ -61,6 +62,7 @@ describe('EditClientDialog', () => {
       onlineAccess: false,
       hasPassword: false,
       role: 'shopper',
+      bookingsThisMonth: 0,
     });
 
     renderWithProviders(
@@ -88,6 +90,7 @@ describe('EditClientDialog', () => {
       onlineAccess: true,
       hasPassword: true,
       role: 'shopper',
+      bookingsThisMonth: 0,
     });
     (updateUserInfo as jest.Mock).mockResolvedValue(undefined);
 
@@ -125,6 +128,7 @@ describe('EditClientDialog', () => {
       onlineAccess: true,
       hasPassword: true,
       role: 'shopper',
+      bookingsThisMonth: 0,
     });
 
     const user = userEvent.setup();
@@ -175,6 +179,7 @@ describe('EditClientDialog', () => {
       onlineAccess: true,
       hasPassword: true,
       role: 'shopper',
+      bookingsThisMonth: 0,
     });
 
     function Harness() {

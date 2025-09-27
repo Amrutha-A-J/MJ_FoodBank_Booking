@@ -191,6 +191,7 @@ describe('userController', () => {
 
   describe('getUserByClientId', () => {
     it('returns a user profile for staff lookup', async () => {
+      mockGetClientBookingsThisMonth.mockResolvedValueOnce(4);
       (pool.query as jest.Mock).mockResolvedValueOnce({
         rowCount: 1,
         rows: [
@@ -205,6 +206,7 @@ describe('userController', () => {
             password: 'hash',
             consent: true,
             role: 'delivery',
+            bookings_this_month: 2,
           },
         ],
       });
@@ -215,9 +217,10 @@ describe('userController', () => {
       await getUserByClientId(req, res, jest.fn());
 
       expect(pool.query).toHaveBeenCalledWith(
-        expect.stringContaining('FROM clients WHERE client_id = $1'),
+        expect.stringContaining('bookings_this_month'),
         [3],
       );
+      expect(mockGetClientBookingsThisMonth).toHaveBeenCalledWith(3);
       expect(res.json).toHaveBeenCalledWith({
         firstName: 'Jamie',
         lastName: 'Doe',
@@ -229,7 +232,52 @@ describe('userController', () => {
         hasPassword: true,
         consent: true,
         role: 'delivery',
+        bookingsThisMonth: 4,
       });
+    });
+
+    it('falls back to cached bookings when refresh fails', async () => {
+      const warnSpy = jest
+        .spyOn(logger, 'warn')
+        .mockImplementation(() => {});
+      mockGetClientBookingsThisMonth.mockRejectedValueOnce(
+        new Error('refresh failed'),
+      );
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            client_id: 3,
+            first_name: 'Jamie',
+            last_name: 'Doe',
+            email: 'jamie@example.com',
+            phone: '555-0000',
+            address: '123 Main',
+            online_access: true,
+            password: 'hash',
+            consent: true,
+            role: 'delivery',
+            bookings_this_month: 6,
+          },
+        ],
+      });
+
+      const req: any = { params: { clientId: 3 } };
+      const res: any = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+
+      await getUserByClientId(req, res, jest.fn());
+
+      expect(mockGetClientBookingsThisMonth).toHaveBeenCalledWith(3);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ bookingsThisMonth: 6 }),
+      );
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Failed to refresh client bookings this month for %s',
+        3,
+        expect.any(Error),
+      );
+
+      warnSpy.mockRestore();
     });
 
     it('returns 404 when the client cannot be found', async () => {

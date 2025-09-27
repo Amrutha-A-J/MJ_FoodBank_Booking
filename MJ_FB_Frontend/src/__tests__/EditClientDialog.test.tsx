@@ -26,6 +26,7 @@ describe('EditClientDialog', () => {
       onlineAccess: true,
       hasPassword: true,
       role: 'shopper',
+      bookingsThisMonth: 0,
     });
 
     render(<EditClientDialog {...props} />);
@@ -42,6 +43,7 @@ describe('EditClientDialog', () => {
       onlineAccess: false,
       hasPassword: false,
       role: 'shopper',
+      bookingsThisMonth: 0,
     });
 
     render(<EditClientDialog {...props} />);
@@ -58,6 +60,7 @@ describe('EditClientDialog', () => {
       onlineAccess: true,
       hasPassword: true,
       role: 'shopper',
+      bookingsThisMonth: 0,
     });
     (updateUserInfo as jest.Mock).mockResolvedValueOnce(undefined);
 
