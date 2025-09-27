@@ -151,6 +151,82 @@ describe("VolunteerSchedule", () => {
     }
   });
 
+  it('only renders add icon on first open card cell when earlier cells are filled', async () => {
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    const booking = {
+      id: 1,
+      role_id: 1,
+      status: 'approved',
+      date: '2024-01-29',
+      start_time: '09:00:00',
+      end_time: '10:00:00',
+      role_name: 'Greeter',
+      volunteer_id: null,
+    };
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([booking]);
+    (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([booking]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        role_id: 1,
+        name: 'Greeter',
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+        max_volunteers: 3,
+        booked: 2,
+        available: 1,
+        status: 'available',
+        date: '2024-01-29',
+        category_id: 1,
+        category_name: 'Front',
+        is_wednesday_slot: false,
+      },
+    ]);
+    const originalSystemTime = new Date('2024-01-29T19:00:00Z');
+    jest.setSystemTime(new Date('2024-01-29T12:00:00Z'));
+
+    useMediaQueryMock.mockImplementation((query: string) => {
+      if (query.includes('max-width')) {
+        return true;
+      }
+      return actualUseMediaQuery(query);
+    });
+
+    try {
+      renderWithProviders(<VolunteerSchedule />);
+
+      fireEvent.mouseDown(screen.getByLabelText('Department'));
+      fireEvent.click(await screen.findByText('Front'));
+
+      const slotHeader = await screen.findByRole('heading', { name: /9:00 AM/ });
+      const cardContent = slotHeader.closest('.MuiCardContent-root') as HTMLElement;
+      const grid = cardContent.querySelector('[class*="MuiBox-root"]') as HTMLElement;
+      const cells = Array.from(grid.children) as HTMLElement[];
+
+      expect(cells).toHaveLength(3);
+      expect(cells[0]).toHaveTextContent('My Booking');
+
+      expect(
+        cells[0].querySelector('svg[data-testid="AddCircleOutlineIcon"]'),
+      ).toBeNull();
+      expect(
+        cells[2].querySelector('svg[data-testid="AddCircleOutlineIcon"]'),
+      ).not.toBeNull();
+      expect(
+        cells[1].querySelector('svg[data-testid="AddCircleOutlineIcon"]'),
+      ).toBeNull();
+
+      const iconCells = cells.filter((cell) =>
+        cell.querySelector('svg[data-testid="AddCircleOutlineIcon"]'),
+      );
+      expect(iconCells).toHaveLength(1);
+      expect(iconCells[0]).toBe(cells[2]);
+    } finally {
+      useMediaQueryMock.mockImplementation(actualUseMediaQuery);
+      jest.setSystemTime(originalSystemTime);
+    }
+  });
+
   it("disables past days and hides past slots", async () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);

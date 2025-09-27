@@ -400,6 +400,74 @@ describe('PantrySchedule small screen cards', () => {
       matchMediaSpy.mockRestore();
     }
   });
+
+  it('shows add icon on first empty card cell after an approved booking', async () => {
+    (bookingApi.getSlots as jest.Mock).mockResolvedValue([
+      {
+        id: '1',
+        startTime: '09:00:00',
+        endTime: '09:30:00',
+        available: 1,
+        maxCapacity: 3,
+      },
+    ]);
+    (bookingApi.getBookings as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'approved',
+        date: '2024-01-01',
+        slot_id: 1,
+        user_name: 'Booked Person',
+        user_id: 1,
+        client_id: 123,
+        newClientId: null,
+        visits_this_month: 0,
+        approved_bookings_this_month: 0,
+        is_staff_booking: false,
+        reschedule_token: '',
+        profile_link: '',
+      },
+    ]);
+    const matchMediaSpy = jest
+      .spyOn(window, 'matchMedia')
+      .mockImplementation((query: string) => ({
+        matches: true,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      }));
+
+    try {
+      render(
+        <MemoryRouter>
+          <PantrySchedule />
+        </MemoryRouter>,
+      );
+
+      const slotHeader = await screen.findByText('9:00 AM - 9:30 AM');
+      const cardContent = slotHeader.closest('.MuiCardContent-root') as HTMLElement;
+      const grid = cardContent.querySelector('[class*="MuiBox-root"]') as HTMLElement;
+      const cells = Array.from(grid.children) as HTMLElement[];
+
+      expect(cells).toHaveLength(3);
+      expect(cells[0]).toHaveTextContent('Booked Person (123)');
+      expect(
+        cells[0].querySelector('svg[data-testid="AddCircleOutlineIcon"]'),
+      ).toBeNull();
+      expect(
+        cells[1].querySelector('svg[data-testid="AddCircleOutlineIcon"]'),
+      ).not.toBeNull();
+      expect(
+        cells[2].querySelector('svg[data-testid="AddCircleOutlineIcon"]'),
+      ).toBeNull();
+    } finally {
+      matchMediaSpy.mockRestore();
+    }
+  });
 });
 
 describe('PantrySchedule Wednesday evening slot', () => {
