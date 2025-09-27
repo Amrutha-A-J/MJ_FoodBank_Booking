@@ -10,6 +10,7 @@ import {
   removeVolunteerShopperProfile,
   updateVolunteer,
   updateVolunteerTrainedAreas,
+  deleteVolunteer,
 } from '../../../api/volunteers';
 import { requestPasswordReset } from '../../../api/users';
 import type { VolunteerSearchResult } from '../../../api/volunteers';
@@ -28,6 +29,7 @@ jest.mock('../../../api/volunteers', () => ({
   updateVolunteer: jest.fn(),
   createVolunteerShopperProfile: jest.fn(),
   removeVolunteerShopperProfile: jest.fn(),
+  deleteVolunteer: jest.fn(),
 }));
 
 jest.mock('../../../api/users', () => ({
@@ -110,6 +112,7 @@ const renderProfile = () =>
           path="/volunteer-management/volunteers/:volunteerId"
           element={<VolunteerProfile />}
         />
+        <Route path="/volunteer-management" element={<div data-testid="volunteer-search" />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -124,6 +127,7 @@ beforeEach(() => {
   (updateVolunteer as jest.Mock).mockResolvedValue(undefined);
   (createVolunteerShopperProfile as jest.Mock).mockResolvedValue(undefined);
   (removeVolunteerShopperProfile as jest.Mock).mockResolvedValue(undefined);
+  (deleteVolunteer as jest.Mock).mockResolvedValue(undefined);
   (requestPasswordReset as jest.Mock).mockResolvedValue(undefined);
 });
 
@@ -219,5 +223,16 @@ describe('VolunteerProfile', () => {
     await waitFor(() =>
       expect(removeVolunteerShopperProfile).toHaveBeenCalledWith(baseVolunteer.id),
     );
+  });
+
+  it('deletes the volunteer from the profile page', async () => {
+    renderProfile();
+
+    fireEvent.click(await screen.findByRole('button', { name: /delete volunteer/i }));
+
+    fireEvent.click(await screen.findByRole('button', { name: /confirm/i }));
+
+    await waitFor(() => expect(deleteVolunteer).toHaveBeenCalledWith(baseVolunteer.id));
+    await waitFor(() => expect(screen.getByTestId('volunteer-search')).toBeInTheDocument());
   });
 });
