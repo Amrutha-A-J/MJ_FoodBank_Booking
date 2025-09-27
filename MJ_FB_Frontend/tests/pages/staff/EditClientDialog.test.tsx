@@ -26,6 +26,7 @@ describe('EditClientDialog', () => {
       phone: '555-1111',
       onlineAccess: true,
       hasPassword: true,
+      bookingsThisMonth: 0,
     } as any);
   });
 

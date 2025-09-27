@@ -34,6 +34,7 @@ beforeEach(() => {
     onlineAccess: false,
     hasPassword: false,
     role: 'shopper',
+    bookingsThisMonth: 0,
   });
   (requestPasswordReset as jest.Mock).mockResolvedValue(undefined);
 });
@@ -101,6 +102,7 @@ describe('UpdateClientData', () => {
       onlineAccess: true,
       hasPassword: true,
       role: 'shopper',
+      bookingsThisMonth: 0,
     });
 
     render(<UpdateClientData />);
@@ -130,6 +132,7 @@ describe('UpdateClientData', () => {
       onlineAccess: true,
       hasPassword: true,
       role: 'shopper',
+      bookingsThisMonth: 0,
     });
 
     render(<UpdateClientData />);

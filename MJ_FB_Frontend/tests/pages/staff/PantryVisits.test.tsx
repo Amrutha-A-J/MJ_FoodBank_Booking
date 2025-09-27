@@ -62,6 +62,7 @@ describe('PantryVisits record dialog', () => {
       onlineAccess: false,
       hasPassword: false,
       role: 'shopper',
+      bookingsThisMonth: 0,
     } as any);
     addUserMock.mockResolvedValue();
   });

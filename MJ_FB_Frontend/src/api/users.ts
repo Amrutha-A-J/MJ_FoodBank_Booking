@@ -216,6 +216,7 @@ export interface UserByClientId {
   onlineAccess: boolean;
   hasPassword: boolean;
   role: UserRole;
+  bookingsThisMonth?: number;
 }
 
 export async function getUserByClientId(

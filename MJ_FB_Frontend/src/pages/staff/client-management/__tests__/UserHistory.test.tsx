@@ -95,6 +95,7 @@ describe('UserHistory delivery orders', () => {
       onlineAccess: true,
       hasPassword: true,
       role: 'shopper',
+      bookingsThisMonth: 0,
     });
 
     renderWithProviders(
@@ -128,6 +129,7 @@ describe('UserHistory delivery orders', () => {
       onlineAccess: true,
       hasPassword: true,
       role: 'delivery',
+      bookingsThisMonth: 0,
     });
     mockGetDeliveryOrdersForClient.mockResolvedValueOnce([
       {
@@ -203,6 +205,7 @@ describe('UserHistory delivery orders', () => {
       onlineAccess: true,
       hasPassword: true,
       role: 'delivery',
+      bookingsThisMonth: 0,
     });
     mockGetDeliveryOrdersForClient.mockResolvedValueOnce([
       {

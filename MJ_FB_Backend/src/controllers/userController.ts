@@ -404,7 +404,7 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
   try {
     const { clientId } = req.params as unknown as ClientIdParams;
     const result = await pool.query(
-      `SELECT client_id, first_name, last_name, email, phone, address, online_access, password, consent, role
+      `SELECT client_id, first_name, last_name, email, phone, address, online_access, password, consent, role, bookings_this_month
        FROM clients WHERE client_id = $1`,
       [clientId]
     );
@@ -412,6 +412,15 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
       return res.status(404).json({ message: 'User not found' });
     }
     const row = result.rows[0];
+    let bookingsThisMonth = row.bookings_this_month ?? 0;
+    try {
+      const refreshedBookings = await getClientBookingsThisMonth(Number(clientId));
+      if (typeof refreshedBookings === 'number') {
+        bookingsThisMonth = refreshedBookings;
+      }
+    } catch (error) {
+      logger.warn('Failed to refresh client bookings this month for %s', clientId, error);
+    }
     res.json({
       firstName: row.first_name,
       lastName: row.last_name,
@@ -423,6 +432,7 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
       hasPassword: row.password != null,
       consent: row.consent,
       role: row.role,
+      bookingsThisMonth,
     });
   } catch (error) {
     logger.error('Error fetching user by client ID:', error);

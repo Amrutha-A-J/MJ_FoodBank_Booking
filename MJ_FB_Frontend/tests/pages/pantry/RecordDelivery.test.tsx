@@ -145,6 +145,7 @@ describe('RecordDelivery page', () => {
     address: '123 Main St',
     phone: searchResult.phone,
     email: searchResult.email,
+    bookingsThisMonth: 0,
   } as const;
 
   const renderPage = () =>
