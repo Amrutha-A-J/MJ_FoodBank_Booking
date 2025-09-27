@@ -1,4 +1,11 @@
-import { Card, CardContent, Typography, Box } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
 import type { ReactNode } from "react";
 
 interface Cell {
@@ -20,6 +27,8 @@ interface Props {
 
 export default function ScheduleCards({ maxSlots, rows }: Props) {
   const safeMaxSlots = Math.max(1, maxSlots);
+  const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
 
   if (rows.length === 0) {
     return <Typography align="center">No bookings</Typography>;
@@ -36,11 +45,20 @@ export default function ScheduleCards({ maxSlots, rows }: Props) {
                 {row.time}
               </Typography>
               <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${safeMaxSlots}, 1fr)` ,
-                  gap: 1,
-                }}
+                data-testid={`schedule-cells-${idx}`}
+                sx={
+                  isSmall
+                    ? {
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
+                      }
+                    : {
+                        display: "grid",
+                        gridTemplateColumns: `repeat(${safeMaxSlots}, 1fr)`,
+                        gap: 1,
+                      }
+                }
               >
                 {row.cells.map((cell, i) => (
                   <Box
@@ -48,11 +66,14 @@ export default function ScheduleCards({ maxSlots, rows }: Props) {
                     onClick={cell.onClick}
                     sx={{
                       cursor: cell.onClick ? "pointer" : "default",
-                      gridColumn: `span ${cell.colSpan ?? 1}`,
+                      ...(isSmall
+                        ? { width: "100%" }
+                        : { gridColumn: `span ${cell.colSpan ?? 1}` }),
                     }}
                   >
                     <Box
                       sx={{
+                        width: "100%",
                         textAlign: "center",
                         p: 1,
                         backgroundColor: cell.backgroundColor,
@@ -65,9 +86,10 @@ export default function ScheduleCards({ maxSlots, rows }: Props) {
                     </Box>
                   </Box>
                 ))}
-                {Array.from({ length: safeMaxSlots - used }).map((_, i) => (
-                  <Box key={`empty-${i}`} />
-                ))}
+                {!isSmall &&
+                  Array.from({ length: safeMaxSlots - used }).map((_, i) => (
+                    <Box key={`empty-${i}`} />
+                  ))}
               </Box>
             </CardContent>
           </Card>
