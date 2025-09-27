@@ -598,11 +598,12 @@ export default function VolunteerProfile() {
                       onChange={handleRoleChange}
                       label="Roles"
                       data-testid="roles-select"
-                      renderValue={selectedValue => {
-                        const values =
-                          typeof selectedValue === 'string'
-                            ? selectedValue.split(',')
-                            : selectedValue;
+                      renderValue={(selectedValue: string | string[]) => {
+                        const values = Array.isArray(selectedValue)
+                          ? selectedValue
+                          : typeof selectedValue === 'string'
+                          ? selectedValue.split(',')
+                          : [];
                         return values.length ? `${values.length} selected` : 'Select roles';
                       }}
                     >

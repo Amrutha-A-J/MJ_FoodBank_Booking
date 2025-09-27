@@ -7,10 +7,6 @@ import type { VolunteerSearchResult } from '../../../api/volunteers';
 export default function EditVolunteer() {
   const navigate = useNavigate();
 
-  function handleSelect(result: VolunteerSearchResult) {
-    navigate(`/volunteer-management/volunteers/${result.id}`);
-  }
-
   return (
     <PageCard>
       <Stack spacing={2}>
@@ -18,10 +14,13 @@ export default function EditVolunteer() {
         <Typography variant="body2" color="text.secondary">
           Find a volunteer to open their profile, manage roles, and review stats.
         </Typography>
-        <EntitySearch<VolunteerSearchResult>
+        <EntitySearch
           type="volunteer"
           placeholder="Search volunteer"
-          onSelect={handleSelect}
+          onSelect={result => {
+            const volunteer = result as VolunteerSearchResult;
+            navigate(`/volunteer-management/volunteers/${volunteer.id}`);
+          }}
           clearOnSelect
         />
       </Stack>
