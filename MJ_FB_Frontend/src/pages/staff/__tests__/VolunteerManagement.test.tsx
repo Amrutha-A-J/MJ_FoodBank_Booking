@@ -11,12 +11,11 @@ describe('VolunteerManagement tabs', () => {
       </MemoryRouter>,
     );
     const tabs = screen.getAllByRole('tab');
-    expect(tabs).toHaveLength(4);
+    expect(tabs).toHaveLength(3);
     expect(
       screen.getByRole('tab', { name: /search volunteer/i })
     ).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /add/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /delete/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /ranking/i })).toBeInTheDocument();
   });
 });

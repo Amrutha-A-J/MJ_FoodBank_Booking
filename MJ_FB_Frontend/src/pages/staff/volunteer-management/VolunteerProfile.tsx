@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -41,6 +41,7 @@ import {
   removeVolunteerShopperProfile,
   updateVolunteer,
   updateVolunteerTrainedAreas,
+  deleteVolunteer,
   type VolunteerSearchResult,
   type VolunteerStatsByIdResponse,
   type VolunteerMostBookedRole,
@@ -86,6 +87,7 @@ function renderRoleSummary(role: VolunteerMostBookedRole) {
 
 export default function VolunteerProfile() {
   const { volunteerId } = useParams<{ volunteerId: string }>();
+  const navigate = useNavigate();
   const parsedId = volunteerId ? Number(volunteerId) : NaN;
 
   const [loading, setLoading] = useState(true);
@@ -99,6 +101,8 @@ export default function VolunteerProfile() {
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [shopperDialogOpen, setShopperDialogOpen] = useState(false);
   const [removeShopperOpen, setRemoveShopperOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingVolunteer, setDeletingVolunteer] = useState(false);
   const [shopperClientId, setShopperClientId] = useState('');
   const [shopperEmail, setShopperEmail] = useState('');
   const [shopperPhone, setShopperPhone] = useState('');
@@ -107,6 +111,21 @@ export default function VolunteerProfile() {
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<'success' | 'error'>('success');
   const [loadError, setLoadError] = useState('');
+
+  async function handleDeleteVolunteer() {
+    if (!volunteer || deletingVolunteer) return;
+    setDeletingVolunteer(true);
+    try {
+      await deleteVolunteer(volunteer.id);
+      setDeleteDialogOpen(false);
+      navigate('/volunteer-management');
+    } catch (err) {
+      setMessage(getApiErrorMessage(err, 'Unable to delete volunteer'));
+      setSeverity('error');
+    } finally {
+      setDeletingVolunteer(false);
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -544,13 +563,26 @@ export default function VolunteerProfile() {
                       Enable if this volunteer also shops at the pantry.
                     </FormHelperText>
                   </FormControl>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setProfileDialogOpen(true)}
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={1}
                     sx={{ alignSelf: { sm: 'flex-start' } }}
                   >
-                    Edit Volunteer
-                  </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={() => setProfileDialogOpen(true)}
+                    >
+                      Edit Volunteer
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => setDeleteDialogOpen(true)}
+                      disabled={deletingVolunteer}
+                    >
+                      Delete Volunteer
+                    </Button>
+                  </Stack>
                 </Stack>
               </PageCard>
 
@@ -769,6 +801,21 @@ export default function VolunteerProfile() {
           onConfirm={removeShopper}
           onCancel={() => setRemoveShopperOpen(false)}
         />
+      )}
+
+      {deleteDialogOpen && volunteer && (
+        <ConfirmDialog
+          message={`Delete ${volunteer.name}?`}
+          onConfirm={handleDeleteVolunteer}
+          onCancel={() => {
+            if (deletingVolunteer) return;
+            setDeleteDialogOpen(false);
+          }}
+        >
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            This will permanently remove the volunteer and their online access.
+          </Typography>
+        </ConfirmDialog>
       )}
 
       <FeedbackSnackbar
