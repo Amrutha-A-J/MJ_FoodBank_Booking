@@ -60,6 +60,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "../../utils/date";
 import VolunteerBottomNav from "../../components/VolunteerBottomNav";
 import { useAuth } from "../../hooks/useAuth";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 const reginaTimeZone = "America/Regina";
 
@@ -388,6 +389,7 @@ export default function VolunteerSchedule() {
             backgroundColor?: string;
             onClick?: () => void;
           }[] = [];
+          let hasAvailableIcon = false;
           if (myBooking) {
             cells.push({
               content: "My Booking",
@@ -405,8 +407,17 @@ export default function VolunteerSchedule() {
                 backgroundColor: theme.palette.grey[200],
               });
             } else {
+              const showAddIcon = !hasAvailableIcon && !isClosed;
+              if (showAddIcon) {
+                hasAvailableIcon = true;
+              }
               cells.push({
-                content: null,
+                content: showAddIcon ? (
+                  <AddCircleOutlineIcon
+                    color="primary"
+                    sx={{ fontSize: { xs: 32, sm: 36 } }}
+                  />
+                ) : null,
                 onClick: () => {
                   if (!isClosed) {
                     quickBook(slot);
